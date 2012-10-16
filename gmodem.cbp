@@ -24,6 +24,8 @@
 		</Compiler>
 		<Linker>
 			<Add library="pthread" />
+			<Add library="readline" />
+			<Add library="termcap" />
 		</Linker>
 		<Unit filename="common.c">
 			<Option compilerVar="CC" />
@@ -31,9 +33,16 @@
 		<Unit filename="gmodem.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gmodem_call.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_scan.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="vstrutil.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
