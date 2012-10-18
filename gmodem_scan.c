@@ -6,7 +6,7 @@
 #include "vstrutil.h"
 // simple trim
 
-static char *dels=" \t"; // normal string trim-delimiters
+static char *dels=" \t\r\n"; // normal string trim-delimiters
 
 char *trim(char *buf) { // trims left and right?
 int l=strlen(buf);

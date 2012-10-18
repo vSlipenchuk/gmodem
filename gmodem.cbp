@@ -11,6 +11,7 @@
 				<Option object_output="./" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-m /dev/ttyACM0" />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>
@@ -33,7 +34,14 @@
 		<Unit filename="gmodem.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gmodem.h" />
 		<Unit filename="gmodem_call.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_device.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_oper.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="gmodem_scan.c">

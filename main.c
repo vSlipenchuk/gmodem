@@ -3,7 +3,10 @@
 #include <stdlib.h>
 #include "gmodem.h"
 
-char szmodem[80]="/dev/ttyUSB1"; // "/dev/gobi/modem"; //"/dev/modem"; // default modem name
+char szmodem[80]="/dev/modem"; // "/dev/gobi/modem"; //"/dev/modem"; // default modem name
+int no_init = 0;
+char exec_cmd[512]; // exec command
+char on_in_call[512]; // on in call
 
 gmodem Modem,*m=&Modem; // my main modem
 
@@ -38,11 +41,16 @@ return 1; // OK
 }
 
 int gmodem_info(gmodem *g) { // collects and prointf info on a screen
-char imsi[80],imei[80],iccid[80];
-gmodem_At2buf(g,"+cimi",imsi,sizeof(imsi));
-gmodem_At2buf(g,"+cgsn",imei,sizeof(imei));
+char iccid[80];
+
+gmodem_imei(g);
+//printf("begin imsi\n");
+gmodem_imsi(g);
+//printf("done imsi\n");
+//gmodem_At2buf(g,"+cimi",imsi,sizeof(imsi));
+//gmodem_At2buf(g,"+cgsn",imei,sizeof(imei));
 gmodem_At2bufFilter(g,"+ICCID","ICCID",iccid,sizeof(iccid));
-printf("info:{imei:'%s',imsi:'%s',iccid:'%s'}\n",imei,imsi,iccid);
+printf("info:{imei:'%s',imsi:'%s',iccid:'%s'}\n",g->imei,g->imsi,iccid);
 return 1; //ok
 }
 
@@ -97,33 +105,95 @@ telit: moni#,nitz# #snum #i2cwr #sd #ping easyscan-net
 */
 
 
-char on_incoming_call[100]="/home/bin/on_incoming_call";
+
 
 int on_call_state(gmodem *g, int newstate) { // called before new state fires
 printf("MODEM[%ld]: newstate: %d\n",g->now,newstate);
-if (newstate == callPresent) {
-  char buf[1024];
-  snprintf(buf,sizeof(buf),"%s %s",on_incoming_call,g->o.num);
+if (newstate == callPresent && on_in_call[0]) { // incoming call, number collected
+  char buf[100];
+  snprintf(buf,sizeof(buf),"%s %s",on_in_call,g->o.num);
   system(buf); // call it!!!
   }
 return 0; // do nothing
 }
 
-int main() {
+
+#include <getopt.h>
+
+char szVersion[20];
+
+void usage(char *name) {
+fprintf(stderr,"usage: %s version %s\n"
+        "\t-h print this message\n"
+        "\t-m <modem>  or ---modem=<modem> (default: /dev/modem)\n"
+        "\t-o <0|1>    or --no-init=<0|1>  (defult:0)\n"
+        "\t-e <cmd>    or --exec=<command>\n"
+        "\t-i <runcmd> or --on_in_call=<shell_command>\n"
+        ,name,szVersion);
+}
+
+#include "vstrutil.h"
+
+void parse_options(int argc,char **argv) {
+int optIdx = 0, c=0;
+sprintf(szVersion,"%d.%d.%d.%d",gmodem_version);
+while (1){
+  static struct option long_opt[] = {
+                    {"help",  0, 0, 'h'},
+                    {"modem", 1, 0, 'm'},
+                    {"no-init",1,0, 'o'},
+                    {"exec",   1,0, 'e'},
+                    {"on_in_call",   1,0, 'i'},
+                    {0,0,0,0}
+                   };
+  if((c = getopt_long(argc, argv, "m:h:o:e:i", long_opt, &optIdx)) == -1)
+   break;
+
+  switch( c ){
+     case 'h':
+          usage(argv[0]);
+          exit(-1);
+     case 'm':
+          //printf("option 'm' selected, filename: %s\n", optarg);
+          strcpy(szmodem,optarg);
+          //return(1);
+          break;
+     case 'o':
+           no_init = atoi(optarg);
+           break;
+     case 'i':
+           strNcpy(on_in_call,optarg);
+           break;
+     case 'e':
+            strNcpy(exec_cmd,optarg);
+            break;
+     default:
+          usage(argv[0]);
+          exit(-1);
+   }
+ }
+}
+
+int main(int argc, char **argv) {
+    parse_options(argc,argv);
+
     //m->on_data = g_on_data; // print letters on a screen
     m->on_line = g_on_line; // when a line here
     if (gmodem_init(m,szmodem)<=0) {
-       fprintf(stderr,"fail open %s\n",szmodem);
+       fprintf(stderr,"%s :: fail open %s. try --help for options\n",argv[0],szmodem);
        return 1;
        }
     m->o.on_call_state = on_call_state;
     fprintf(stderr,"gmodem %s opened ok\n",szmodem);
-    gmodem_clear(m,1000);
-    gmodem_echo_off(m);
-    gmodem_clip_on(m);
-    gmodem_At(m,"+creg=2"); // register & report of changes
+    if (! no_init) {
+     gmodem_clear(m,1000);
+     gmodem_echo_off(m);
+     gmodem_info(m);
+     gmodem_clip_on(m);
+     gmodem_At(m,"+creg=2"); // register & report of changes
+     }
     //gmodem_info(m); // callit ???
-    fprintf(stderr,"gmodem '%s' cleared and ready (info|console)\n",szmodem);
+    fprintf(stderr,"gmodem '%s' cleared and ready (info|console|+clac|balance|pppd)\n",szmodem);
     while(1) {
        int cnt=0;
        if (m->f.eof) {
@@ -150,10 +220,27 @@ int main() {
                gmodem_info(m);
                continue;
               }
+           if (lcmp(&c,"pin")) {
+                gmodem_pin(m,c);
+                continue;
+              }
+           if (lcmp(&c,"dial")) {
+               int code = gmodem_dial(m,c); // start dial???
+               printf("Dial start code=%d\n",code);
+               continue;
+              }
            if (lcmp(&c,"console")) { // console mode start
                fprintf(stderr,"console mode here, ESC to return back\n");
                m->f.console=1; //
                continue;
+              }
+            if(lcmp(&c,"balance")) {
+              gmodem_balance(m);
+              continue;
+              }
+            if (lcmp(&c,"pppd")) {
+              gmodem_pppd(m,c);
+              continue;
               }
             if (lcmp(&c,"ussd")) {
                gmodem_ussd(m,c);
