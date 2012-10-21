@@ -38,6 +38,9 @@
 		<Unit filename="gmodem_call.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gmodem_cmd.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="gmodem_device.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -18,8 +18,10 @@ printf(">%*.*s",len,len,buf); // just print on a screen!!!
 return 0;
 }
 
+int intmode=0; // interactive???
+
 int g_on_line(gmodem *g,char *buf,int len,int code) { // when lines completes
-    if (len>0) printf("{%s}[%d]\n",buf,g->res);
+    if (len>0 && ( intmode || g->logLevel>2)) printf("{%s}[%d]\n",buf,g->res);
 return 0; // do as ypu want
 }
 
@@ -40,27 +42,7 @@ free(g);
 return 1; // OK
 }
 
-int gmodem_info(gmodem *g) { // collects and prointf info on a screen
-char iccid[80];
 
-gmodem_imei(g);
-//printf("begin imsi\n");
-gmodem_imsi(g);
-//printf("done imsi\n");
-//gmodem_At2buf(g,"+cimi",imsi,sizeof(imsi));
-//gmodem_At2buf(g,"+cgsn",imei,sizeof(imei));
-gmodem_At2bufFilter(g,"+ICCID","ICCID",iccid,sizeof(iccid));
-printf("info:{imei:'%s',imsi:'%s',iccid:'%s'}\n",g->imei,g->imsi,iccid);
-return 1; //ok
-}
-
-int lcmp(char **s,char *cmd) {
-int l=strlen(cmd);
-if (memcmp(*s,cmd,l)!=0) return 0;
-(*s)+=l;
-while ( (*s)[0]==32 ) (*s)++;
-return 1;
-}
 
 /*
  http://we.easyelectronics.ru/part/gsm-gprs-modul-sim900-chast-vtoraya.html
@@ -126,7 +108,7 @@ void usage(char *name) {
 fprintf(stderr,"usage: %s version %s\n"
         "\t-h print this message\n"
         "\t-m <modem>  or ---modem=<modem> (default: /dev/modem)\n"
-        "\t-o <0|1>    or --no-init=<0|1>  (defult:0)\n"
+        "\t-o          or --no-init\n"
         "\t-e <cmd>    or --exec=<command>\n"
         "\t-i <runcmd> or --on_in_call=<shell_command>\n"
         ,name,szVersion);
@@ -141,13 +123,15 @@ while (1){
   static struct option long_opt[] = {
                     {"help",  0, 0, 'h'},
                     {"modem", 1, 0, 'm'},
-                    {"no-init",1,0, 'o'},
+                    {"no-init",0,0, 'o'},
                     {"exec",   1,0, 'e'},
                     {"on_in_call",   1,0, 'i'},
                     {0,0,0,0}
                    };
-  if((c = getopt_long(argc, argv, "m:h:o:e:i", long_opt, &optIdx)) == -1)
+  if((c = getopt_long(argc, argv, "m:h:oe:i", long_opt, &optIdx)) == -1) {
+      //printf("Done, index=%d optopt=%d\n",optIdx,optind);
    break;
+  }
 
   switch( c ){
      case 'h':
@@ -159,7 +143,7 @@ while (1){
           //return(1);
           break;
      case 'o':
-           no_init = atoi(optarg);
+           no_init = 1; //atoi(optarg);
            break;
      case 'i':
            strNcpy(on_in_call,optarg);
@@ -174,8 +158,11 @@ while (1){
  }
 }
 
+int set_echo(int echo);
+
 int main(int argc, char **argv) {
     parse_options(argc,argv);
+    //printf("Done parse\n");
 
     //m->on_data = g_on_data; // print letters on a screen
     m->on_line = g_on_line; // when a line here
@@ -184,7 +171,7 @@ int main(int argc, char **argv) {
        return 1;
        }
     m->o.on_call_state = on_call_state;
-    fprintf(stderr,"gmodem %s opened ok\n",szmodem);
+    //fprintf(stderr,"gmodem %s opened ok\n",szmodem);
     if (! no_init) {
      gmodem_clear(m,1000);
      gmodem_echo_off(m);
@@ -192,6 +179,19 @@ int main(int argc, char **argv) {
      gmodem_clip_on(m);
      gmodem_At(m,"+creg=2"); // register & report of changes
      }
+    int i; for(i=optind;i<argc;i++) { // process all commands one-by one
+        char *cmd = argv[i];
+        gmodem_echo_off(m);
+        gmodem_run2(m);
+        m->out[0]=0;
+        if (strcmp(cmd,"exit")==0) exit(0); // OK
+        int ok = gmodem_cmd(m,cmd);
+        if (ok<=0) {
+             fprintf(stderr,"gmodem fail[%d] exec '%s'. abort.\n",ok,cmd);
+             exit(1); // fail
+             }
+        printf("%s\n",m->out); // auto-mode
+        }
     //gmodem_info(m); // callit ???
     fprintf(stderr,"gmodem '%s' cleared and ready (info|console|+clac|balance|pppd)\n",szmodem);
     while(1) {
@@ -203,27 +203,39 @@ int main(int argc, char **argv) {
        cnt= gmodem_run2(m); // And - check time-outs
        if (cnt==0) msleep(100); // not 100% CPU
        if (kbhit2()) { // run at command here
-           char buf[80],*c=buf;
+           char buf[256],*c=buf;
            if (m->f.console) {
                char ch = getc(stdin);
                //printf("ch=%d\n",ch);
                if (ch==27) {
                    fprintf(stderr,"done console mode\n");
+                   set_echo(0);
                    m->f.console=0;
                    continue;
-                  } else   gmodem_put(m,&ch,1);
+                  } else if (ch =='\n')
+                     gmodem_put(m,gmodem_crlf(m),-1);
+                  else   gmodem_put(m,&ch,1);
 
               } else {
                 gets_buf2(buf,sizeof(buf));
            if (buf[0]==0 || 0==strcmp(buf,"exit") || 0==strcmp(buf,"quit")) break;
-           if (lcmp(&c,"info")) {
-               gmodem_info(m);
-               continue;
+
+           int ok;
+           m->out[0]=0;
+           ok = gmodem_cmd(m,c);
+           if (ok) {
+              printf("{%d}{%s} result for {%s}\n",ok,m->out,buf);
+              continue;
               }
            if (lcmp(&c,"pin")) {
                 gmodem_pin(m,c);
                 continue;
               }
+            if (lcmp(&c,"logLevel")) {
+                if (*c=='=') c++;
+                sscanf(c,"%d",&m->logLevel);
+                continue;
+               }
            if (lcmp(&c,"dial")) {
                int code = gmodem_dial(m,c); // start dial???
                printf("Dial start code=%d\n",code);
@@ -231,24 +243,15 @@ int main(int argc, char **argv) {
               }
            if (lcmp(&c,"console")) { // console mode start
                fprintf(stderr,"console mode here, ESC to return back\n");
+               set_echo(1);
                m->f.console=1; //
                continue;
               }
-            if(lcmp(&c,"balance")) {
-              gmodem_balance(m);
-              continue;
-              }
-            if (lcmp(&c,"pppd")) {
-              gmodem_pppd(m,c);
-              continue;
-              }
-            if (lcmp(&c,"ussd")) {
-               gmodem_ussd(m,c);
-               continue;
-              }
-           gmodem_At(m,buf); // call At cmd
+             printf("unknown command, skip: %s\n",c);
              }
           }//int gmodem_At2buf(gmodem *g,char *cmd,char *out, int size) {
        }
+// restore console???
+set_echo(1);
 return 0;
 }

@@ -9,8 +9,10 @@
 
 gsm_operator gsm_operators[]={
     {
-      .name="unknown"
+      .name="GSM"
     },
+{ .name="RTK",.imsi="2500168",.ussd_balance="#100#",  .gprs_num="*99#",.apn="mts/mts@m2m.msk"  },
+
    {
      .name="MTS",.imsi="25001",.ussd_balance="#100#",
      .gprs_num="*99***1#",.apn="mts/mts@internet.mts.ru"

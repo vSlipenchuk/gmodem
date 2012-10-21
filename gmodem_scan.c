@@ -37,3 +37,22 @@ return buf;
 }
 
 
+int lcmp(char **s,char *cmd) {
+int l=strlen(cmd);
+if (memcmp(*s,cmd,l)!=0) return 0;
+(*s)+=l;
+while ( (*s)[0]==32 ) (*s)++;
+return 1;
+}
+
+
+/// -- normal scan begins -----
+
+int gmodem_scan2(char *str, char *fmt, ... ) { // d s h ...
+char buf[256]; int r=0;
+strNcpy(buf,str); str=buf; // make local copy
+while(*fmt) {
+//
+  }
+return r; // scanned fields
+}

@@ -4,7 +4,8 @@
 #include "../vos/vos.h"
 
 
-#define gmodem_version 0,0,0,1
+#define gmodem_version 0,0,0,2
+// 0.0.0.2 - add draft for at+crsm (cnum,iccid,...)
 
 /*
     gsm modem over serial line
@@ -76,11 +77,16 @@ typedef struct {
     //
     char imsi[16]; // updated by gmodem_imsi
     char imei[20]; // sgsn updated by gmodem_imei
+    char iccid[24]; //
+    char cnum[25]; // owner number EF_MSISDN
     struct _gsm_operator *oper; // ref to network
     struct _gsm_device   *dev;  // ref to device
     //
     unsigned long now; // its a time os_ticks returned
     char cusd[80]; // response of cusd
+    //
+    int logLevel; // level of logging
+    char out[256]; // errors & string results here
 } gmodem;
 
 
@@ -111,10 +117,12 @@ int gmodem_pin(gmodem *g,char *pin); // check pins & enter pin & wait for IMSI
 
 
 typedef struct _gsm_operator {
- char *name; char imsi[6]; // name & mcc[3]+mnc[2]+zero
+ char *name; char *imsi; // name & mcc[3]+mnc[2]+zero
  char *gprs_num, *apn; //  gprs dial number & apn
  char *ussd_balance; // call for ussd balance string
  } gsm_operator;
+
+extern gsm_operator gsm_operators[];
 
 int gmodem_imsi(gmodem *g) ; // when define imsi - we can start to definde network
 int gmodem_balance(gmodem *g); // send USSD based on imsi?
@@ -127,5 +135,13 @@ typedef struct _gsm_device {
 
 int gmodem_imei(gmodem *g);
 char *gmodem_crlf(gmodem *g);
+int gmodem_cnum(gmodem *g); // try read cnum from a rsim?
+
+// all cmd commands
+
+
+
+int gmodem_info(gmodem *g) ;
+int gmodem_cmd(gmodem *g,char *cmd);
 
 #endif // GMODEM_H_INCLUDED

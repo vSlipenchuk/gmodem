@@ -43,7 +43,7 @@ return (*buf==0) && (*fmt==0); // not match
 
 int g_modem_do_line(gmodem *g,char *buf,int ll) { // call processing
 int code=0; char *cmd = buf;
-//printf("L<%s>\n",buf);
+ if (g->logLevel>3) printf("L<%s>\n",buf);
 if (lcmp(&cmd,"RING") && g->o.state == callNone ) { // we have ring indicator?
   gmodem_set_call_state(g,callRing);
   return 1;
@@ -64,8 +64,10 @@ if (g->o.state == callRing && lcmp(&cmd,"+CLIP:")) {
   }
 
 // status codes - changes flow
-char *szCode[]={"OK","CONNECT","ERROR","+CME ERROR","BUSY","NO CARRIER","NO DIAL TONE",0};
-int   g_codes[]={g_ok,g_connect,g_error,g_error,g_busy,g_no_carrier,g_no_dial_tone};
+char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR",
+     "BUSY","NO CARRIER","NO DIAL TONE",0};
+int   g_codes[]={g_ok,g_connect,g_error,g_error,g_error,
+      g_busy,g_no_carrier,g_no_dial_tone};
 int i; for(i=0;szCode[i];i++) if (lcmp(&cmd,szCode[i])) { code=g_codes[i]; break ;}
 if (code<0 && g->o.state) { // have active call and reports from a network found
     g->o.release_request=code;
@@ -130,13 +132,14 @@ if (g->f.eof) return 0;
 if (len<0) len=strlen(out);
 int r = s->p->write(s->handle,out,len);
 if (r<=0) { g->f.eof=1; return 0; } ; //error!
+//printf("PUT:{%d}",r);
 return 1;
 }
 
 int gmodem_At(gmodem *g,char *cmd) {
-char buf[120];
-//char buf[10];
- //return gmodem_At2buf(g,cmd,buf,sizeof(buf)-1);
+//char buf[120];
+char buf[10];
+return gmodem_At2buf(g,cmd,0,0);
 
 
 
@@ -145,7 +148,7 @@ char buf[120];
 //sprintf(buf,"at%s\n",cmd);
 //crlf=1;
 //printf("at crlf:%d\n",crlf);
-sprintf(buf,"at%s%s",cmd,gmodem_crlf(g)); //(crlf==3?"\r\n":"\n"));
+sprintf(buf,"AT%s%s",cmd,gmodem_crlf(g)); //(crlf==3?"\r\n":"\n"));
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
 g->res = 0;
 while (g->res == 0) {
@@ -169,13 +172,14 @@ return g->f.c1;
 }
 
 int gmodem_At2buf(gmodem *g,char *cmd,char *out, int size) {
-void *proc;
+int (*proc)();
 char buf[256];
 int lineno=0;
-gmodem_echo_off(g); // check off echo
+//gmodem_echo_off(g); // check off echo
 g->res = 0;
  memset(out,0,size); size--;
  int on_line(gmodem *g,char *line,int len,int code) {
+     if (proc) proc(g,line,len,code); // call prev
      if (len<=0) return 0; // ignore
      if (code==0 && size>0) { // my line, have a buffer
          if (lineno>0) { *out='\n'; out++; size--;};
@@ -319,24 +323,25 @@ return -1;
 int gmodem_imsi(gmodem *g) { // when define imsi - we can start to definde network
 char imsi[80];
 imsi[0]=0;
-printf("off echo1\n");
+//printf("off echo1\n");
 gmodem_echo_off(g);
-printf("off echo2, check a pin...\n");
+//printf("off echo2, check a pin...\n");
 if (gmodem_pin(g,0)!=1) {
-    printf("Pin not ready yet\n");
-    return 0;
+    sprintf(g->out,"[pin-not-ready]");
+    return -1;
    }
 gmodem_At2buf(g,"+cimi",imsi,sizeof(imsi));
-printf("strlen(imsi)=%d IMSI:<%s>\n",strlen(imsi),imsi);
+//printf("strlen(imsi)=%d IMSI:<%s>\n",strlen(imsi),imsi);
 if (strlen(imsi)!=15) return 0; // its is not stupid-style ^), some garbage really returns by SIM-EMU
 strNcpy(g->imsi,imsi);
-printf("IMSI:%s\n",g->imsi);
+//printf("IMSI:%s\n",g->imsi);
 // and now - reset operator
-extern gsm_operator gsm_operators[];
 g->oper = gsm_operators; // first is default
 gsm_operator *op;
-for(op=gsm_operators+1;op->name;op++) if (memcmp(op->imsi,g->imsi,5)==0) { g->oper=op; break; }
-printf("Found oper:%s for imsi: %s\n",g->oper->name,g->imsi);
+for(op=gsm_operators+1;op->name;op++)
+  if (memcmp(op->imsi,g->imsi,strlen(op->imsi))==0) { g->oper=op; break; }
+//printf("Found oper:%s for imsi: %s\n",g->oper->name,g->imsi);
+strcpy(g->out,g->imsi);
 return 1;
 }
 
@@ -346,12 +351,13 @@ imei[0]=0;
 gmodem_At2buf(g,"+cgsn",imei,sizeof(imei));
 //if (strlen(imsi)!=15) return 0; // its is not stupid-style ^), some garbage really returns by SIM-EMU
 strNcpy(g->imei,imei);
-printf("IMEI:%s\n",g->imei);
+strNcpy(g->out,g->imei);
+//printf("IMEI:%s\n",g->imei);
 extern gsm_device gsm_devices[];
 g->dev = gsm_devices; // default = first
 gsm_device *dev;
 for(dev=gsm_devices+1;dev->name;dev++) if (memcmp(dev->imei,g->imei,strlen(dev->imei))==0 ) {g->dev=dev; break; }
-printf("Found dev:%s for imei:%s crlf:%d\n",g->dev->name,g->imei,g->dev->crlf);
+//printf("Found dev:%s for imei:%s crlf:%d\n",g->dev->name,g->imei,g->dev->crlf);
 return 1;
 }
 
@@ -361,7 +367,7 @@ char cpin[80];
 int ok;
  cpin[0]=0;
  gmodem_At2bufFilter(g,"+CPIN?","+CPIN",cpin,sizeof(cpin));
- printf("cpin state: <%s>\n",cpin);
+ //printf("cpin state: <%s>\n",cpin);
 int ready =  strcmp(cpin,"READY")==0;
 if (!pin) return ready; // just report it
  // now - 'READY' is OK
@@ -443,7 +449,8 @@ extern int system(char *cmd);
 int code = system(buf);
 //system("pppd  /dev/ttyACM0 nodetach debug user \"beeline\" password \"beeline\""); /// Ну почти заработало?
 // whell - need to do it on other thread...
-printf("PPPD DONE code=%d\n",code);
+sprintf(g->out,"pppd:%d",code);
+//printf("PPPD DONE code=%d\n",code);
 
 // now - wait for that... and run system(pppd)???
 //return gmodem_ussd(g,num);

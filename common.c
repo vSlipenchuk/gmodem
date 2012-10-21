@@ -23,18 +23,25 @@ vstream_proc vstream_com_procs = {
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#define STDIN 0
+
+void set_echo(int echo) {
+        struct termios term;
+        tcgetattr(STDIN, &term);
+        if (!echo) term.c_lflag &= ~(ICANON | ECHO);
+           else  { term.c_lflag &= ~(ICANON);  term.c_lflag |=  ECHO;}
+       // term.
+        tcsetattr(STDIN, TCSANOW, &term);
+        setbuf(stdin, NULL);
+}
+
 int kbhit2() {
-    static const int STDIN = 0;
+
     static int initialized = 0;
 
     if (! initialized) {
         // Use termios to turn off line buffering
-        struct termios term;
-        tcgetattr(STDIN, &term);
-        term.c_lflag &= ~(ICANON | ECHO);
-       // term.
-        tcsetattr(STDIN, TCSANOW, &term);
-        setbuf(stdin, NULL);
+        set_echo(0);
         initialized = 1;
         //noecho(); // curses
     }
@@ -45,23 +52,9 @@ int kbhit2() {
 }
 
 int gets_buf2(char *buf,int sz) {
-static const int STDIN = 0;
-    struct termios term;
-    tcgetattr(STDIN, &term);
-    term.c_lflag &= ~(ICANON);
-    term.c_lflag |=  ECHO;
-       // term.
-    tcsetattr(STDIN, TCSANOW, &term);
-    setbuf(stdin, NULL);
-
+set_echo(1);
 char *g = readline(""); // read, no prompt
-
-
-     term.c_lflag &= ~(ECHO);
-       // term.
-    tcsetattr(STDIN, TCSANOW, &term);
-    setbuf(stdin, NULL);
-
+set_echo(0);
 if (!g)  { *buf=0;return 0; }  // eof
 int l = strlen(g);
 if (l>=sz-1) l = sz-1;
