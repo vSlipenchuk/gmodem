@@ -43,13 +43,14 @@ return (*buf==0) && (*fmt==0); // not match
 
 int g_modem_do_line(gmodem *g,char *buf,int ll) { // call processing
 int code=0; char *cmd = buf;
- if (g->logLevel>3) printf("L<%s>\n",buf);
+ if (g->logLevel>5) printf("L<%s>\n",buf);
 if (lcmp(&cmd,"RING") && g->o.state == callNone ) { // we have ring indicator?
   gmodem_set_call_state(g,callRing);
   return 1;
   }
 if (lcmp(&cmd,"+CUSD:")) { // CUSD responce ???
   strNcpy(g->cusd,cmd);
+  if (g->parent) strcpy(g->parent->cusd,g->cusd);
      // on_cusd ?
   return 1;
   }
@@ -110,7 +111,18 @@ if (g->f.eof) return 0; // NO!
 g->now = os_ticks();
 if (g->in_len>=0 && sz>0) r = s->p->peek(s->handle,g->in+g->in_len,sz); // if can read - do it
 if (r>0) { // yes, read !
-  g->in_len+=r;  g->in[g->in_len]=0; // correct it
+  char *dat = g->in+g->in_len; // data_starts
+  g->in_len+=r;  g->in[g->in_len]=0; // correct collected buffer
+  if (g->bin) { // we have binary data ready to send, need '>' in a stream
+       int i; for(i=0;i<r;i++) if (dat[i]=='>') break;
+       if (dat[i]=='>') { // ok  - have to flash binary data
+          char chZ=26,*bin=g->bin;
+          g->bin=0;
+          //printf("ZUZKA : FOUND '>' flash a binary %s\n",bin);
+          gmodem_put(g,bin,strlen(bin));
+          gmodem_put(g,&chZ,1);
+          }
+      }
   if (g->on_data) g->on_data(g,g->in+g->in_len-r,r); // raport
   while (gmodem_do_lines(g)); // process line by line
   //printf("*%*.*s",r,r,buf); // just print on a screen!!!
@@ -119,8 +131,15 @@ if (r>0) { // yes, read !
   if (r<0) g->f.eof=1; // EOF!
   g->f.idle++;
   }
-
+if (g->mon)  cnt+=gmodem_run(g->mon); // run monitor as well
 return cnt;
+}
+
+int gmodem_setLogLevel(gmodem *g,int logLevel) {
+g->logLevel=logLevel;
+if (g->mon) g->mon->logLevel = logLevel;
+sprintf(g->out,"logLevel=%d now",g->logLevel);
+return 1;
 }
 
 
@@ -195,6 +214,7 @@ g->res = 0;
  }
 //int crlf=3; if (g->dev) crlf=g->dev->crlf;
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
+if (g->logLevel>3) printf("gmodem_send: at%s<crlf>\n",cmd);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
 proc=g->on_line;
 g->on_line = on_line;
@@ -297,21 +317,51 @@ return 1; // ok ? anyway?
 // 0,"normal text",64  -- Beeline answer
 #include "../vos/vos.h"
 
+//int gsm7_code(unsigned int offset, int max_out, unsigned char *input,
+	//	   unsigned char *output, unsigned int *get_len, int maxLen);
+int bin2hex(uchar *d,uchar *s,int len) {
+int i;for(i=0;i<len;i++,s++,d+=2) sprintf(d,"%02X",*s);
+return len*2;
+}
+
 int gmodem_ussd(gmodem *g,char *str) { // call string
 char buf[1024];
-sprintf(buf,"+CUSD=1,\"%s\",15",str);
-if (gmodem_At(g,buf)<=0) return 0; // fail
+int mode7 = 1;
+
+if (mode7) { // 7bit mode for string - E1550
+  char numbin[100],num[100]; int len=0;
+  int l = gsm7_code(0,sizeof(num),str,numbin,&len,strlen(str));
+  //printf("gsm_code=%d len=%d\n",l,len);
+  //hexdump("1",numbin,len);
+  //hexdump("2",numbin,l);
+  bin2hex(num,numbin,len);
+  sprintf(buf,"+CUSD=1,%s,15",num);
+  } else {
+ sprintf(buf,"+CUSD=1,\"%s\",15",str);
+  }
+if (gmodem_At(g,buf)<=0) {
+    printf("ussd failed\n");
+    return 0; // fail
+    }
 int i;
 g->cusd[0]=0;
 for(i=0;i<30000;i+=100) {
   gmodem_run(g);
   if (g->cusd[0]) {
         char *cmd = g->cusd,*txt;
+        //printf("1>%s\n",cmd);
         get_till(&cmd,",");
+        //printf("2>%s\n",cmd);
           txt=get_till(&cmd,",");
+        //printf("Q>%s\n",cmd);
            txt=str_unquote(txt);
-        printf("CUSD result: %s\n",txt);
-        return 1; // found
+        if (g->logLevel>2) printf("CUSD result: %s\n",txt);
+        int l = hexstr2bin(txt,txt,-1);
+        char buf[512];
+        gsm2utf(buf,txt,l);
+        if (g->logLevel>1) printf("USSD_TEXT:%s\n",buf);
+        strNcpy(g->out,buf);
+        return 1; // OK
         }
   usleep(100*1000);
   }
@@ -392,6 +442,7 @@ return -3;
 }
 
 int gmodem_balance(gmodem *g) {
+   // printf("run balance\n");
 char *num=0; // default USSD balance number
 if (!g->imsi[0]) gmodem_imsi(g); // update imsi of not yet
 gsm_operator *o = g->oper;
@@ -400,6 +451,7 @@ if (!num) {
     printf("balance undefined or operator unknown\n");
     return 0;
   }
+if (g->logLevel>2) printf("begin ussd %s\n",num);
 return gmodem_ussd(g,num);
 }
 
@@ -444,7 +496,8 @@ if (opt && *opt) {
   sprintf(buf+strlen(buf)," %s",opt);
   }
 printf("Start exec: %s\n",buf);
-extern int system(char *cmd);
+
+//extern int system(char *cmd);
 
 int code = system(buf);
 //system("pppd  /dev/ttyACM0 nodetach debug user \"beeline\" password \"beeline\""); /// Ну почти заработало?

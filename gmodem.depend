@@ -1,0 +1,128 @@
+# depslib dependency file v1.0
+1402577635 source:/mnt/c/prj/gmodem/common.c
+	"gmodem.h"
+	"../vos/vos_com_linux.c"
+	"../vos/vos_linux_kbhit.c"
+	"../vos/vos.c"
+	"../vos/coders.c"
+	"../vos/strutil.c"
+	"../vos/hexdump.c"
+	<string.h>
+	"curses.h"
+	<readline/readline.h>
+	<readline/history.h>
+
+1402582437 /mnt/c/prj/gmodem/gmodem.h
+	"../vos/vos.h"
+
+1402319442 /mnt/c/prj/vos/vos.h
+	"vtypes.h"
+	<fcntl.h>
+	<netdb.h>
+	<sys/stat.h>
+	<sys/socket.h>
+	<windows.h>
+	<unistd.h>
+
+1400828470 /mnt/c/prj/vos/vtypes.h
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<time.h>
+
+1400828435 /mnt/c/prj/vos/vos_com_linux.c
+	"vos.h"
+	"stdio.h"
+	"unistd.h"
+	"fcntl.h"
+	"sys/ioctl.h"
+	"sys/types.h"
+	<termios.h>
+
+1400828435 /mnt/c/prj/vos/vos_linux_kbhit.c
+	"vos.h"
+	<termios.h>
+	<stropts.h>
+	<stdio.h>
+	<sys/ioctl.h>
+
+1402310288 /mnt/c/prj/vos/vos.c
+	"vos.h"
+	"pthread.h"
+	"stdlib.h"
+	"unistd.h"
+	<sys/time.h>
+	<stdio.h>
+	<sys/resource.h>
+
+1402590550 source:/mnt/c/prj/gmodem/gmodem.c
+	"gmodem.h"
+	<string.h>
+	<stdio.h>
+	"vstrutil.h"
+	"vstrutil.h"
+	"../vos/vos.h"
+
+1400828494 /mnt/c/prj/gmodem/vstrutil.h
+	<string.h>
+
+1400828363 source:/mnt/c/prj/gmodem/gmodem_call.c
+	"gmodem.h"
+	<stdio.h>
+	"vstrutil.h"
+
+1400828363 source:/mnt/c/prj/gmodem/gmodem_device.c
+	"gmodem.h"
+
+1402590329 source:/mnt/c/prj/gmodem/gmodem_oper.c
+	"gmodem.h"
+
+1402577737 source:/mnt/c/prj/gmodem/gmodem_scan.c
+	"gmodem.h"
+	"vstrutil.h"
+
+1402590496 source:/mnt/c/prj/gmodem/main.c
+	<stdio.h>
+	<stdlib.h>
+	"gmodem.h"
+	<unistd.h>
+	<readline/readline.h>
+	<readline/history.h>
+	<getopt.h>
+	"vstrutil.h"
+
+1400836812 source:/mnt/c/prj/gmodem/gmodem_cb.c
+	"gmodem.h"
+
+1402581888 source:/mnt/c/prj/gmodem/gmodem_cmd.c
+	"gmodem.h"
+	"vstrutil.h"
+	<stdio.h>
+	"gsm_sim.h"
+	"vstrutil.h"
+
+1400828363 /mnt/c/prj/gmodem/gsm_sim.h
+
+1402578493 source:/mnt/c/prj/gmodem/gmodem_sms.c
+	"gmodem.h"
+	"coders.h"
+	<stdarg.h>
+	"vos.h"
+
+1402571146 /mnt/c/prj/vos/coders.h
+	"vtypes.h"
+
+1402578000 source:/mnt/c/prj/gmodem/sms_codec.c
+	"coders.h"
+
+1402573361 /mnt/c/prj/vos/coders.c
+	"coders.h"
+	<stdarg.h>
+
+1402569115 /mnt/c/prj/vos/hexdump.c
+	"coders.h"
+
+1402416523 /mnt/c/prj/vos/strutil.c
+	"coders.h"
+	<stdarg.h>
+

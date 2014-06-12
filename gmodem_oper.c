@@ -12,6 +12,7 @@ gsm_operator gsm_operators[]={
       .name="GSM"
     },
 { .name="RTK",.imsi="2500168",.ussd_balance="#100#",  .gprs_num="*99#",.apn="mts/mts@m2m.msk"  },
+{ .name="RT-Mobile", .imsi="25039", .ussd_balance="*102#",  .gprs_num="*99***1#",.apn="/@internet.rt.ru"  },
 
    {
      .name="MTS",.imsi="25001",.ussd_balance="#100#",

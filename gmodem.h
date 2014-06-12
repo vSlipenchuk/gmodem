@@ -49,7 +49,7 @@ enum { // call states
     callReleased, // whell - wait for silence pause till disconnect
    };
 
-typedef struct {
+typedef struct _gmodem {
   vstream port; // main stream over comport or net connection
   int (*on_data)(); // handler - when any bytes of data accepted
   int (*on_line)(); // handler - when new line accepted
@@ -83,14 +83,17 @@ typedef struct {
     struct _gsm_device   *dev;  // ref to device
     //
     unsigned long now; // its a time os_ticks returned
-    char cusd[80]; // response of cusd
+    char cusd[512]; // response of cusd
     //
     int logLevel; // level of logging
     char out[256]; // errors & string results here
+    char *bin; // temp buffer for sending binary data (Book, SMS, Others)
+    struct _gmodem *mon,*parent; // monitor port for Qualcomm (E1550)
 } gmodem;
 
 
 int gmodem_init(gmodem *g, char *name); // open com port
+int gmodem_setLogLevel(gmodem *g,int logLevel);
 int gmodem_run (gmodem  *g); // main @run@ procedure
 int gmodem_At  (gmodem *g, char *cmd); // send At command at a modem
 int gmodem_At2buf(gmodem *g,char *cmd,char *out, int size);
@@ -143,5 +146,11 @@ int gmodem_cnum(gmodem *g); // try read cnum from a rsim?
 
 int gmodem_info(gmodem *g) ;
 int gmodem_cmd(gmodem *g,char *cmd);
+int gmodem_cb(gmodem *g,char *cmd);
+int gmodem_sms(gmodem *g,char *sms);
+
+
+
+
 
 #endif // GMODEM_H_INCLUDED

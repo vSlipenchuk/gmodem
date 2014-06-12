@@ -4,6 +4,7 @@
 #include "gmodem.h"
 
 char szmodem[80]="/dev/modem"; // "/dev/gobi/modem"; //"/dev/modem"; // default modem name
+char szmon[80]; // monitor port
 int no_init = 0;
 char exec_cmd[512]; // exec command
 char on_in_call[512]; // on in call
@@ -21,7 +22,7 @@ return 0;
 int intmode=0; // interactive???
 
 int g_on_line(gmodem *g,char *buf,int len,int code) { // when lines completes
-    if (len>0 && ( intmode || g->logLevel>2)) printf("{%s}[%d]\n",buf,g->res);
+    if (len>0 && ( intmode || g->logLevel>4)) printf("{%s}[%d]\n",buf,g->res);
 return 0; // do as ypu want
 }
 
@@ -107,7 +108,8 @@ char szVersion[20];
 void usage(char *name) {
 fprintf(stderr,"usage: %s version %s\n"
         "\t-h print this message\n"
-        "\t-m <modem>  or ---modem=<modem> (default: /dev/modem)\n"
+        "\t-m <modem>    or ---modem=<modem>   (default: /dev/modem)\n"
+        "\t-M <monitor>  or ---monitor=<modem> (default: empty)\n"
         "\t-o          or --no-init\n"
         "\t-e <cmd>    or --exec=<command>\n"
         "\t-i <runcmd> or --on_in_call=<shell_command>\n"
@@ -123,12 +125,13 @@ while (1){
   static struct option long_opt[] = {
                     {"help",  0, 0, 'h'},
                     {"modem", 1, 0, 'm'},
+                    {"monitor", 1, 0, 'M'},
                     {"no-init",0,0, 'o'},
                     {"exec",   1,0, 'e'},
                     {"on_in_call",   1,0, 'i'},
                     {0,0,0,0}
                    };
-  if((c = getopt_long(argc, argv, "m:h:oe:i", long_opt, &optIdx)) == -1) {
+  if((c = getopt_long(argc, argv, "m:h:M:oe:i", long_opt, &optIdx)) == -1) {
       //printf("Done, index=%d optopt=%d\n",optIdx,optind);
    break;
   }
@@ -139,9 +142,12 @@ while (1){
           exit(-1);
      case 'm':
           //printf("option 'm' selected, filename: %s\n", optarg);
-          strcpy(szmodem,optarg);
+          strNcpy(szmodem,optarg);
           //return(1);
           break;
+     case 'M':
+           strNcpy(szmon,optarg);
+           break;
      case 'o':
            no_init = 1; //atoi(optarg);
            break;
@@ -170,6 +176,14 @@ int main(int argc, char **argv) {
        fprintf(stderr,"%s :: fail open %s. try --help for options\n",argv[0],szmodem);
        return 1;
        }
+    if (szmon[0]) {
+       m->mon = calloc( 1, sizeof(gmodem));
+       m->mon->parent = m;
+       if (gmodem_init(m->mon,szmon)<=0) {
+         fprintf(stderr,"%s :: fail open %s as monitor\n",argv[0],szmon);
+         }
+       m->mon->on_line = g_on_line;
+       }
     m->o.on_call_state = on_call_state;
     //fprintf(stderr,"gmodem %s opened ok\n",szmodem);
     if (! no_init) {
@@ -193,7 +207,7 @@ int main(int argc, char **argv) {
         printf("%s\n",m->out); // auto-mode
         }
     //gmodem_info(m); // callit ???
-    fprintf(stderr,"gmodem '%s' cleared and ready (info|console|+clac|balance|pppd)\n",szmodem);
+    fprintf(stderr,"gmodem '%s' ready, usage: \n (info|console|+clac|balance|pppd|ussd<num>|sms<num><text>)\n",szmodem);
     while(1) {
        int cnt=0;
        if (m->f.eof) {
@@ -231,11 +245,7 @@ int main(int argc, char **argv) {
                 gmodem_pin(m,c);
                 continue;
               }
-            if (lcmp(&c,"logLevel")) {
-                if (*c=='=') c++;
-                sscanf(c,"%d",&m->logLevel);
-                continue;
-               }
+
            if (lcmp(&c,"dial")) {
                int code = gmodem_dial(m,c); // start dial???
                printf("Dial start code=%d\n",code);
@@ -247,7 +257,7 @@ int main(int argc, char **argv) {
                m->f.console=1; //
                continue;
               }
-             printf("unknown command, skip: %s\n",c);
+             printf("unknown command, skip: '%s'\n",c);
              }
           }//int gmodem_At2buf(gmodem *g,char *cmd,char *out, int size) {
        }

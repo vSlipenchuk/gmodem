@@ -8,6 +8,9 @@
 #include "../vos/vos_com_linux.c"
 #include "../vos/vos_linux_kbhit.c"
 #include "../vos/vos.c"
+#include "../vos/coders.c"
+#include "../vos/strutil.c"
+#include "../vos/hexdump.c"
 
 #include <string.h>
 

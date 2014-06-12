@@ -240,9 +240,11 @@ gsm_device *d = g->dev;
 printf("Modem:{name:'%s',imei:'%s',file:'%s'},\n",d->name,g->imei,g->name);
 gsm_operator *o = gsm_operators;
 if (g->oper) o=g->oper;
-printf("HPLMN:{name:'%s',imsi:'%s',gprs:'%s',apn:'%s'}\n",o->name,o->imsi,o->gprs_num,o->apn);
+if (o) { // known network
+ printf("HPLMN:{name:'%s',imsi:'%s',gprs:'%s',apn:'%s'}\n",o->name,o->imsi,o->gprs_num,o->apn);
+ }
 gmodem_cnum(g);
-printf("SimCard:{pin_ready:%d,iccid:'%s',imsi:'%s',cnum:'%s'}\n",pin==1?1:0,g->iccid,g->imsi,g->cnum);
+printf("SIM:{pin_ready:%d,iccid:'%s',imsi:'%s',cnum:'%s'}\n",pin==1?1:0,g->iccid,g->imsi,g->cnum);
 return 1; //ok
 }
 
@@ -258,6 +260,13 @@ if (lcmp(&c,"iccid"))   return gmodem_iccid(m);
 if (lcmp(&c,"imsi"))   return gmodem_imsi(m);
 if (lcmp(&c,"cnum_set"))   return gmodem_cnum_set(m,c);
 if (lcmp(&c,"cnum"))   return gmodem_cnum_get(m);
+if (lcmp(&c,"cb")) return gmodem_cb(m,c);
+if (lcmp(&c,"sms")) return gmodem_sms(m,c);
+if (lcmp(&c,"logLevel")) {
+    if (*c=='=') c++; int logLevel;
+    sscanf(c,"%d",&logLevel);
+    return gmodem_setLogLevel(m,logLevel);
+    }
    //return gmodem_cnum(m);
 // other
 if (lcmp(&c,"at") || lcmp(&c,"AT") || strchr("+$#^",c[0])) return gmodem_At2buf(m,c,m->out,sizeof(m->out));

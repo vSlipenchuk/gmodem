@@ -6,6 +6,8 @@
 #include "vstrutil.h"
 // simple trim
 
+/*
+
 static char *dels=" \t\r\n"; // normal string trim-delimiters
 
 char *trim(char *buf) { // trims left and right?
@@ -28,14 +30,14 @@ l = pos-str; // length of
 str[l]=0; // zero term
 *buf+= (l+strlen(del)); // after delimiter
 return r; // anyway
-}
+}*/
 
 char *str_unquote(char *buf) {
 int l = strlen(buf);
 if (l>=2 && strchr("\"'",*buf) && buf[0]==buf[l-1]) { buf++; l-=2; buf[l]=0 ;}
 return buf;
 }
-
+/*
 
 int lcmp(char **s,char *cmd) {
 int l=strlen(cmd);
@@ -44,7 +46,7 @@ if (memcmp(*s,cmd,l)!=0) return 0;
 while ( (*s)[0]==32 ) (*s)++;
 return 1;
 }
-
+*/
 
 /// -- normal scan begins -----
 
