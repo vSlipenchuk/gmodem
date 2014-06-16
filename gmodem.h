@@ -2,9 +2,12 @@
 #define GMODEM_H_INCLUDED
 
 #include "../vos/vos.h"
+#include "voice_stream.h"
 
 
-#define gmodem_version 0,0,0,2
+#define gmodem_version 0,0,0,3
+
+// 0.0.0.3 - add voice stream E1550 in pulse audio
 // 0.0.0.2 - add draft for at+crsm (cnum,iccid,...)
 
 /*
@@ -68,11 +71,12 @@ typedef struct _gmodem {
     } f;
   struct { // call & sms options
      char state; // 0 == callNone
-     unsigned long modified;
-     char num[24]; // incoming number
+     unsigned long modified,connected; // time when
+     char num[24]; // incoming number, at callNone = '-'
      int (*on_call_state)();
      char release_request; // smb requested to kill a call (cleared by sent ath)
      char incall; // 0 - nothing, -1=kill, 1 = accept
+     int ring; // ring counter. at callNone=0
     } o;
     //
     char imsi[16]; // updated by gmodem_imsi
@@ -89,6 +93,7 @@ typedef struct _gmodem {
     char out[256]; // errors & string results here
     char *bin; // temp buffer for sending binary data (Book, SMS, Others)
     struct _gmodem *mon,*parent; // monitor port for Qualcomm (E1550)
+    voice_stream *voice; // if we have voice_serial connected
 } gmodem;
 
 
@@ -133,7 +138,7 @@ int gmodem_balance(gmodem *g); // send USSD based on imsi?
 
 typedef struct _gsm_device {
  char *name; char imei[20]; // name & first imei numbers
- int   crlf;
+ int   crlf; int ussd; // 7bit flags for huawei E1550
  } gsm_device;
 
 int gmodem_imei(gmodem *g);
@@ -142,6 +147,7 @@ int gmodem_cnum(gmodem *g); // try read cnum from a rsim?
 
 // all cmd commands
 
+int gmodem_Atf(gmodem *g,char *fmt, ... );
 
 
 int gmodem_info(gmodem *g) ;
@@ -149,8 +155,16 @@ int gmodem_cmd(gmodem *g,char *cmd);
 int gmodem_cb(gmodem *g,char *cmd);
 int gmodem_sms(gmodem *g,char *sms);
 
+// call
+
+int gmodem_dtmf(gmodem *g, char *c);
 
 
+// CRSM
+char *gmodem_par(char **cmd,int skip);
+int gmodem_crsm_cnum_get(gmodem *g); // on ok - result in g->out, returns LEN of CNUM record
+int gmodem_crsm_cnum_set(gmodem *g,char *num);
+int gmodem_crsm_iccid(gmodem *g); // on ok - result in g->out
 
 
 #endif // GMODEM_H_INCLUDED

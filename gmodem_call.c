@@ -6,22 +6,98 @@
 #include <stdio.h>
 #include "vstrutil.h"
 
+int lcmp(uchar **str,uchar *cmp); //@strutil.c
+
+//extern int incall; // temporary garbage - voice calls debug
+
+
+int gmodem_call_callback(gmodem *g, uchar *cmd) { // check - if it is a call notification?
+if (lcmp(&cmd,"RING")) {
+    if (g->o.state == callNone) gmodem_set_call_state(g,callRing); // till 3 ring - we wait for a CLI
+    return 1;
+   }
+if (lcmp(&cmd,"+CLIP:")) { // check - if call report ed...
+   char *num = gmodem_par((char**)&cmd,0);
+   if (num[0] && g->o.num[0]=='-' ) { strNcpy(g->o.num,num); } // set new code
+   gmodem_set_call_state(g,callPresent);
+   return 1;
+   }
+if (lcmp(&cmd,"^CONN:")) { // E1550 connect notification
+    //incall=1;
+    //printf("---- in call now ----\n");
+    gmodem_set_call_state(g,callActive);
+    return 1;
+   }
+if (lcmp(&cmd,"^CEND:")) {
+    gmodem_set_call_state(g,callNone); // or other?
+    return 1;
+    }
+return 0; // not mine
+}
+
 int gmodem_kill(gmodem *g) { // kill a call
+gmodem_At(g,"+CHUP");
 g->o.release_request=1;
+voice_stream *v = g->voice;
+if (v) v->incall=0;
+//incall=0;
 return 1;
 }
 
 // 2move -> gmodem_call.c
 int gmodem_set_call_state(gmodem *g,int newstate) {
-if (g->o.on_call_state && newstate != g->o.state) g->o.on_call_state(g,newstate); // notify
-g->o.state=newstate;
-g->o.modified=g->now;
-if (newstate==0) {
-   strcpy(g->o.num,"-"); // unknown
+int st = g->o.state;
+voice_stream *v = g->voice;
+printf("set_call_state new=%d old=%d\n",newstate,g->o.state);
+if (newstate == g->o.state) return 1; // ok, already
+switch(newstate) {
+   case callRing:
+      if (st == callPresent || st == callActive) return 0; // just ignore
+       // just caport on a new call
+      break;
+   case callPresent:
+       // ok - data collected (CLI, response OK)
+      break;
+   case callActive:
+      // it is - connect event
+      printf("CallBegins...\n");
+      if (v) v->incall=1;
+      g->o.connected = g->now;
+      break;
+   case callNone:
+      strcpy(g->o.num,"-"); // on
+      g->o.ring=0; // ring counter
+      voice_stream *v = g->voice;
+      if (v) v->incall=0;
+      break;
    }
+int oldstate = g->o.state; g->o.state=newstate; g->o.modified=g->now;
+if (g->o.on_call_state) g->o.on_call_state(g,newstate,oldstate); // notify
+return 1;
+}
+
+int gmodem_answer(gmodem *g) {
+if ( (g->o.state != callPresent) && (g->o.state!=callRing) ) {
+  sprintf(g->out,"state %d invalid for answer",g->o.state);
+  return 0;
+  }
+if (gmodem_Atf(g,"a")>0) {
+  gmodem_set_call_state(g,callActive);
+  if (g->voice) {
+        // need extra call
+       gmodem_At(g,"^DDSETEX=2"); // ZU -
+  }
+  return 1;
+  }
+sprintf(g->out,"modem decline answer");
 return 0;
 }
 
+int toPresent = 0; // wait ringing
+
+int toAnswer  = 3;  // autoanswer (no yet)
+
+int toActive =  40; // max conversation
 
 
 int gmodem_run2(gmodem *g) { // calls
@@ -29,31 +105,46 @@ int cnt = gmodem_run(g);
  //printf("run2:%d call:%d\n",cnt,g->o.state); usleep(100);
 int ta = g->now-g->o.modified; // msec in a state ^)
 // printf("ta=%d state %d\n",ta,g->o.state); sleep(1);
-
+    int dur = ta/1000;
+    static int dur0 = -1;
 // now - check a call states
 switch(g->o.state) {
  case callRing:
     if (ta>3*1000) { // no clip anyway open  it
        if (g->o.num[0]==0) strcpy(g->o.num,"-"); // unknown number
-       printf("no clip - set to default '-'\n");
+       printf("run2 -> callRing changed to callpresent by timeoyut 3 sec (real %d)\n",ta);
        gmodem_set_call_state(g,callPresent);
        cnt++;
        }
     break;
  case callInit: // when AT send but no OK in responce
-    //
+     //
     break;
  case callSetup: // OK here, but connect is not yet...
     //
     break;
  case callPresent:
-    if (ta>1*4000) { // 3sec - enough to define kill or accept???
-        printf("more 3 sec - set call to kill\n");
+    if (dur0!=dur) { printf("Present %d sec\n",dur);   dur0=dur;}
+    if ((toPresent>0) && (ta>1000*toPresent)) { // 3sec - enough to define kill or accept???
+        printf("more %d sec preseting - set call to kill have ta=%d ====== \n",dur,toPresent);
+        gmodem_kill(g); // request to kill
+        cnt++;
+       } else if (ta>1000*toAnswer) {
+        printf("Need answer!\n");
+        g->out[0]=0;
+        int ok  = gmodem_answer(g);
+        printf("ANSWER=%d out=%s\n",ok,g->out);
+        }
+    break;
+ case callActive:
+     if (dur0!=dur) {
+            voice_stream *v = g->voice;
+            printf("Active %d sec read=%d mic=%d\n",dur,v?v->push_bytes:-1,v?v->rec_bytes:-1);   dur0=dur;}
+    if (ta>1000*toActive) { // 3sec - enough to define kill or accept???
+        printf("more toActive %d - set call to kill have ta=%d ====== \n",toActive,ta);
         gmodem_kill(g); // request to kill
         cnt++;
        }
-    break;
- case callActive:
     break;
  case callDisconnecting:
     if (ta>3*1000) { // thats a clear interval
@@ -93,5 +184,31 @@ printf("Start call setup\n");
 return 1;
 }
 
-int gmodem_dial(gmodem *g,char *num) { return _gmodem_dial(g,num,1);}
+int gmodem_dial(gmodem *g,char *num) {
+    if (!*num)
+    num="0611"; // temp beeline callcentre
+     //num="88002004064"; // rostelec conf
+    int ok = gmodem_Atf(g,"d%s;",num);
+    if (ok<=0) return -1;
 
+    if (g->voice) {
+        // need extra call
+       ok = gmodem_At(g,"^DDSETEX=2"); // ZU -
+       }
+    return 1; //OK
+}
+
+int gmodem_dtmf(gmodem *g, char *c) {
+for(;*c;c++) if (gmodem_Atf(g,"+vts=%c",*c)<=0) return -1;
+return 1; // all ok
+}
+
+/*
+int gmodem_kill(gmodem *g,char *num) {
+    if (!*num)
+    //num="0611"; // temp beeline callcentre
+     //num="88002004064"; // rostelec conf
+    gmodem_Atf(g,"AT+CHUP",num);
+    return 1; //OK
+}
+*/

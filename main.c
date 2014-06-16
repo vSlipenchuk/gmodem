@@ -4,6 +4,7 @@
 #include "gmodem.h"
 
 char szmodem[80]="/dev/modem"; // "/dev/gobi/modem"; //"/dev/modem"; // default modem name
+char voice[80]; // /dev/ttyUSB1 (if first ppp-port is /dev/ttyUSB0)
 char szmon[80]; // monitor port
 int no_init = 0;
 char exec_cmd[512]; // exec command
@@ -87,15 +88,23 @@ telit: moni#,nitz# #snum #i2cwr #sd #ping easyscan-net
 
 */
 
+#include <stdarg.h>
 
+int systemf(char *fmt, ...) {
+char buf[1024];
+BUF_FMT(buf,fmt);
+return system(buf);
+}
 
 
 int on_call_state(gmodem *g, int newstate) { // called before new state fires
-printf("MODEM[%ld]: newstate: %d\n",g->now,newstate);
-if (newstate == callPresent && on_in_call[0]) { // incoming call, number collected
-  char buf[100];
-  snprintf(buf,sizeof(buf),"%s %s",on_in_call,g->o.num);
-  system(buf); // call it!!!
+printf("MODEM: newstate: <%d> num:%s time=%ld\n",newstate,g->o.num,newstate,g->o.modified);
+switch(newstate) {
+ case callPresent: // now we have a call?
+  return systemf("%s %s",on_in_call,g->o.num);
+ case callNone:
+   printf("CALL DONE\n");
+   break;
   }
 return 0; // do nothing
 }
@@ -110,6 +119,7 @@ fprintf(stderr,"usage: %s version %s\n"
         "\t-h print this message\n"
         "\t-m <modem>    or ---modem=<modem>   (default: /dev/modem)\n"
         "\t-M <monitor>  or ---monitor=<modem> (default: empty)\n"
+        "\t-V <port>     or --voice=<port>\n"
         "\t-o          or --no-init\n"
         "\t-e <cmd>    or --exec=<command>\n"
         "\t-i <runcmd> or --on_in_call=<shell_command>\n"
@@ -129,12 +139,14 @@ while (1){
                     {"no-init",0,0, 'o'},
                     {"exec",   1,0, 'e'},
                     {"on_in_call",   1,0, 'i'},
+                    {"voice", 1,0, 'V'},
                     {0,0,0,0}
                    };
-  if((c = getopt_long(argc, argv, "m:h:M:oe:i", long_opt, &optIdx)) == -1) {
-      //printf("Done, index=%d optopt=%d\n",optIdx,optind);
+  if((c = getopt_long(argc, argv, "m:h:M:oe:i:V", long_opt, &optIdx)) == -1) {
+     // printf("Done, index=%d optopt=%d\n",optIdx,optind);
    break;
   }
+  //printf("ch=%c here\n",c);
 
   switch( c ){
      case 'h':
@@ -157,6 +169,10 @@ while (1){
      case 'e':
             strNcpy(exec_cmd,optarg);
             break;
+     case 'V':
+            //printf("HERE:%s\n",optarg);
+            strNcpy(voice,optarg);
+            break;
      default:
           usage(argv[0]);
           exit(-1);
@@ -165,10 +181,15 @@ while (1){
 }
 
 int set_echo(int echo);
+//int pa_thread(void *);
+
+#include "voice_stream.h"
+
+voice_stream VS;
 
 int main(int argc, char **argv) {
     parse_options(argc,argv);
-    //printf("Done parse\n");
+    printf("Done parse\n");
 
     //m->on_data = g_on_data; // print letters on a screen
     m->on_line = g_on_line; // when a line here
@@ -185,6 +206,20 @@ int main(int argc, char **argv) {
        m->mon->on_line = g_on_line;
        }
     m->o.on_call_state = on_call_state;
+//printf("VOICE=%s\n",voice);
+if (voice[0]) {
+       voice_stream *vs = &VS;
+       vs->name = voice; // same name for pulseaudio channel
+       vs->comName = voice ;// comPort name
+       m->voice = vs; // just to be not
+       //thread_create(pa_thread,voice) ; // ZUZUKA - test of voice thread
+       printf(">>>Begin voice_init vs=%x\n",vs);
+       if (voice_init(vs)<=0) {
+          printf("Voice Init Failed\n");
+          m->voice = 0;
+          }
+        printf("done voice_init\n");
+       }
     //fprintf(stderr,"gmodem %s opened ok\n",szmodem);
     if (! no_init) {
      gmodem_clear(m,1000);
@@ -246,11 +281,7 @@ int main(int argc, char **argv) {
                 continue;
               }
 
-           if (lcmp(&c,"dial")) {
-               int code = gmodem_dial(m,c); // start dial???
-               printf("Dial start code=%d\n",code);
-               continue;
-              }
+
            if (lcmp(&c,"console")) { // console mode start
                fprintf(stderr,"console mode here, ESC to return back\n");
                set_echo(1);

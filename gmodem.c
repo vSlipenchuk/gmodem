@@ -23,7 +23,6 @@ return 1; //ok
 }
 
 
-
 //+CLIP: "+79151999003",145,,,"     ",0}
 
 int gmodem_scan_str(char **buf,char *out,int sz) {
@@ -40,30 +39,37 @@ return (*buf==0) && (*fmt==0); // not match
 
 #include "vstrutil.h"
 
+extern int incall;
+
+int gmodem_spam_callback(gmodem *g,char *cmd) { // very annoing
+if (*cmd==0) { // empty
+    return 1;
+   }
+if (lcmp(&cmd,"^RSSI:")) { // e1550
+  return 1;
+  }
+if (lcmp(&cmd,"^BOOT:")) {
+  return 1;
+  }
+return 0;
+}
 
 int g_modem_do_line(gmodem *g,char *buf,int ll) { // call processing
 int code=0; char *cmd = buf;
- if (g->logLevel>5) printf("L<%s>\n",buf);
-if (lcmp(&cmd,"RING") && g->o.state == callNone ) { // we have ring indicator?
-  gmodem_set_call_state(g,callRing);
-  return 1;
-  }
+code = gmodem_spam_callback(g,buf);
+if (code) {
+   if (g->logLevel>10) printf("<%s>\n",buf);
+   return 1; // anyway
+   }
+if (g->logLevel>5) printf("<%s>\n",buf); // rest
+code = gmodem_call_callback(g,cmd);  if (code) return code; // call notify specific
+
 if (lcmp(&cmd,"+CUSD:")) { // CUSD responce ???
   strNcpy(g->cusd,cmd);
   if (g->parent) strcpy(g->parent->cusd,g->cusd);
      // on_cusd ?
   return 1;
   }
-if (g->o.state == callRing && lcmp(&cmd,"+CLIP:")) {
-     cmd=trim(cmd); //printf("TR:<%s>\n",buf);
-     cmd=get_till(&cmd,","); //printf("PAR:<%s>\n",buf);
-     cmd=str_unquote(cmd);
-     //printf("NUM:<%s>\n",buf);
-     strNcpy(g->o.num,cmd);
-  gmodem_set_call_state(g,callPresent); // report on it
-  return 1;
-  }
-
 // status codes - changes flow
 char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR",
      "BUSY","NO CARRIER","NO DIAL TONE",0};
@@ -214,7 +220,7 @@ g->res = 0;
  }
 //int crlf=3; if (g->dev) crlf=g->dev->crlf;
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
-if (g->logLevel>3) printf("gmodem_send: at%s<crlf>\n",cmd);
+if (g->logLevel>3) printf("gmodem_send: at%s<crlf:%d>\n",cmd,g->dev->crlf);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
 proc=g->on_line;
 g->on_line = on_line;
@@ -268,9 +274,9 @@ g->res = 0;
  return 0; // continue
  }
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
+if (g->logLevel>3) printf("gmodem_send: at%s<crlf>\n",cmd);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
-proc=g->on_line;
-g->on_line = on_line;
+proc=g->on_line; g->on_line = on_line;
 while (g->res == 0 ) {
    if (g->f.eof) g->res=g_eof;
    if (gmodem_run(g) == 0) msleep(100); // wait for answer
@@ -325,40 +331,54 @@ return len*2;
 }
 
 int gmodem_ussd(gmodem *g,char *str) { // call string
-char buf[1024];
-int mode7 = 1;
-
-if (mode7) { // 7bit mode for string - E1550
+char buf[1024]; int dcs=15; // or 15 for
+if (g->dev && g->dev->ussd == 7) { // 7bit mode for string - E1550
   char numbin[100],num[100]; int len=0;
   int l = gsm7_code(0,sizeof(num),str,numbin,&len,strlen(str));
+  //if (!g->mon) {
+    // sprintf(g->out,"No monitor interface (while USSD %s)",str);
+    // return -1;
+    // }
   //printf("gsm_code=%d len=%d\n",l,len);
   //hexdump("1",numbin,len);
   //hexdump("2",numbin,l);
   bin2hex(num,numbin,len);
-  sprintf(buf,"+CUSD=1,%s,15",num);
+  sprintf(buf,"+CUSD=1,%s,%d",num,dcs);
   } else {
- sprintf(buf,"+CUSD=1,\"%s\",15",str);
+ sprintf(buf,"+CUSD=1,\"%s\",%d",str,dcs);
   }
+g->cusd[0]=0;
 if (gmodem_At(g,buf)<=0) {
     printf("ussd failed\n");
     return 0; // fail
     }
 int i;
-g->cusd[0]=0;
 for(i=0;i<30000;i+=100) {
   gmodem_run(g);
   if (g->cusd[0]) {
-        char *cmd = g->cusd,*txt;
-        //printf("1>%s\n",cmd);
-        get_till(&cmd,",");
-        //printf("2>%s\n",cmd);
-          txt=get_till(&cmd,",");
-        //printf("Q>%s\n",cmd);
-           txt=str_unquote(txt);
-        if (g->logLevel>2) printf("CUSD result: %s\n",txt);
-        int l = hexstr2bin(txt,txt,-1);
+           // ALCATEL: +CUSD: 2,"Balance:259,17r,Limit:0,01r ", 15
+           // E1550  :
+        char *cmd = g->cusd,*txt; int dcs;
         char buf[512];
-        gsm2utf(buf,txt,l);
+        //CLOG(g,2,"USSD RESP HERE>%s\n",cmd);
+        txt = str_unquote(gmodem_par(&cmd,1)); // skip presentation code (normally=0)
+        dcs = atoi((void*)gmodem_par(&cmd,0)); // 15 - 7bit, 72 - UCS2, optionally HEX-coded
+
+        //dcs=72;
+
+        if (g->logLevel>2) printf("CUSD dcs=%d , result: %s\n",dcs,txt);
+
+        if (dcs ==  72) { // decode UCS2
+          int l = hexstr2bin(txt,txt,-1);
+          gsm2utf(buf,txt,l);
+          } if (dcs ==15) { // as is
+          char buf2[200];
+          int l = hexstr2bin(buf2,txt,-1);
+          gsm7_decode(buf,buf2,l,0);
+          // strNcpy(buf,txt);
+          } else { // as is
+          strNcpy(buf,txt);
+          }
         if (g->logLevel>1) printf("USSD_TEXT:%s\n",buf);
         strNcpy(g->out,buf);
         return 1; // OK
@@ -392,7 +412,7 @@ for(op=gsm_operators+1;op->name;op++)
   if (memcmp(op->imsi,g->imsi,strlen(op->imsi))==0) { g->oper=op; break; }
 //printf("Found oper:%s for imsi: %s\n",g->oper->name,g->imsi);
 strcpy(g->out,g->imsi);
-return 1;
+return strlen(g->out);
 }
 
 int gmodem_imei(gmodem *g) {
@@ -415,10 +435,10 @@ return 1;
 int gmodem_pin(gmodem *g,char *pin) {
 char cpin[80];
 int ok;
- cpin[0]=0;
+ strcpy(cpin,"EMPTY");
  gmodem_At2bufFilter(g,"+CPIN?","+CPIN",cpin,sizeof(cpin));
  //printf("cpin state: <%s>\n",cpin);
-int ready =  strcmp(cpin,"READY")==0;
+int ready =  (strcmp(cpin,"READY")==0)||(cpin[0]==0);
 if (!pin) return ready; // just report it
  // now - 'READY' is OK
  if (!ready) {

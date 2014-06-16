@@ -14,6 +14,7 @@
 				<Option parameters="-m /dev/ttyACM0" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-Wno-pointer-sign" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -22,11 +23,14 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-Wno-pointer-sign" />
+			<Add directory="../vos" />
 		</Compiler>
 		<Linker>
 			<Add library="pthread" />
 			<Add library="readline" />
 			<Add library="termcap" />
+			<Add library="pulse" />
 		</Linker>
 		<Unit filename="common.c">
 			<Option compilerVar="CC" />
@@ -44,6 +48,9 @@
 		<Unit filename="gmodem_cmd.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gmodem_crsm.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="gmodem_device.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -53,9 +60,19 @@
 		<Unit filename="gmodem_scan.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gmodem_sms.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="pa-e1550.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sms_codec.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="voice_stream.h" />
 		<Unit filename="vstrutil.h" />
 		<Extensions>
 			<envvars />

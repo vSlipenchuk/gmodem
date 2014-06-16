@@ -8,10 +8,10 @@
 #endif
 
 
-char *get_till(char **buf, char *del); // removes till delimite
-char *str_unquote(char *buf);
-char *trim(char *buf) ; // trims left and right?
-int lcmp(char **s,char *cmd);
+//char *get_till(char **buf, char *del); // removes till delimite
+//char *str_unquote(char *buf);
+//char *trim(char *buf) ; // trims left and right?
+//int lcmp(char **s,char *cmd);
 
 #endif // VSTRUTIL
 

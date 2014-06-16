@@ -84,9 +84,8 @@ printf("Done OK");
 return 1;
 }
 
-
 int gmodem_sms(gmodem *g,char *sms) {
-uchar *phone=get_word(&sms);
+uchar *phone=get_word((void*)&sms);
 if (!phone[0]) {
   printf("Usage <phone> <text>\n");
   return 0;
