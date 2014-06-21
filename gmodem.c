@@ -71,9 +71,9 @@ if (lcmp(&cmd,"+CUSD:")) { // CUSD responce ???
   return 1;
   }
 // status codes - changes flow
-char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR",
+char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR","+CMS ERROR",
      "BUSY","NO CARRIER","NO DIAL TONE",0};
-int   g_codes[]={g_ok,g_connect,g_error,g_error,g_error,
+int   g_codes[]={g_ok,g_connect,g_error,g_error,g_error,g_error,
       g_busy,g_no_carrier,g_no_dial_tone};
 int i; for(i=0;szCode[i];i++) if (lcmp(&cmd,szCode[i])) { code=g_codes[i]; break ;}
 if (code<0 && g->o.state) { // have active call and reports from a network found
