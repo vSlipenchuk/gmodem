@@ -90,10 +90,11 @@ typedef struct _gmodem {
     char cusd[512]; // response of cusd
     //
     int logLevel; // level of logging
-    char out[256]; // errors & string results here
+    unsigned char out[256]; // errors & string results here
     char *bin; // temp buffer for sending binary data (Book, SMS, Others)
     struct _gmodem *mon,*parent; // monitor port for Qualcomm (E1550)
     voice_stream *voice; // if we have voice_serial connected
+    int mode; // 0 - AtComPort, 1-PhoenixCard reader
 } gmodem;
 
 
@@ -147,6 +148,8 @@ int gmodem_cnum(gmodem *g); // try read cnum from a rsim?
 
 // all cmd commands
 
+int gmodem_errorf(gmodem *g,int res, char *fmt,...);
+
 int gmodem_Atf(gmodem *g,char *fmt, ... );
 
 
@@ -161,10 +164,12 @@ int gmodem_dtmf(gmodem *g, char *c);
 
 
 // CRSM
-char *gmodem_par(char **cmd,int skip);
+//char *gmodem_par(char **cmd,int skip);
 int gmodem_crsm_cnum_get(gmodem *g); // on ok - result in g->out, returns LEN of CNUM record
 int gmodem_crsm_cnum_set(gmodem *g,char *num);
 int gmodem_crsm_iccid(gmodem *g); // on ok - result in g->out
 
+// CSIM & APDU
+int gmodem_apdu_cmd(gmodem *g, uchar *cmd);
 
 #endif // GMODEM_H_INCLUDED

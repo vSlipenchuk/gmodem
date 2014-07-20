@@ -20,7 +20,9 @@ gsm_operator gsm_operators[]={
    },
    {
      .name="BEE",.imsi="25099",.ussd_balance="#102#",
-     .gprs_num="*99***1#",.apn="beeline/beeline@internet.beeline.ru",
+     .gprs_num="*99***1#",
+     //.apn="beeline/beeline@internet.beeline.ru",
+     .apn="beeline/beeline@home.beeline.ru"
    },
    {
        .name=0

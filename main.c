@@ -9,6 +9,7 @@ char szmon[80]; // monitor port
 int no_init = 0;
 char exec_cmd[512]; // exec command
 char on_in_call[512]; // on in call
+int gmode = 0; // phoenix mode - default off
 
 gmodem Modem,*m=&Modem; // my main modem
 
@@ -121,6 +122,7 @@ fprintf(stderr,"usage: %s version %s\n"
         "\t-M <monitor>  or ---monitor=<modem> (default: empty)\n"
         "\t-V <port>     or --voice=<port>\n"
         "\t-o          or --no-init\n"
+        "\t-X          or --phoenix phoenix card reader\n"
         "\t-e <cmd>    or --exec=<command>\n"
         "\t-i <runcmd> or --on_in_call=<shell_command>\n"
         ,name,szVersion);
@@ -140,6 +142,7 @@ while (1){
                     {"exec",   1,0, 'e'},
                     {"on_in_call",   1,0, 'i'},
                     {"voice", 1,0, 'V'},
+                    {"phoenix", 0,0, 'X'},
                     {0,0,0,0}
                    };
   if((c = getopt_long(argc, argv, "m:h:M:oe:i:V", long_opt, &optIdx)) == -1) {
@@ -173,12 +176,18 @@ while (1){
             //printf("HERE:%s\n",optarg);
             strNcpy(voice,optarg);
             break;
+     case 'X':
+            gmode = 1;
+            no_init = 1;
+            break;
      default:
           usage(argv[0]);
           exit(-1);
    }
  }
 }
+
+int in_pppd = 0;
 
 int set_echo(int echo);
 //int pa_thread(void *);
@@ -188,6 +197,7 @@ int set_echo(int echo);
 voice_stream VS;
 
 int main(int argc, char **argv) {
+//return sec_test();
     parse_options(argc,argv);
     printf("Done parse\n");
 
@@ -220,7 +230,8 @@ if (voice[0]) {
           }
         printf("done voice_init\n");
        }
-    //fprintf(stderr,"gmodem %s opened ok\n",szmodem);
+    fprintf(stderr,"gmodem %s opened ok\n",szmodem);
+if (gmode == 1) m->mode = 1; // set phoenix mode
     if (! no_init) {
      gmodem_clear(m,1000);
      gmodem_echo_off(m);
@@ -228,6 +239,9 @@ if (voice[0]) {
      gmodem_clip_on(m);
      gmodem_At(m,"+creg=2"); // register & report of changes
      }
+
+if (gmode == 1) gmodem_atr(m); // call ATR
+
     int i; for(i=optind;i<argc;i++) { // process all commands one-by one
         char *cmd = argv[i];
         gmodem_echo_off(m);
@@ -236,7 +250,7 @@ if (voice[0]) {
         if (strcmp(cmd,"exit")==0) exit(0); // OK
         int ok = gmodem_cmd(m,cmd);
         if (ok<=0) {
-             fprintf(stderr,"gmodem fail[%d] exec '%s'. abort.\n",ok,cmd);
+             fprintf(stderr,"gmodem fail[%d]{%s} exec '%s'. abort.\n",ok,m->out,cmd);
              exit(1); // fail
              }
         printf("%s\n",m->out); // auto-mode
@@ -245,7 +259,7 @@ if (voice[0]) {
     fprintf(stderr,"gmodem '%s' ready, usage: \n (info|console|+clac|balance|pppd|ussd<num>|sms<num><text>)\n",szmodem);
     while(1) {
        int cnt=0;
-       if (m->f.eof) {
+       if (m->f.eof && !in_pppd) {
            fprintf(stderr,"gmodem EOF reported, Abort.\n");
            break;
           }

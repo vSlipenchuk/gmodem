@@ -18,7 +18,12 @@ gsm_device gsm_devices[] = {
         //  bug:    +CUSD: <mode>,<text>,<dcs> always report dcs=15 (even in CSCS=UCS2 mode)
         //  example:+CREG: 1, "0EE3", "2CE3"
     },
-{
+    {
+        .name="E171",   .imei="3548070",.crlf=1, .ussd=7,
+    },
+
+
+  {
         /*
          Mediatek based phone,
             CRSM for CNUM broked (in responce while get length)
@@ -27,9 +32,6 @@ gsm_device gsm_devices[] = {
     },
 
 
-    {
-        .name="E171",   .imei="3548070",.crlf=1   /*\n*/   // !!! ussd_coder !!! and other space!!!
-    },
 
 
     {

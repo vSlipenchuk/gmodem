@@ -31,6 +31,7 @@
 			<Add library="readline" />
 			<Add library="termcap" />
 			<Add library="pulse" />
+			<Add library="crypto" />
 		</Linker>
 		<Unit filename="common.c">
 			<Option compilerVar="CC" />
@@ -39,6 +40,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="gmodem.h" />
+		<Unit filename="gmodem_apdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="gmodem_call.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -63,10 +67,20 @@
 		<Unit filename="gmodem_sms.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gsm_sim.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="pa-e1550.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="phoenix_reader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sec_packet.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sims_cfg.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sms_codec.c">

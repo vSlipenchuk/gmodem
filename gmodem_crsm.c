@@ -13,9 +13,9 @@ g->out[0]=0; sprintf(buf,fmt,oper,file,p1,p2,p3,r);
 int ok = gmodem_At2bufFilter(g,buf,"+CRSM:",g->out,sizeof(g->out)); if (ok<=0) return ok; // fail
 if (g->out[0]==0) { sprintf(g->out,"empty CRSM result"); return -1; }
 char *p = g->out;
- p1 = atoi(gmodem_par(&p,0));
- p2 = atoi(gmodem_par(&p,0));
- strcpy(g->out,gmodem_par(&p,0)); // move result here
+ p1 = atoi((void*)gmodem_par(&p,0));
+ p2 = atoi((void*)gmodem_par(&p,0));
+ strcpy(g->out, (void*)gmodem_par(&p,0)); // move result here
 return ((p1<<8) | p2); // code
 }
 

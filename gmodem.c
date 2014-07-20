@@ -7,6 +7,7 @@
 #include "gmodem.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include "vstrutil.h"
 
 
@@ -16,11 +17,15 @@ vstream *s=&g->port;
   g->now=g->o.modified = os_ticks(); //
   strcpy(g->o.num,"-");
 s->p=&vstream_com_procs;
+ printf("Open %s\n",name);
 s->handle = s->p->open(name);
+ printf("Done handle %d\n",s->handle);
 if (!s->handle) return 0;
 strNcpy(g->name,name);
 return 1; //ok
 }
+
+int gmodem_errorf(gmodem *g,int res, char *fmt,...) { BUF_FMT(g->out,fmt); return res;}
 
 
 //+CLIP: "+79151999003",145,,,"     ",0}
@@ -119,7 +124,7 @@ if (g->in_len>=0 && sz>0) r = s->p->peek(s->handle,g->in+g->in_len,sz); // if ca
 if (r>0) { // yes, read !
   char *dat = g->in+g->in_len; // data_starts
   g->in_len+=r;  g->in[g->in_len]=0; // correct collected buffer
-  if (g->bin) { // we have binary data ready to send, need '>' in a stream
+  if (g->bin && g->mode == 0 ) { // we have binary data ready to send, need '>' in a stream
        int i; for(i=0;i<r;i++) if (dat[i]=='>') break;
        if (dat[i]=='>') { // ok  - have to flash binary data
           char chZ=26,*bin=g->bin;
@@ -130,8 +135,9 @@ if (r>0) { // yes, read !
           }
       }
   if (g->on_data) g->on_data(g,g->in+g->in_len-r,r); // raport
-  while (gmodem_do_lines(g)); // process line by line
+  if (g->mode == 0) while (gmodem_do_lines(g)); // process line by line
   //printf("*%*.*s",r,r,buf); // just print on a screen!!!
+  if (g->logLevel>10) hexdump("MODEM_RECV",g->in,g->in_len);
   cnt++; g->f.idle = 0;
   } else {
   if (r<0) g->f.eof=1; // EOF!
@@ -155,6 +161,7 @@ int gmodem_put(gmodem *g, char *out,int len) {
 vstream *s=&g->port;
 if (g->f.eof) return 0;
 if (len<0) len=strlen(out);
+ if (g->logLevel>10) hexdump("serial_write",out,len);
 int r = s->p->write(s->handle,out,len);
 if (r<=0) { g->f.eof=1; return 0; } ; //error!
 //printf("PUT:{%d}",r);
@@ -200,6 +207,10 @@ int gmodem_At2buf(gmodem *g,char *cmd,char *out, int size) {
 int (*proc)();
 char buf[256];
 int lineno=0;
+if (g->mode == 1) {
+     sprintf(g->out,"modem in phoenix mode");
+     return -1;
+     }
 //gmodem_echo_off(g); // check off echo
 g->res = 0;
  memset(out,0,size); size--;
@@ -475,6 +486,8 @@ if (g->logLevel>2) printf("begin ussd %s\n",num);
 return gmodem_ussd(g,num);
 }
 
+extern int in_pppd ;
+
 int gmodem_pppd(gmodem *g,char *opt) { // dial pppd & wait for it...
 char *num="*99#"; // default USSD balance number
 if (!g->imsi[0]) gmodem_imsi(g); // update imsi of not yet
@@ -503,6 +516,7 @@ while(1) { // wile
   if (g->o.state == callActive ) break;
   }
 printf("CALL CONNECTED OK!\n");
+ in_pppd = 1;
 
 sprintf(buf,"pppd %s nodetach  ",g->name);
 
@@ -523,6 +537,7 @@ int code = system(buf);
 //system("pppd  /dev/ttyACM0 nodetach debug user \"beeline\" password \"beeline\""); /// Ну почти заработало?
 // whell - need to do it on other thread...
 sprintf(g->out,"pppd:%d",code);
+ in_pppd=0;
 //printf("PPPD DONE code=%d\n",code);
 
 // now - wait for that... and run system(pppd)???

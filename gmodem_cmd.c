@@ -266,6 +266,10 @@ if (lcmp(&c,"dial")) return gmodem_dial(m,c); // start dial???
 if (lcmp(&c,"answer")) return gmodem_answer(c); //
 if (lcmp(&c,"kill")) return gmodem_kill(m); // start dial???
 if (lcmp(&c,"dtmf")) return gmodem_dtmf(m,c);
+// APDU
+if (lcmp(&c,"apdu")) return gmodem_apdu_cmd(m,c);
+
+
 //if (lcmp(&c,"0"")
 if (lcmp(&c,"logLevel")) {
     if (*c=='=') c++; int logLevel;
