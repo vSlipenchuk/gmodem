@@ -12,7 +12,7 @@
 	<readline/readline.h>
 	<readline/history.h>
 
-1405757844 /mnt/c/prj/gmodem/gmodem.h
+1406101173 /mnt/c/prj/gmodem/gmodem.h
 	"../vos/vos.h"
 	"voice_stream.h"
 
@@ -31,7 +31,7 @@
 	<string.h>
 	<time.h>
 
-1405587687 /mnt/c/prj/vos/vos_com_linux.c
+1406101793 /mnt/c/prj/vos/vos_com_linux.c
 	"vos.h"
 	"stdio.h"
 	"unistd.h"
@@ -56,7 +56,7 @@
 	<stdio.h>
 	<sys/resource.h>
 
-1405757865 source:/mnt/c/prj/gmodem/gmodem.c
+1406101416 source:/mnt/c/prj/gmodem/gmodem.c
 	"gmodem.h"
 	<string.h>
 	<stdio.h>
@@ -76,14 +76,14 @@
 1403781206 source:/mnt/c/prj/gmodem/gmodem_device.c
 	"gmodem.h"
 
-1405586615 source:/mnt/c/prj/gmodem/gmodem_oper.c
+1405972999 source:/mnt/c/prj/gmodem/gmodem_oper.c
 	"gmodem.h"
 
 1402577737 source:/mnt/c/prj/gmodem/gmodem_scan.c
 	"gmodem.h"
 	"vstrutil.h"
 
-1405773717 source:/mnt/c/prj/gmodem/main.c
+1406103029 source:/mnt/c/prj/gmodem/main.c
 	<stdio.h>
 	<stdlib.h>
 	"gmodem.h"
@@ -95,10 +95,10 @@
 	"vstrutil.h"
 	"voice_stream.h"
 
-1403171065 source:/mnt/c/prj/gmodem/gmodem_cb.c
+1405972177 source:/mnt/c/prj/gmodem/gmodem_cb.c
 	"gmodem.h"
 
-1403782566 source:/mnt/c/prj/gmodem/gmodem_cmd.c
+1406108192 source:/mnt/c/prj/gmodem/gmodem_cmd.c
 	"gmodem.h"
 	"vstrutil.h"
 	<stdio.h>
@@ -109,16 +109,17 @@
 1405802802 /mnt/c/prj/gmodem/gsm_sim.h
 	"gmodem.h"
 
-1402954106 source:/mnt/c/prj/gmodem/gmodem_sms.c
+1406005879 source:/mnt/c/prj/gmodem/gmodem_sms.c
 	"gmodem.h"
 	"coders.h"
 	<stdarg.h>
 	"vos.h"
+	"../smppTest/im.c"
 
 1402634535 /mnt/c/prj/vos/coders.h
 	"vtypes.h"
 
-1402578000 source:/mnt/c/prj/gmodem/sms_codec.c
+1405964122 source:/mnt/c/prj/gmodem/sms_codec.c
 	"coders.h"
 
 1402573361 /mnt/c/prj/vos/coders.c
@@ -144,7 +145,7 @@
 	<sys/stat.h>
 	<errno.h>
 
-1405801038 source:/mnt/c/prj/gmodem/gmodem_crsm.c
+1406108192 source:/mnt/c/prj/gmodem/gmodem_crsm.c
 	"gmodem.h"
 	"gsm_sim.h"
 
@@ -161,11 +162,11 @@
 	<stdlib.h>
 	<string.h>
 
-1405804333 source:/mnt/c/prj/gmodem/gmodem_apdu.c
+1406108632 source:/mnt/c/prj/gmodem/gmodem_apdu.c
 	"gmodem.h"
 	"gsm_sim.h"
 
-1405803141 source:/mnt/c/prj/gmodem/phoenix_reader.c
+1406101837 source:/mnt/c/prj/gmodem/phoenix_reader.c
 	"gmodem.h"
 	"gsm_sim.h"
 	<termios.h>
@@ -175,4 +176,8 @@
 	"gsm_sim.h"
 	<stdio.h>
 	"coders.h"
+
+1406044007 /mnt/c/prj/smppTest/im.c
+	"vos.h"
+	<openssl/des.h>
 

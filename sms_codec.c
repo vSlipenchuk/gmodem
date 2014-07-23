@@ -41,9 +41,10 @@ if (payload<=0) { // no more space
     return -3;
     }
 sms->offset=0; sms->total = 1; sms->segment = 0;  sms->chains = 0; // no chains yet
-sms->sm_udhl=0;
+sms->sm_udhl=0; int pdcs=dcs;
+if (dcs == 0xf6) pdcs=4; // binary data
 //printf(">>> udl_before_chainging %d\n",udhlen);
-switch (dcs & (4+8)) { // Алфавит 0=>дефаулт,4=>8бит,8=>UCS2,12=>Reserved(=8bit)
+switch (pdcs & (4+8)) { // Алфавит 0=>дефаулт,4=>8бит,8=>UCS2,12=>Reserved(=8bit)
 case 0: // GSM Default
  // Сначала пытаемся закодировать то, что есть с использованием текущего хедера (без чейнов)
   if (udhlen) sms->offset = (7-((udhlen)%7))%7; // Offset of 7bit coding
@@ -82,6 +83,7 @@ case 8: // UCS2 - каждая буква = 2 байта, границы соо�
   sms->sm_udhl = udhlen;
   break;
 default: // 8bit
+  printf("BINARY_CODE");
   if (payload<len && chainsTR) { // Добавляем в хедер
       if (!udhlen) { udhlen++; payload--;} // Add Header length
       udhlen+=5; payload-=5; sms->chains=chainsTR; // Simple Chain Header 00-03- TR NN AL

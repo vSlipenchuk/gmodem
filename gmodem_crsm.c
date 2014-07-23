@@ -86,5 +86,6 @@ if (_gmodem_crsm(g,READ_BINARY,EF_ICCID, 0,0,10,0)!=0x9000) {
 int len = strlen(g->out);
 //printf("<%s> len=%d before swap\n",g->out,strlen(g->out));
 swap_bytes(g->out,g->out,len);
+if (len>0) g->out[len-1]=0; // remove LUN
 return len; // OK
 }

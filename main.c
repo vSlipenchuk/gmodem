@@ -199,7 +199,7 @@ voice_stream VS;
 int main(int argc, char **argv) {
 //return sec_test();
     parse_options(argc,argv);
-    printf("Done parse\n");
+    //printf("Done parse\n");
 
     //m->on_data = g_on_data; // print letters on a screen
     m->on_line = g_on_line; // when a line here
@@ -248,9 +248,12 @@ if (gmode == 1) gmodem_atr(m); // call ATR
         gmodem_run2(m);
         m->out[0]=0;
         if (strcmp(cmd,"exit")==0) exit(0); // OK
+        uchar cmd0[80]; // for latter raport
+        strNcpy(cmd0,cmd);
         int ok = gmodem_cmd(m,cmd);
         if (ok<=0) {
-             fprintf(stderr,"gmodem fail[%d]{%s} exec '%s'. abort.\n",ok,m->out,cmd);
+             //fprintf(stderr,"gmodem fail[%d]{%s} exec '%s'. abort.\n",ok,m->out,cmd);
+             fprintf(stderr,"%d %s\n ==FATAL FAIL EXEC== %s\n",ok,m->out,cmd0);
              exit(1); // fail
              }
         printf("%s\n",m->out); // auto-mode

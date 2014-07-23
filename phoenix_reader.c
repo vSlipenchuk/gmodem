@@ -30,7 +30,7 @@ unsigned char SW[2]; // lastStatusWord
 
 void  prt_cfg3(int ttyDev,int baudrate,int hwcontrol,int parity,int stop) {
 struct termios term_attr;
-printf("hwcontrol:%d\n",hwcontrol);
+//printf("hwcontrol:%d\n",hwcontrol);
 tcgetattr(ttyDev, &term_attr); //backup current settings
 
 term_attr.c_iflag = 0;  ;;// IXON | IXOFF;
@@ -94,8 +94,8 @@ for(i=0;i<10;i++) {
   msleep(100);
   //hexdump("ATR",g->in,g->in_len);
   }
-hexdump("ATR",g->in,g->in_len);
-msleep(100);
+if (g->logLevel>5) hexdump("ATR",g->in,g->in_len);
+//msleep(100);
 return 1; // OK
 }
 
@@ -129,8 +129,9 @@ uchar ins = cmd[1],clen=cmd[4]; // ins and cmdlength
        continue;
       }
    if  ( (l<=0) || (buf[0]!=ins )) {
-     printf("!!!! ACK FAILED ins=%x get %x\n",ins,buf[0]);
-     return -2;
+     SW[0]=buf[0]; SW[1]=0; sw[0]=buf[0]; sw[1]=0; out[0]=2; out[1]=buf[0]; out[2]=0;
+     sprintf(g->out,"%02X",buf[0]);
+     return gmodem_outf(g,-2,"apdu: ACK FAILED ins=%x get %x",ins,buf[0]);
      }
     break; // OK - done read
    }
@@ -163,17 +164,14 @@ uchar ins = cmd[1],clen=cmd[4]; // ins and cmdlength
     uchar ch;
    l = gmodem_read(g,&ch,1);
    //printf("[%x] l:%d\n",ch,out[0]);
-   if (l<0) {
-        printf("Error gmodem_read while 2 bytes of resp!\n");
-        return 0;
-       }
+   if (l<0) return gmodem_outf(g,-2,"adpu error read 2 bytes of sw");
     if (ch==0x60) continue;
     l = out[0];
     out[l+1]=ch; out[0]++; // add char
     //printf("Now l=%d\n",l);
     if (out[0]>=2) break;
    }
-printf("OK, status here\n");
+//printf("OK, status here\n");
    {    msleep(10);    gmodem_run(g); // read again
         l = g->in_len; if (l>255) l =255;
         //out[0]=l;

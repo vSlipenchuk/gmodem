@@ -15,7 +15,7 @@ gsm_operator gsm_operators[]={
 { .name="RT-Mobile", .imsi="25039", .ussd_balance="*102#",  .gprs_num="*99***1#",.apn="/@internet.rt.ru"  },
 
    {
-     .name="MTS",.imsi="25001",.ussd_balance="#100#", // smsc="+79168999100"
+     .name="MTS",.imsi="25001",.ussd_balance="#100#", // smsc="+79168999100" at+csca=""+79168999100"
      .gprs_num="*99***1#",.apn="mts/mts@internet.mts.ru"
    },
    {

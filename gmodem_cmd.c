@@ -191,6 +191,7 @@ return -2;
 int gmodem_iccid(gmodem *g) {
 char iccid[24]; iccid[0]=0;
 int ok = gmodem_crsm_iccid(g); if (ok>0) {
+
     strNcpy(g->iccid,g->out);
     return ok;
     }
@@ -205,6 +206,7 @@ if (ok>0) { // remove '"' if any
 if (iccid[0]=='9' && iccid[1]=='8') { // some modems do not swap bytes
     swap_bytes(iccid,iccid,strlen(iccid));
    }
+int l = strlen(iccid); if (l>0) iccid[l-1]=0; // remove lun number
 strcpy(g->iccid,iccid);
 strcpy(g->out,iccid);
 return ok;
@@ -248,6 +250,13 @@ return gmodem_Atf(g,"+CSCA=\"%s\",%d",num,code);
 
 int gmodem_cmd(gmodem *m,char *c0) {
 uchar *c=c0;
+if (lcmp(&c,"try"))   {  int code = gmodem_cmd(m,c); if (code>0) return code; // OK
+                         char buf[180];
+                         strNcpy(buf,m->out);
+                         sprintf(m->out," try_ignore: %s",buf);
+                         return 1;
+                       } // always OK
+
 if (lcmp(&c,"balance")) return gmodem_balance(m);
 if (lcmp(&c,"pppd"))    return gmodem_pppd(m,c);
 if (lcmp(&c,"ussd"))    return gmodem_ussd(m,c);
@@ -261,7 +270,11 @@ if (lcmp(&c,"cnum"))       return gmodem_cnum(m); // or cnum_get for CRSM
 if (lcmp(&c,"cb")) return gmodem_cb(m,c);
 if (lcmp(&c,"smsc_set")) return gmodem_smsc_set(m,c);
 if (lcmp(&c,"smsc")) return gmodem_smsc(m);
+
 if (lcmp(&c,"sms")) return gmodem_sms(m,c);
+if (lcmp(&c,"ota")) return gmodem_ota(m,c);
+if (lcmp(&c,"im")) return gmodem_im(m,c); // instant manager
+
 if (lcmp(&c,"dial")) return gmodem_dial(m,c); // start dial???
 if (lcmp(&c,"answer")) return gmodem_answer(c); //
 if (lcmp(&c,"kill")) return gmodem_kill(m); // start dial???

@@ -4,8 +4,8 @@
 char szPoR[]="90,61";
 
 int por_ok(int code) { //Положительные коды PoR
-if (code==90) return 1;
-if (code==61) return 1;
+if (code==0x90) return 1;
+if (code==0x61) return 1;
 return 0;
 }
 
@@ -93,20 +93,23 @@ int apdu_add_secure(uchar *apdu,
 // add secure header, for now SPI=0001, KIC=KID=0  - 13 bytes
 int l=apdu[0]; uchar *ud = apdu+1; // current  user_data & len
 int  hlen=0xD,rc_sz=0;
-printf("SPI use=%d, %d\n",spi,(spi>>8));
+//printf("SPI use=%d, %d\n",spi,(spi>>8));
 if (spi>>8) { rc_sz=8; hlen+=rc_sz; } // HAVE security, SIGN 8 bytes?
 int sz=l+hlen+2+1;  // hlen=13 bytes if no RC/CC
-printf("SPI use=%d hlen=%x sz=%d\n",spi,hlen,sz);
+//printf("SPI use=%d hlen=%x sz=%d rc_sz=%d\n",spi,hlen,sz,rc_sz);
 uchar buf[sz], *p=buf; // new size
 *(short*)p=htons( l+hlen+1 ); p+=2; *p=hlen; p++;
 *(short*)p=htons( spi); p+=2; *p = kic; p++; *p=kid; p++; memcpy(p,tar,3); p+=3;
-memset(p,0,5); p++; *(int*)p=htonl(counter);p+=4; *p=0; p++; // counter + pcntr
+memset(p,0,5); p++;
+    if (spi>>8) *(int*)p=htonl(counter); // setup counter
+            p+=4; *p=0; p++; // counter + pcntr
 if (rc_sz) { // место для имитовставки
   memset(p,0,rc_sz); p+=rc_sz;
   }
 memcpy(p,ud,l);
 memcpy(ud,buf,sz); apdu[0]=sz;
 if (spi>>8) {
+     printf("DO SIGN\n");
      cbc_sign_11(apdu+1,apdu[0],KID); // Sign with user key
      }
 return sz; // ok
@@ -323,6 +326,9 @@ if (p->status!=0) {
     }
 if (g->logLevel>1) printf(" ---  PoR:%d (%s) Command:%d SW:%02x%02x nextCounter:%d--- \n",
                             p->status,porStatusName(p->status),p->command,p->sw[0],p->sw[1],j->counter);
+if (!por_ok(p->sw[0])) {
+   return gmodem_errorf(g,-3, "PoR return error status, expect %s found %02x",szPoR,p->sw[0]);
+   }
 return 1;
 }
 
@@ -356,33 +362,18 @@ char buf[256];
 int l = aid[0];
 memcpy(g->out,aid,l+1); // copy len+aid to g->out
 uchar del[7]={0x80,0xE4,0x00,0x00,l+2,0x4F,l}; apdu_ins(g->out,del,7);
-//Globals.digestKey = "A01A037FDF76B575"; Globals.SPI=0x1201; Globals.KID=0x11;
-// ICCID =8970139470005860934 4
-//Globals.Counter = 0x1D2;
-
- //cardJobSetup(0, 0x0001, 0x00, 0x00,  "FFFF", "", "", 0); // no security
-
-
-
-
-printf("Done\n");
-
-if (g->logLevel>1) {
-  printf("==== cmd: DELETE %s\n",szaid(aid));
-  }
-gmodem_dump_out(g,"delete command");
+gmodem_logf(g,2,"==== cmd: DELETE %s",szaid(aid));
+if (g->logLevel>4) gmodem_dump_out(g,"delete command");
 int code = gmodem_apdu_wrapSend(g,g->out);
 if (code>0) {
   uchar *sw = cardJob.por.sw;
-  if (por_ok(sw[0])) {
-      printf(" !!!  WARNINIG: delete PoR.SW=%02X%02X (expect %s)\n",sw[0],sw[1],szPoR);
+  if (!por_ok(sw[0])) {
+      code = -3; // unwanted result
+      gmodem_logf(g,1,"  delete PoR.SW=%02X%02X (expect %s)",sw[0],sw[1],szPoR);
      }
   }
-if (g->logLevel>1) {
-  printf("==== res: %04x DELETE %s\n",code,szaid(aid));
-  }
-
-//printf("ZUZUKA - stop"); exit(111);
+gmodem_logf(g,2,"==== res: DELETE %04x %s\n",code,szaid(aid));
+if (code>0) gmodem_outf(g,code,"deleted:   %s",szaid(aid)); // correct responce
 return code;
 }
 
@@ -406,13 +397,9 @@ char buf[256];
 int file,fileLen;
 
 file = open(filename,O_RDONLY);
-if (file<0) {
-  printf("OpenFileError <%s>!\n",filename);
-  return -2;
-  }
+if (file<0) return gmodem_errorf(g,-2,"apdu_load:  \"%s\"  fail open file",filename);
 fileLen = filelength(file);
-printf("Loading %d bytes of file %s\n",fileLen,filename);
-
+gmodem_logf(g,2,"start load %d bytes from '%s'",fileLen,filename);
 //uchar cmd_end[10]={0x00,0x00,0x06,0x06,0xEF04,0xC6,0x02,0x00,0x00,0x00};
 uchar cmd_end[10]={0x00,0x00,0x06,0xEF,0x04,0xC6,0x02,0x00,0x00,0x00};
 g->out[0]=0;
@@ -442,8 +429,10 @@ if ((porSW!=0x61 ) && (porSW!=0x90) ) { // ZUZUKA - can we relay on that?
 
 int sz = 0x40, SZ=fileLen + 4; // send by 64 bytes, SZ = app.bin + 4 bytes head
 int count = SZ/sz; if (SZ%sz) count++; // count of blocks
-printf("Count blocks=%d\n",count);
+gmodem_logf(g,2,"needs %d blocks with size %d (0x%x)",count,sz,sz);
 int b;
+time_t started,now; int dur,pdur;
+time(&started);
 for(b=0;b<count;b++) {
   int r;
   g->out[0]=0;
@@ -456,27 +445,37 @@ for(b=0;b<count;b++) {
      r = read(file,data,sz); // read data
      }
   if (r<=0) {
-      printf("ReadError %d!\n",r);
+      gmodem_errorf(g,-2,"file read error :%d",r);
       return -2;
     }
   // ok - compoze it
   int last = count-1 == b;
   char head[5]={0x80,0xE8,last?0x80:00,b,r};
   g->out[0]=5+r; memcpy(g->out+1,head,5); memcpy(g->out+1+5,data,r); // copy data
-  gmodem_dump_out(g,"load command");
+  if (g->logLevel>3) gmodem_dump_out(g,"load command");
   //if (b>1) exit(2);
-  if (g->logLevel>1) printf(" cmd: Load %d/%d\n",b+1,count);
+  //printf("logLevel = %d\n",g->logLevel);
+  time(&now);
+  dur=now-started, pdur = 0;
+  if ( b>0 ) {
+     pdur = (count*dur)/b;
+     }
+  if (g->logLevel == 1) { // normal operation - show progress
+         fprintf(stderr,"\r LOADING %s (%d%c): %d/%d  dur:%d/%d  eta:%d      ",filename, (b*100)/count,'%',b+1,count,
+                  dur,pdur, (pdur-dur) );
+         fflush(stderr);
+         } else { // push log info
+         gmodem_logf(g,2," LOADING (%d%c): %d/%d",(b*100)/count,'%',b+1,count);
+         }
   code = gmodem_apdu_wrapSend(g,g->out);
   if (g->logLevel>2) printf(" res: %d for load\n",code);
   if (code<=0) break;
   }
-if (g->logLevel>1) printf("=== loader done with code=%d, %x\n",code,code);
+if (g->logLevel == 1) fprintf(stderr,"                                                                  \r"); // clear out
+gmodem_logf(g,2,"LOAD DONE with code: %d\n",code,code);
 close(file);
-if (code>0) {
-   sprintf(g->out,"loaded:{bytes:%d,blocks:%d}",fileLen,count);
-   }
+if (code>0) return gmodem_outf(g,code,"loaded:    {bytes:%d,blocks:%d,dur:%d}",fileLen,count,dur);
 return code;
-//exit(1);
 }
 
 /*
@@ -528,6 +527,7 @@ uchar cmd_install[5]={0x80,0xE6,0x0C,0x00,g->out[0]};
  apdu_ins(g->out,cmd_install,5);
 gmodem_dump_out(g,"install install+make_selectable");
 int code = gmodem_apdu_wrapSend(g,g->out);
+if (code>0) return gmodem_outf(g,code,"installed: %s",szaid(appID));
  //gmodem_resp(g);
 return code;
 }
@@ -717,6 +717,19 @@ return 1; // seleted
 
 int imei_inited = 0;
 
+int gmodem_updateJobCard(gmodem *g, uchar *iccid) {
+      struct _cardJob *j = &cardJob;
+      if (cardJobLoadCfg( 0 , iccid, 0 )<=0) {  // load defailt card info
+          gmodem_logf(g,1,"UNKNOWN ICCID:%s, default no-security applied");
+          return -1;
+           } else {
+           gmodem_logf(g,1,"ICCID:%s SPI:%04X COUNTER:%d MSISDN:%s IMSI:%s",j->ICCID,j->spi,j->counter,j->MSISDN,j->IMSI);
+           // definitions!!! SPI & KIC & KID
+           return 1; // OK
+           }
+
+}
+
 int  gmodem_apdu_iccid(gmodem *g, int updateJobCard) {
 uchar readBinary[]={ 5 , 0xA0,0xB0, 00, 00, 0xA };
 uchar out[256],sw[2],iccid[24];
@@ -730,15 +743,7 @@ uchar out[256],sw[2],iccid[24];
     }
  i = strlen(iccid); iccid[i-1]=0; // remove last digit - LUN number
 sprintf(g->out,"%s",iccid);
-if (updateJobCard) {
-      struct _cardJob *j = &cardJob;
-      if (cardJobLoadCfg( 0 , iccid, 0 )<=0) {  // load defailt card info
-          printf("Card %s not known!\n");
-           } else {
-           printf("ICCID: SPI:%04X COUNTER:%d MSISDN:%s IMSI:%s\n",j->spi,j->counter,j->MSISDN,j->IMSI);
-           //exit(1);
-           }
-      }
+if (updateJobCard) gmodem_updateJobCard(g,iccid);
 return 1;
 }
 
@@ -748,10 +753,15 @@ int gmodem_apdu_cmd(gmodem *g, uchar *cmd) {
 
 //init_personal(); // ICCID, KID & counter
 if (!imei_inited) {
-  gmodem_apdu_iccid(g,1);
+  if (g->mode == 0) { // E1550 cant read files EF_ICCID ?
+      if (gmodem_iccid(g)>0)
+         gmodem_updateJobCard(g,g->iccid); // try define it
+      printf("JobUpdated for %s\n",g->iccid);
+    } else {
+    gmodem_apdu_iccid(g,1);
+    }
   imei_inited = 1;
   };
-
 if (lcmp(&cmd,"iccid")) { // personalize me
    return gmodem_apdu_iccid(g,1);
    }
@@ -774,10 +784,10 @@ if (lcmp(&cmd,"load")) { // do delete AID
 if (lcmp(&cmd,"install")) {
   uchar exe[256],mod[256],app[256],inst[256];
   if ( get_aid(exe,&cmd) && get_aid(mod,&cmd) && get_aid(app,&cmd) && get_aid(inst,&cmd)) {
-      hexdump("EXE AID",exe+1,exe[0]);
-      hexdump("MOD AID",mod+1,mod[0]);
-      hexdump("APP AID",app+1,app[0]);
-      hexdump("INST PAR",inst+1,inst[0]);
+      //      hexdump("EXE AID",exe+1,exe[0]);
+      //hexdump("MOD AID",mod+1,mod[0]);
+      //hexdump("APP AID",app+1,app[0]);
+      //hexdump("INST PAR",inst+1,inst[0]);
       return gmodem_apdu_install(g,exe,mod,app,inst);
       }
   printf("USAGE install <exeAID> <modAID> <appAID> <instParams>\n");

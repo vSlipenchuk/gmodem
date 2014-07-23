@@ -5,8 +5,9 @@
 #include "voice_stream.h"
 
 
-#define gmodem_version 0,0,0,3
+#define gmodem_version 0,0,0,4
 
+// 0.0.0.4   -- apdu over at+CSIM or --phoenix reader
 // 0.0.0.3 - add voice stream E1550 in pulse audio
 // 0.0.0.2 - add draft for at+crsm (cnum,iccid,...)
 
@@ -148,7 +149,9 @@ int gmodem_cnum(gmodem *g); // try read cnum from a rsim?
 
 // all cmd commands
 
-int gmodem_errorf(gmodem *g,int res, char *fmt,...);
+int gmodem_outf(gmodem *g,int res, char *fmt,...);
+#define gmodem_errorf gmodem_outf
+void gmodem_logf(gmodem *g,int level, char *fmt,...);
 
 int gmodem_Atf(gmodem *g,char *fmt, ... );
 

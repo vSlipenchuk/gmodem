@@ -69,7 +69,8 @@ if (lcmp(&cmd,"dec")) {
 if (lcmp(&cmd,"start")) {
     gmodem_At(m,"+CSCB=0,\”1-65535\”,\”\”");
     //gmodem_At(m,"+CSCB=0");
-    gmodem_At(m,"+CNMI=2,,2"); // ACCEPT INLINE
+   // gmodem_At(m,"+CNMI=2,,2"); // ACCEPT INLINE
+    gmodem_At(m,"+CNMI=2,2,2"); // ACCEPT INLINE
    return 1;
    }
 printf("cb usage: <info|start> ,  '%s' not implemented\n",cmd);

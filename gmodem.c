@@ -17,15 +17,23 @@ vstream *s=&g->port;
   g->now=g->o.modified = os_ticks(); //
   strcpy(g->o.num,"-");
 s->p=&vstream_com_procs;
- printf("Open %s\n",name);
+// printf("Open %s\n",name);
 s->handle = s->p->open(name);
- printf("Done handle %d\n",s->handle);
+// printf("Done handle %d\n",s->handle);
 if (!s->handle) return 0;
 strNcpy(g->name,name);
 return 1; //ok
 }
 
-int gmodem_errorf(gmodem *g,int res, char *fmt,...) { BUF_FMT(g->out,fmt); return res;}
+int  gmodem_outf(gmodem *g,int res, char *fmt,...) { BUF_FMT(g->out,fmt); return res;}
+
+void gmodem_logf(gmodem *g,int level, char *fmt,...) {
+if (g->logLevel<level) return;
+uchar buf[1024];
+BUF_FMT(buf,fmt);
+while(level>0) { printf(" "); level--;} // indents
+ printf("%s\n",buf);
+}
 
 
 //+CLIP: "+79151999003",145,,,"     ",0}
