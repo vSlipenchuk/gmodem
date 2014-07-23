@@ -88,15 +88,17 @@ void  prt_config_phoenix(int fd) {
 
 int gmodem_atr(gmodem *g) { // wait Answer to Reset
 int i;
+//printf("ATR request\n");
+if (g->mode==0) return 1; // no need
 prt_config_phoenix((int)g->port.handle);
+g->in_len = 0;
 for(i=0;i<10;i++) {
   gmodem_run(g);
   msleep(100);
   //hexdump("ATR",g->in,g->in_len);
   }
 if (g->logLevel>5) hexdump("ATR",g->in,g->in_len);
-//msleep(100);
-return 1; // OK
+return 1;
 }
 
 //
@@ -172,13 +174,17 @@ uchar ins = cmd[1],clen=cmd[4]; // ins and cmdlength
     if (out[0]>=2) break;
    }
 //printf("OK, status here\n");
-   {    msleep(10);    gmodem_run(g); // read again
+   int empty = 0;
+   while(empty<10)  {
+       msleep(10);    gmodem_run(g); // read again
         l = g->in_len; if (l>255) l =255;
+        if (l) empty=0; else empty ++; // count empty reads
         //out[0]=l;
         memcpy(out+1+2,g->in,l); out[0]+=l;// copy result
         g->in_len = 0;
-        if (g->logLevel>5) hexdump("DONE read",out+1,out[0]);
     }
+    if (g->logLevel>5) hexdump("DONE read",out+1,out[0]);
+
   //buf[0]=0x02; // ready to get 255 bytes
   //gmodem_put(g,buf,1);   gmodem_read(g,buf,1);
  //sw[0]=sw[1]=0;

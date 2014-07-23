@@ -86,6 +86,12 @@ printf("CSIM_RESP: <%d,0x%x>\n",code,code);
 return code;
 }
 
+void hexdump2(char *msg, uchar *data,int len) {
+printf("hexdump2 %s len=%d(0x%x)\n",msg,len,len);
+int i; for(i=0;i<len;i++) printf("%02X",data[i]);
+printf("\n");
+}
+
 int apdu_add_secure(uchar *apdu,
                        int spi, int kic, int kid, char tar[3], // profile
                        void *KIC,void *KID, int counter // personal
@@ -96,22 +102,23 @@ int  hlen=0xD,rc_sz=0;
 //printf("SPI use=%d, %d\n",spi,(spi>>8));
 if (spi>>8) { rc_sz=8; hlen+=rc_sz; } // HAVE security, SIGN 8 bytes?
 int sz=l+hlen+2+1;  // hlen=13 bytes if no RC/CC
-//printf("SPI use=%d hlen=%x sz=%d rc_sz=%d\n",spi,hlen,sz,rc_sz);
+ //printf("SPI use=%d hlen=%x sz=%d rc_sz=%d counter=%d\n",spi,hlen,sz,rc_sz,counter);
 uchar buf[sz], *p=buf; // new size
 *(short*)p=htons( l+hlen+1 ); p+=2; *p=hlen; p++;
 *(short*)p=htons( spi); p+=2; *p = kic; p++; *p=kid; p++; memcpy(p,tar,3); p+=3;
-memset(p,0,5); p++;
-    if (spi>>8) *(int*)p=htonl(counter); // setup counter
-            p+=4; *p=0; p++; // counter + pcntr
+memset(p,0,5); p++; if (spi>>8) *(int*)p=htonl(counter); // setup counter
+            p+=4;
+             *p=0; p++; // counter + pcntr
 if (rc_sz) { // место для имитовставки
   memset(p,0,rc_sz); p+=rc_sz;
   }
 memcpy(p,ud,l);
 memcpy(ud,buf,sz); apdu[0]=sz;
 if (spi>>8) {
-     printf("DO SIGN\n");
+     //hexdump2("sign_KID",KID,8);
      cbc_sign_11(apdu+1,apdu[0],KID); // Sign with user key
      }
+//hexdump2("signed_packet",apdu+1,apdu[0]);
 return sz; // ok
 }
 
@@ -282,7 +289,7 @@ return 1;
 
 int gmodem_apdu_POR(gmodem *g,porPacket *por) { // returns POR status code
 uchar out[256];
-int code = gmodem_apdu_GetResponce(g,SW[1],out); // GetLastResponce result
+int code = gmodem_apdu_GetResponce(g, SW[1],out); // GetLastResponce result
 if (code<=0) return code;
 if (porDecode(por,out+1,out[0]-2)<=0) {
    sprintf(g->out,"POR_decode_failed:%s",por->data);
@@ -326,7 +333,7 @@ if (p->status!=0) {
     }
 if (g->logLevel>1) printf(" ---  PoR:%d (%s) Command:%d SW:%02x%02x nextCounter:%d--- \n",
                             p->status,porStatusName(p->status),p->command,p->sw[0],p->sw[1],j->counter);
-if (!por_ok(p->sw[0])) {
+if (!por_ok( p->sw[0])) {
    return gmodem_errorf(g,-3, "PoR return error status, expect %s found %02x",szPoR,p->sw[0]);
    }
 return 1;
@@ -381,14 +388,14 @@ return code;
 
 
 
-#ifndef WIN32
+/*#ifndef WIN32
 int filelength(int file) {
 struct stat st;
 if (fstat(file,&st)!=0) return -1;
 return st.st_size;
 }
 #endif
-
+*/
 
 
 
@@ -650,7 +657,9 @@ if (sw) memcpy(sw,out+1+l-2,2); out[0]-=2; // move bytes
 return code;
 }
 
-int apdu_GetData(gmodem *g) {
+int p_freeEEPROM, p_freeRAM = -1;
+
+int apdu_GetData0(gmodem *g) {
 uchar aidCardManager[]={8,0xA0,00,00,00,03,00,00,00};
 //uchar aidCardManager[]={7,0xA0,00,00,00,03,00,00};
 uchar getData[]={ 5, 0x80,0xCA,0xFF,0x21,0x10 };
@@ -660,7 +669,10 @@ if (g->logLevel>1) printf("==getData begin\n");
 int code = gmodem_apdu_select(g,aidCardManager);
 if ( (code >> 8) != 0x61 ) return gmodem_errorf(g,-3,"getData failed select cardManager (code:%04X,expect  6147)",code);
 
-if (gmodem_apdu_exchange_sw(g,getData,out,sw)<=0) return -2;
+if (gmodem_apdu_exchange_sw(g,getData,out,sw)<=0) {
+     //gmodem_atr(g); // reset modem - ZUZUKA
+    return -2;
+    }
 if (sw[0]!=0x90) return gmodem_errorf(g,-3,"getData expect 90XX, found %0X",sw[0]);
 g->out[0]=0; // clear text
 //printf("SW: %02x %02x\n",sw[0],sw[1]);
@@ -675,12 +687,26 @@ if (out[0]>=14) {
        if (t == 0x83 && l==2)  freeRAM=htons( *(short*)(c));
        c+=l; clen-=l;
        }
-   sprintf(g->out,"free EEPROM:%d(hex:%x) RAM:%d(hex:%x)",freeEEPROM,freeEEPROM,freeRAM,freeRAM);
+   char delta[256]={0};
+   if (p_freeRAM>=0) {
+       sprintf(delta," delta:{EERPOM:%d,RAM:%d,TOTAL:%d}",p_freeEEPROM-freeEEPROM,p_freeRAM-freeRAM,
+                 (p_freeEEPROM-freeEEPROM)+(p_freeRAM-freeRAM)
+                  );
+       }
+   p_freeEEPROM =freeEEPROM; p_freeRAM = freeRAM; // remember
+   sprintf(g->out,"free EEPROM:%d(hex:%x) RAM:%d(hex:%x) %s",freeEEPROM,freeEEPROM,freeRAM,freeRAM,delta);
    if (g->logLevel>1) printf("==getData OK: %s\n",g->out);
+   gmodem_atr(g); // reset modem - ZUZUKA
    return 1; // OK
    }
 hexdump("INVALID_getData answer",out+1,out[0]);
 return -2;
+}
+
+int apdu_GetData(gmodem *g) {
+int code = apdu_GetData0(g);
+gmodem_atr(g);
+return code;
 }
 
 int _gmodem_csim_s(gmodem *g, uchar *bin) { // binary send
@@ -715,7 +741,7 @@ if ( (code <0) || ((code>>8)!=0x9F) ) return 0;
 return 1; // seleted
 }
 
-int imei_inited = 0;
+
 
 int gmodem_updateJobCard(gmodem *g, uchar *iccid) {
       struct _cardJob *j = &cardJob;
@@ -730,7 +756,7 @@ int gmodem_updateJobCard(gmodem *g, uchar *iccid) {
 
 }
 
-int  gmodem_apdu_iccid(gmodem *g, int updateJobCard) {
+int  gmodem_apdu_iccid(gmodem *g) {
 uchar readBinary[]={ 5 , 0xA0,0xB0, 00, 00, 0xA };
 uchar out[256],sw[2],iccid[24];
  gmodem_apdu_select_file(g,0x3F00); // MasterFile
@@ -743,7 +769,7 @@ uchar out[256],sw[2],iccid[24];
     }
  i = strlen(iccid); iccid[i-1]=0; // remove last digit - LUN number
 sprintf(g->out,"%s",iccid);
-if (updateJobCard) gmodem_updateJobCard(g,iccid);
+if (cardJob.ICCID[0]==0)  gmodem_updateJobCard(g,iccid); // if not inited yet
 return 1;
 }
 
@@ -752,18 +778,17 @@ return 1;
 int gmodem_apdu_cmd(gmodem *g, uchar *cmd) {
 
 //init_personal(); // ICCID, KID & counter
-if (!imei_inited) {
+if ( cardJob.ICCID[0]==0 ) { // not inited
   if (g->mode == 0) { // E1550 cant read files EF_ICCID ?
       if (gmodem_iccid(g)>0)
          gmodem_updateJobCard(g,g->iccid); // try define it
       printf("JobUpdated for %s\n",g->iccid);
     } else {
-    gmodem_apdu_iccid(g,1);
+    gmodem_apdu_iccid(g);
     }
-  imei_inited = 1;
   };
 if (lcmp(&cmd,"iccid")) { // personalize me
-   return gmodem_apdu_iccid(g,1);
+   return gmodem_apdu_iccid(g);
    }
 if (lcmp(&cmd,"delete")) { // do delete AID
     //uchar *aid =get_word(&cmd);

@@ -1,0 +1,40 @@
+<title>gmodem commands</title>
+<script src="/j/vs.js" ></script>
+
+<script>
+
+function at(c) {
+return vReqText(c,"/.at"); // send by BODY
+}
+
+function send() {
+var c=document.getElementById("command").value;
+alert("outtext:"+at(c)+" for cmd:"+c);
+}
+
+function sendcmd() {
+var c=document.getElementById("inp").value;
+var out = at(c); //+" for cmd:"+c);
+var s =document.getElementById("screen");
+s.innerHTML=s.innerHTML+'<br>>>'+c+'<br>'+out;
+document.getElementById("inp").value=""
+}
+
+</script>
+
+<h2>gmodem html console</h2>
+
+<div id=screen width=100% height=200px>
+
+</div>
+
+<input style="width:100%" id="inp" onkeydown="if (event.keyCode == 13) { sendcmd(); return false; }" ></input>
+
+
+
+
+<!---
+<button onclick=send()>send</button>
+<textarea id="command">
+</textarea>
+--->

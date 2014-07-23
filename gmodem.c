@@ -122,6 +122,7 @@ return 0; // not yet
 
 int gmodem_run(gmodem *g) {
 int cnt=0;
+cnt = gmodem_onidle(g); // starts with it
 //char buf[1024]; // need collect it !!!
 vstream *s=&g->port;
 int sz = sizeof(g->in) - g->in_len -1; // free space
@@ -368,9 +369,9 @@ if (g->dev && g->dev->ussd == 7) { // 7bit mode for string - E1550
   }
 g->cusd[0]=0;
 if (gmodem_At(g,buf)<=0) {
-    printf("ussd failed\n");
-    return 0; // fail
-    }
+     return -2; // error already reported
+     //return gmodem_errorf(g,-2,"fail_launch %s",buf);
+     }
 int i;
 for(i=0;i<30000;i+=100) {
   gmodem_run(g);
@@ -378,27 +379,28 @@ for(i=0;i<30000;i+=100) {
            // ALCATEL: +CUSD: 2,"Balance:259,17r,Limit:0,01r ", 15
            // E1550  :
         char *cmd = g->cusd,*txt; int dcs;
-        char buf[512];
+        char buf[512],buf2[200];;
         //CLOG(g,2,"USSD RESP HERE>%s\n",cmd);
         txt = str_unquote(gmodem_par(&cmd,1)); // skip presentation code (normally=0)
         dcs = atoi((void*)gmodem_par(&cmd,0)); // 15 - 7bit, 72 - UCS2, optionally HEX-coded
-
+        int l;
         //dcs=72;
 
-        if (g->logLevel>2) printf("CUSD dcs=%d , result: %s\n",dcs,txt);
-
-        if (dcs ==  72) { // decode UCS2
-          int l = hexstr2bin(txt,txt,-1);
+        gmodem_logf(g,3,"USSD for decode dcs=%d , data: %s",dcs,txt);
+        switch (dcs) {
+        case 72: // decode UCS2
+          l = hexstr2bin(txt,txt,-1);
           gsm2utf(buf,txt,l);
-          } if (dcs ==15) { // as is
-          char buf2[200];
-          int l = hexstr2bin(buf2,txt,-1);
+          //printf("TEXT:%s\n",buf);
+          break;
+        case 15: // // as is
+          l = hexstr2bin(buf2,txt,-1);
           gsm7_decode(buf,buf2,l,0);
-          // strNcpy(buf,txt);
-          } else { // as is
+          break;
+        default:
           strNcpy(buf,txt);
           }
-        if (g->logLevel>1) printf("USSD_TEXT:%s\n",buf);
+        gmodem_logf(g,3,"USSD DCS:%d TEXT:%s\n",dcs,buf);
         strNcpy(g->out,buf);
         return 1; // OK
         }

@@ -5,8 +5,10 @@
 #include "voice_stream.h"
 
 
-#define gmodem_version 0,0,0,4
+#define gmodem_version 0,0,0,6
 
+// 0.0.0.6   -- added build-in http-sever
+// 0.0.0.5  -- added apdu getData (and delta for EEPORM and RAM)
 // 0.0.0.4   -- apdu over at+CSIM or --phoenix reader
 // 0.0.0.3 - add voice stream E1550 in pulse audio
 // 0.0.0.2 - add draft for at+crsm (cnum,iccid,...)

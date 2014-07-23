@@ -253,10 +253,10 @@ uchar *c=c0;
 if (lcmp(&c,"try"))   {  int code = gmodem_cmd(m,c); if (code>0) return code; // OK
                          char buf[180];
                          strNcpy(buf,m->out);
-                         sprintf(m->out," try_ignore: %s",buf);
+                         sprintf(m->out," ignore: %s",buf);
                          return 1;
                        } // always OK
-
+if (lcmp(&c,"http"))    return gmodem_http(m,c);
 if (lcmp(&c,"balance")) return gmodem_balance(m);
 if (lcmp(&c,"pppd"))    return gmodem_pppd(m,c);
 if (lcmp(&c,"ussd"))    return gmodem_ussd(m,c);

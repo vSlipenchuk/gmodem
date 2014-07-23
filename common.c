@@ -12,6 +12,9 @@
 #include "../vos/strutil.c"
 #include "../vos/hexdump.c"
 
+//#include "../vos/sock.c"
+//#include "../vos/httpSrv.c"
+
 #include <string.h>
 
 /* thats a com port functions */

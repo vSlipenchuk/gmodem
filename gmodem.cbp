@@ -58,6 +58,9 @@
 		<Unit filename="gmodem_device.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gmodem_http.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="gmodem_oper.c">
 			<Option compilerVar="CC" />
 		</Unit>

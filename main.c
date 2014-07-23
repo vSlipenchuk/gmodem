@@ -118,7 +118,7 @@ char szVersion[20];
 void usage(char *name) {
 fprintf(stderr,"usage: %s version %s\n"
         "\t-h print this message\n"
-        "\t-m <modem>    or ---modem=<modem>   (default: /dev/modem)\n"
+        "\t-D <modem>    or ---modem=<modem>   (default: /dev/modem)\n"
         "\t-M <monitor>  or ---monitor=<modem> (default: empty)\n"
         "\t-V <port>     or --voice=<port>\n"
         "\t-o          or --no-init\n"
@@ -136,7 +136,7 @@ sprintf(szVersion,"%d.%d.%d.%d",gmodem_version);
 while (1){
   static struct option long_opt[] = {
                     {"help",  0, 0, 'h'},
-                    {"modem", 1, 0, 'm'},
+                    {"modem", 1, 0, 'D'},
                     {"monitor", 1, 0, 'M'},
                     {"no-init",0,0, 'o'},
                     {"exec",   1,0, 'e'},
@@ -155,6 +155,7 @@ while (1){
      case 'h':
           usage(argv[0]);
           exit(-1);
+     case 'D':
      case 'm':
           //printf("option 'm' selected, filename: %s\n", optarg);
           strNcpy(szmodem,optarg);
@@ -198,7 +199,9 @@ voice_stream VS;
 
 int main(int argc, char **argv) {
 //return sec_test();
+m->logLevel = 1; // default log level
     parse_options(argc,argv);
+
     //printf("Done parse\n");
 
     //m->on_data = g_on_data; // print letters on a screen

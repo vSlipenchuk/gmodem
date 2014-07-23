@@ -102,7 +102,7 @@ memset(&cblock,0,sizeof(DES_cblock));
 DES_cbc_encrypt((const unsigned char*)src, // outer triple cbc des
                          (unsigned char*)dst,
                           len, &k, &cblock,DES_ENCRYPT);
-hexdump("sec_encrypt",dst,len);
+ //hexdump("sec_encrypt",dst,len);
 
 memcpy(&cb1,kid,8); DES_set_key(&cb1,&k);
 memset(&cblock,0,sizeof(DES_cblock));
@@ -110,7 +110,8 @@ memset(&cblock,0,sizeof(DES_cblock));
 
 int code =  DES_cbc_cksum(src, (void*)keys, len, &k, &cblock ); // -> last DES_ENCRYPT
 
-printf("SIGN = %x \n",code);
+  //printf("SIGN = %x \n",code);
+  return 1;
 }
 
 int sec_test_good() { //D99E2304FB17158A -- Это врооде бы и есть подпись дл CBC3DES?

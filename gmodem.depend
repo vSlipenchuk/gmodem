@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1402577635 source:/mnt/c/prj/gmodem/common.c
+1406121745 source:/mnt/c/prj/gmodem/common.c
 	"gmodem.h"
 	"../vos/vos_com_linux.c"
 	"../vos/vos_linux_kbhit.c"
@@ -12,7 +12,7 @@
 	<readline/readline.h>
 	<readline/history.h>
 
-1406101173 /mnt/c/prj/gmodem/gmodem.h
+1406126194 /mnt/c/prj/gmodem/gmodem.h
 	"../vos/vos.h"
 	"voice_stream.h"
 
@@ -56,7 +56,7 @@
 	<stdio.h>
 	<sys/resource.h>
 
-1406101416 source:/mnt/c/prj/gmodem/gmodem.c
+1406125931 source:/mnt/c/prj/gmodem/gmodem.c
 	"gmodem.h"
 	<string.h>
 	<stdio.h>
@@ -83,7 +83,7 @@
 	"gmodem.h"
 	"vstrutil.h"
 
-1406103029 source:/mnt/c/prj/gmodem/main.c
+1406117769 source:/mnt/c/prj/gmodem/main.c
 	<stdio.h>
 	<stdlib.h>
 	"gmodem.h"
@@ -98,7 +98,7 @@
 1405972177 source:/mnt/c/prj/gmodem/gmodem_cb.c
 	"gmodem.h"
 
-1406108192 source:/mnt/c/prj/gmodem/gmodem_cmd.c
+1406121781 source:/mnt/c/prj/gmodem/gmodem_cmd.c
 	"gmodem.h"
 	"vstrutil.h"
 	<stdio.h>
@@ -126,7 +126,7 @@
 	"coders.h"
 	<stdarg.h>
 
-1403793584 /mnt/c/prj/vos/hexdump.c
+1406122184 /mnt/c/prj/vos/hexdump.c
 	"coders.h"
 
 1402596924 /mnt/c/prj/vos/strutil.c
@@ -151,7 +151,7 @@
 
 1402949922 /mnt/c/prj/gmodem/voice_stream.h
 
-1405773423 source:/mnt/c/prj/gmodem/sec_packet.c
+1406117380 source:/mnt/c/prj/gmodem/sec_packet.c
 	"gsm_sim.h"
 	<openssl/des.h>
 	<stdio.h>
@@ -162,11 +162,11 @@
 	<stdlib.h>
 	<string.h>
 
-1406108632 source:/mnt/c/prj/gmodem/gmodem_apdu.c
+1406122163 source:/mnt/c/prj/gmodem/gmodem_apdu.c
 	"gmodem.h"
 	"gsm_sim.h"
 
-1406101837 source:/mnt/c/prj/gmodem/phoenix_reader.c
+1406115828 source:/mnt/c/prj/gmodem/phoenix_reader.c
 	"gmodem.h"
 	"gsm_sim.h"
 	<termios.h>
@@ -180,4 +180,73 @@
 1406044007 /mnt/c/prj/smppTest/im.c
 	"vos.h"
 	<openssl/des.h>
+
+1406124155 source:/mnt/c/prj/gmodem/gmodem_http.c
+	"gmodem.h"
+	"../vos/std_sock.c"
+	"../vos/logger.c"
+	"../vos/exe.c"
+	"../vos/sock.c"
+	"../vos/httpSrv.c"
+	"../vos/vs0.c"
+	"../vos/vss.c"
+
+1400828435 /mnt/c/prj/vos/exe.c
+	"vtypes.h"
+	"coders.h"
+	"vos.h"
+
+1402308989 /mnt/c/prj/vos/sock.c
+	"sock.h"
+	<stdarg.h>
+
+1400828435 /mnt/c/prj/vos/sock.h
+	"vos.h"
+	"vs0.h"
+	"vss.h"
+	"logger.h"
+	"vtypes.h"
+
+1400828435 /mnt/c/prj/vos/vs0.h
+	"vtypes.h"
+	"vss.h"
+
+1400828435 /mnt/c/prj/vos/vss.h
+	"vtypes.h"
+
+1400828435 /mnt/c/prj/vos/logger.h
+	"vs0.h"
+	<stdio.h>
+	<time.h>
+	"coders.h"
+
+1402309579 /mnt/c/prj/vos/httpSrv.c
+	"httpSrv.h"
+	<stdarg.h>
+	<dirent.h>
+
+1400828435 /mnt/c/prj/vos/httpSrv.h
+	"vos.h"
+	"sock.h"
+	"vss.h"
+
+1402308843 /mnt/c/prj/vos/vs0.c
+	<fcntl.h>
+	"vs0.h"
+	"vos.h"
+	<fcntl.h>
+
+1402309279 /mnt/c/prj/vos/vss.c
+	"vss.h"
+	"vos.h"
+
+1400828435 /mnt/c/prj/vos/logger.c
+	"logger.h"
+	<time.h>
+	<stdarg.h>
+	"vos.h"
+
+1402333141 /mnt/c/prj/vos/std_sock.c
+	"vos.h"
+	"mutex-1.1.c"
 
