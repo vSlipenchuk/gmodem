@@ -165,8 +165,10 @@ return sms->smLen;
 
 // -- sms binary decoders
 
+/*
 int gsm_gettime(char *dst,unsigned char *src, int len) {
 int i;
+*dst=0;
 if (len<7) return -2; // Недостаточная длина ...
 for(i=0;i<6;i++) { // Печатаем адрес ..
   char a[4];
@@ -179,7 +181,15 @@ for(i=0;i<6;i++) { // Печатаем адрес ..
 *dst=0;
 return 7;
 }
+*/
 
+int gsm_gettime(char *dst,unsigned char *a, int len) {
+int _(int a) { return (a>>4)|((a&0xf)<<4); } // swap hex
+if (len<7) return -2; // Недостаточная длина ...
+sprintf(dst,"20%02X-%02X-%02XT%02X:%02X:%02X",_(a[0]),_(a[1]),_(a[2]),_(a[3]),_(a[4]),_(a[5]));
+// ignore a[6] - timeshift ^)
+return 7;
+}
 
 
 
@@ -242,10 +252,11 @@ s++; len--; // remove user data length, now starts with userdata or userdatahead
 //printf("Rest of UD len=%d udhi=%d\n",len,sm->udhi);
 sm->ud = s; sm->udh=0;
 if (sm->udhi) {
-   int l,blen,slen;
+   int blen,slen;
   //hex_dump("DECODE_UDHI from:",s,len);
   //printf("UserData contains header , len=%d >",l);
-  l = blen = slen =  s[0]+1; // Извлекаем из хедера длину, добавляем саму "длину длины хедера"
+  //l =
+   blen = slen =  s[0]+1; // Извлекаем из хедера длину, добавляем саму "длину длины хедера"
   sm->udh = s; // Устанавливаем на хедер после длины
   sm->offset = 0;
   if ((dcs&(8+4))==0) { // 7bit - выравниваем байт-длину на границу 7
@@ -296,7 +307,8 @@ if (sm->udh) {// have -> UserDataHeader!!!
    //printf("UDHI here!!!\n");
    }
 //printf("UDL=%d,dcs=%d\n",sm->udl,dcs);
-//hex_dump("USER_DATA!!!!",sm->ud,len);
+ //hexdump("USER_DATA",sm->ud,len);
+return 1; // do not decode
 switch(dcs&(8+4)) {
 case 8:  { // UCS2, // Unicode ...
          int i; //unsigned char buf2[100];
@@ -392,7 +404,7 @@ if (l<0) {
   sprintf(sm->error,"delivr: error get dst address code=%d!!!\n",l);
   return -1;
   }
-//printf("TP_DestAdress=%s\n",dst);
+ //printf("TP_DestAdress=%s\n",sm->da);
 s+=l; len-=l;
 // Теперь PID & DSC
 if (l<2) {
@@ -404,16 +416,19 @@ sm->pid = s[0]; sm->dcs=s[1];
 s+=2; len-=2;
 // Теперь -  TP SC TS - ServiceCentreTimeStamp...
 l = gsm_gettime(sm->vp,s,len);
+ //printf("L=%d\n",l);
 if (l<0) {
   sprintf(sm->error,"Error get send time code=%d",l);
   return -1;
   }
-//printf("Sent '%s'\n",sent);
+ //printf("Sent '%s', rest:%d\n",sm->vp,len);
 s+=l; len-=l;
 // Потом TP-UDL (1 байт) - Ну  и наконец UD - UserData !!!
 //printf("UserDataHere - %d octects: ",len);
 //for(i=0;i<len;i++) printf("%02x ",s[i]);
 //printf("\n");
+ //hexdump("ud",s,len);
+//eturn 1;
 return sms_decode_ud(sm,s,len);
 }
 
@@ -470,9 +485,9 @@ return 1; // Ok ...
 int sms_decode(t_sms *sm,unsigned char *s,int len) {
 int code;
 sm->mti =(*s)&3;
-//printf("decode MTI=%d\n",sm->mti);
+ //printf("decode MTI=%d\n",sm->mti);
 switch(sm->mti) {
-case SMS_DELIVER: code=sms_decode_deliver(sm,s,len); break;
+case SMS_DELIVER: code=sms_decode_deliver(sm,s,len); break; // 0
 case SMS_SUBMIT:  code=sms_decode_submit(sm,s,len); break; // Decode This...
 case SMS_REPORT:  code=sms_decode_status(sm,s,len); break;
 default:
@@ -628,7 +643,7 @@ if (ton == 5) { // alpha-numberic, GSM alphabet...
     //printf("ALPHA:<%s>\n",src);
     //int i = char_7bit_unpack(0,1000,dlen/2,src+2,dst);
     i = gsm7_decode(dst,src+2,1+dlen/2,0);
-    printf("ALPHADSTADDR:<%s>,len=%d,dlen=%d\n",dst,i,dlen);
+    //printf("ALPHADSTADDR:<%s>,len=%d,dlen=%d\n",dst,i,dlen);
     if (i<0) return -2; // decode error
     dst[i]=0;
     return xlen; // 7bit???
@@ -670,7 +685,7 @@ for(i=0,rest=0;i<cnt;src++) { // cnt - сколько на выход (без у
         OUT_CH(rest); rest=0; bits=7;
         };
     }
-printf("DONE_7_decode_len:%d\n",cnt);
+//printf("DONE_7_decode_len:%d\n",cnt);
 return cnt;
 }
 

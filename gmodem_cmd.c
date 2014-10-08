@@ -248,14 +248,36 @@ return gmodem_Atf(g,"+CSCA=\"%s\",%d",num,code);
 
 //AT+CRSM=220,28480,1,4,26,FFFFFFFFFFFFFFFFFFFFFF07819861206687F8FFFFFFFFFFFFFF
 
+int gmodem_cmd_file(gmodem *m,char *file) {
+char *txt = strLoad(file);
+gmodem_logf(m,2,"process file: %s",file);
+if (!txt) return gmodem_errorf(m,-2,"file %s not found",file);
+char *b = txt, *e;
+while( ! m->f.eof ) { // while we can ...
+  e  = strchr(b,"\n");
+  if (e) { *e=0; e++; }
+    gmodem_cmd(m, b); // process this line
+  if (!e) break;
+  b=e; // next line
+  }
+strClear(&txt); // free text
+return 1; // OK
+}
+
 int gmodem_cmd(gmodem *m,char *c0) {
 uchar *c=c0;
+if (lcmp(&c,"@")) { // run file
+   return gmodem_cmd_file(m,c);
+   }
 if (lcmp(&c,"try"))   {  int code = gmodem_cmd(m,c); if (code>0) return code; // OK
                          char buf[180];
                          strNcpy(buf,m->out);
                          sprintf(m->out," ignore: %s",buf);
                          return 1;
                        } // always OK
+
+if (lcmp(&c,"pin")) return gmodem_pin(m,c);
+
 if (lcmp(&c,"http"))    return gmodem_http(m,c);
 if (lcmp(&c,"balance")) return gmodem_balance(m);
 if (lcmp(&c,"pppd"))    return gmodem_pppd(m,c);
@@ -281,6 +303,15 @@ if (lcmp(&c,"kill")) return gmodem_kill(m); // start dial???
 if (lcmp(&c,"dtmf")) return gmodem_dtmf(m,c);
 // APDU
 if (lcmp(&c,"apdu")) return gmodem_apdu_cmd(m,c);
+
+if (lcmp(&c,"crlf")) {
+    if (*c=='=') c++; int val=0;
+    sscanf(c,"%d",&val);
+    m->dev->crlf=val;
+    printf("crlf now:%d\n",val);
+    return 1;
+    //return gmodem_setLogLevel(m,logLevel);
+    }
 
 
 //if (lcmp(&c,"0"")

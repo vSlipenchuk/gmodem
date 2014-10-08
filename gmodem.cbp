@@ -11,7 +11,7 @@
 				<Option object_output="./" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="-m /dev/ttyACM0" />
+				<Option parameters='-o -m /dev/null &quot;sms dump 200481556500004170526161726106c8329bfd9601&quot;' />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wno-pointer-sign" />

@@ -97,13 +97,18 @@ BUF_FMT(buf,fmt);
 return system(buf);
 }
 
-
 int on_call_state(gmodem *g, int newstate) { // called before new state fires
-printf("MODEM: newstate: <%d> num:%s time=%ld\n",newstate,g->o.num,newstate,g->o.modified);
+printf("MODEM: newstate: <%d> num:%s new_state:%d time=%ld\n",newstate,g->o.num,newstate,g->o.modified);
+int code;
 switch(newstate) {
  case callPresent: // now we have a call?
-  return systemf("%s %s",on_in_call,g->o.num);
+   code = systemf("export NUM=%s;export MODEM=%s;%s begin",g->o.num,g->cnum,on_in_call);
+   printf("on_in_call returns code:%d\n",code); // now - ?
+     //gmodem_kill(g);
+   return 0;
  case callNone:
+    code = systemf("export NUM=%s;export MODEM=%s;DUR=%d;%s end",g->o.num,g->cnum,g->o.dur,on_in_call);
+   printf("on_in_call returns code:%d\n",code); // now - ?
    printf("CALL DONE\n");
    break;
   }
@@ -145,7 +150,7 @@ while (1){
                     {"phoenix", 0,0, 'X'},
                     {0,0,0,0}
                    };
-  if((c = getopt_long(argc, argv, "m:h:M:oe:i:V", long_opt, &optIdx)) == -1) {
+  if((c = getopt_long(argc, argv, "D:h:M:oe:i:V", long_opt, &optIdx)) == -1) {
      // printf("Done, index=%d optopt=%d\n",optIdx,optind);
    break;
   }
@@ -226,7 +231,7 @@ if (voice[0]) {
        vs->comName = voice ;// comPort name
        m->voice = vs; // just to be not
        //thread_create(pa_thread,voice) ; // ZUZUKA - test of voice thread
-       printf(">>>Begin voice_init vs=%x\n",vs);
+//       printf(">>>Begin voice_init vs=%x\n",vs);
        if (voice_init(vs)<=0) {
           printf("Voice Init Failed\n");
           m->voice = 0;
@@ -296,10 +301,7 @@ if (gmode == 1) gmodem_atr(m); // call ATR
               printf("{%d}{%s} result for {%s}\n",ok,m->out,buf);
               continue;
               }
-           if (lcmp(&c,"pin")) {
-                gmodem_pin(m,c);
-                continue;
-              }
+
 
 
            if (lcmp(&c,"console")) { // console mode start

@@ -7,6 +7,10 @@ gsm_device gsm_devices[] = {
     {
         .name="default", .crlf=3 ,/*\r\n*/ // GSM-0707
     },
+    {
+        .name="SIMCOM", .imei="0132260", .crlf=1, .ussd=8,
+    },
+
     {   /*
           Qualcomm based - can support SD Card
           AT^U2DIAG=0 (девайс в режиме "только модем")
@@ -41,7 +45,11 @@ gsm_device gsm_devices[] = {
         .name="HOJY",  .imei="3530360",.crlf=1   /*\n*/   // !!! ussd_coder !!! and other space!!!
     },
 
-
+{
+ .name="EM770W", // Huawei
+ .imei="3570300", //"25840295
+ .ussd=7
+},
 
 
     {

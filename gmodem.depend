@@ -12,7 +12,7 @@
 	<readline/readline.h>
 	<readline/history.h>
 
-1406126194 /mnt/c/prj/gmodem/gmodem.h
+1412661093 /mnt/c/prj/gmodem/gmodem.h
 	"../vos/vos.h"
 	"voice_stream.h"
 
@@ -31,7 +31,7 @@
 	<string.h>
 	<time.h>
 
-1406101793 /mnt/c/prj/vos/vos_com_linux.c
+1412625420 /mnt/c/prj/vos/vos_com_linux.c
 	"vos.h"
 	"stdio.h"
 	"unistd.h"
@@ -56,7 +56,7 @@
 	<stdio.h>
 	<sys/resource.h>
 
-1406125931 source:/mnt/c/prj/gmodem/gmodem.c
+1412758720 source:/mnt/c/prj/gmodem/gmodem.c
 	"gmodem.h"
 	<string.h>
 	<stdio.h>
@@ -65,25 +65,25 @@
 	"vstrutil.h"
 	"../vos/vos.h"
 
-1402637721 /mnt/c/prj/gmodem/vstrutil.h
+1412660986 /mnt/c/prj/gmodem/vstrutil.h
 	<string.h>
 
-1402954082 source:/mnt/c/prj/gmodem/gmodem_call.c
+1412625323 source:/mnt/c/prj/gmodem/gmodem_call.c
 	"gmodem.h"
 	<stdio.h>
 	"vstrutil.h"
 
-1403781206 source:/mnt/c/prj/gmodem/gmodem_device.c
+1412618747 source:/mnt/c/prj/gmodem/gmodem_device.c
 	"gmodem.h"
 
-1405972999 source:/mnt/c/prj/gmodem/gmodem_oper.c
+1409808947 source:/mnt/c/prj/gmodem/gmodem_oper.c
 	"gmodem.h"
 
 1402577737 source:/mnt/c/prj/gmodem/gmodem_scan.c
 	"gmodem.h"
 	"vstrutil.h"
 
-1406117769 source:/mnt/c/prj/gmodem/main.c
+1412623378 source:/mnt/c/prj/gmodem/main.c
 	<stdio.h>
 	<stdlib.h>
 	"gmodem.h"
@@ -95,10 +95,10 @@
 	"vstrutil.h"
 	"voice_stream.h"
 
-1405972177 source:/mnt/c/prj/gmodem/gmodem_cb.c
+1412620667 source:/mnt/c/prj/gmodem/gmodem_cb.c
 	"gmodem.h"
 
-1406121781 source:/mnt/c/prj/gmodem/gmodem_cmd.c
+1412621595 source:/mnt/c/prj/gmodem/gmodem_cmd.c
 	"gmodem.h"
 	"vstrutil.h"
 	<stdio.h>
@@ -109,20 +109,20 @@
 1405802802 /mnt/c/prj/gmodem/gsm_sim.h
 	"gmodem.h"
 
-1406005879 source:/mnt/c/prj/gmodem/gmodem_sms.c
+1412758704 source:/mnt/c/prj/gmodem/gmodem_sms.c
 	"gmodem.h"
 	"coders.h"
 	<stdarg.h>
 	"vos.h"
 	"../smppTest/im.c"
 
-1402634535 /mnt/c/prj/vos/coders.h
+1412755338 /mnt/c/prj/vos/coders.h
 	"vtypes.h"
 
-1405964122 source:/mnt/c/prj/gmodem/sms_codec.c
+1412755764 source:/mnt/c/prj/gmodem/sms_codec.c
 	"coders.h"
 
-1402573361 /mnt/c/prj/vos/coders.c
+1412540343 /mnt/c/prj/vos/coders.c
 	"coders.h"
 	<stdarg.h>
 
@@ -249,4 +249,255 @@
 1402333141 /mnt/c/prj/vos/std_sock.c
 	"vos.h"
 	"mutex-1.1.c"
+
+1406121745 source:/prj/gmodem/common.c
+	"gmodem.h"
+	"../vos/vos_com_linux.c"
+	"../vos/vos_linux_kbhit.c"
+	"../vos/vos.c"
+	"../vos/coders.c"
+	"../vos/strutil.c"
+	"../vos/hexdump.c"
+	<string.h>
+	"curses.h"
+	<readline/readline.h>
+	<readline/history.h>
+
+1406126194 /prj/gmodem/gmodem.h
+	"../vos/vos.h"
+	"voice_stream.h"
+
+1402319442 /prj/vos/vos.h
+	"vtypes.h"
+	<fcntl.h>
+	<netdb.h>
+	<sys/stat.h>
+	<sys/socket.h>
+	<windows.h>
+	<unistd.h>
+
+1400828470 /prj/vos/vtypes.h
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<time.h>
+
+1402949922 /prj/gmodem/voice_stream.h
+
+1412592481 /prj/vos/vos_com_linux.c
+	"vos.h"
+	"stdio.h"
+	"unistd.h"
+	"fcntl.h"
+	"sys/ioctl.h"
+	"sys/types.h"
+	<termios.h>
+
+1400828435 /prj/vos/vos_linux_kbhit.c
+	"vos.h"
+	<termios.h>
+	<stropts.h>
+	<stdio.h>
+	<sys/ioctl.h>
+
+1402310288 /prj/vos/vos.c
+	"vos.h"
+	"pthread.h"
+	"stdlib.h"
+	"unistd.h"
+	<sys/time.h>
+	<stdio.h>
+	<sys/resource.h>
+
+1412540343 /prj/vos/coders.c
+	"coders.h"
+	<stdarg.h>
+
+1402634535 /prj/vos/coders.h
+	"vtypes.h"
+
+1402596924 /prj/vos/strutil.c
+	"coders.h"
+	<stdarg.h>
+
+1406122184 /prj/vos/hexdump.c
+	"coders.h"
+
+1412592688 source:/prj/gmodem/gmodem.c
+	"gmodem.h"
+	<string.h>
+	<stdio.h>
+	<stdarg.h>
+	"vstrutil.h"
+	"vstrutil.h"
+	"../vos/vos.h"
+
+1402637721 /prj/gmodem/vstrutil.h
+	<string.h>
+
+1406122163 source:/prj/gmodem/gmodem_apdu.c
+	"gmodem.h"
+	"gsm_sim.h"
+
+1405802802 /prj/gmodem/gsm_sim.h
+	"gmodem.h"
+
+1402954082 source:/prj/gmodem/gmodem_call.c
+	"gmodem.h"
+	<stdio.h>
+	"vstrutil.h"
+
+1405972177 source:/prj/gmodem/gmodem_cb.c
+	"gmodem.h"
+
+1412573767 source:/prj/gmodem/gmodem_cmd.c
+	"gmodem.h"
+	"vstrutil.h"
+	<stdio.h>
+	"gsm_sim.h"
+	"coders.h"
+	"vstrutil.h"
+
+1406108192 source:/prj/gmodem/gmodem_crsm.c
+	"gmodem.h"
+	"gsm_sim.h"
+
+1409809175 source:/prj/gmodem/gmodem_device.c
+	"gmodem.h"
+
+1406124155 source:/prj/gmodem/gmodem_http.c
+	"gmodem.h"
+	"../vos/std_sock.c"
+	"../vos/logger.c"
+	"../vos/exe.c"
+	"../vos/sock.c"
+	"../vos/httpSrv.c"
+	"../vos/vs0.c"
+	"../vos/vss.c"
+
+1402333141 /prj/vos/std_sock.c
+	"vos.h"
+	"mutex-1.1.c"
+
+1400828435 /prj/vos/logger.c
+	"logger.h"
+	<time.h>
+	<stdarg.h>
+	"vos.h"
+
+1400828435 /prj/vos/logger.h
+	"vs0.h"
+	<stdio.h>
+	<time.h>
+	"coders.h"
+
+1400828435 /prj/vos/vs0.h
+	"vtypes.h"
+	"vss.h"
+
+1400828435 /prj/vos/vss.h
+	"vtypes.h"
+
+1400828435 /prj/vos/exe.c
+	"vtypes.h"
+	"coders.h"
+	"vos.h"
+
+1402308989 /prj/vos/sock.c
+	"sock.h"
+	<stdarg.h>
+
+1400828435 /prj/vos/sock.h
+	"vos.h"
+	"vs0.h"
+	"vss.h"
+	"logger.h"
+	"vtypes.h"
+
+1402309579 /prj/vos/httpSrv.c
+	"httpSrv.h"
+	<stdarg.h>
+	<dirent.h>
+
+1400828435 /prj/vos/httpSrv.h
+	"vos.h"
+	"sock.h"
+	"vss.h"
+
+1402308843 /prj/vos/vs0.c
+	<fcntl.h>
+	"vs0.h"
+	"vos.h"
+	<fcntl.h>
+
+1402309279 /prj/vos/vss.c
+	"vss.h"
+	"vos.h"
+
+1409808947 source:/prj/gmodem/gmodem_oper.c
+	"gmodem.h"
+
+1402577737 source:/prj/gmodem/gmodem_scan.c
+	"gmodem.h"
+	"vstrutil.h"
+
+1406292943 source:/prj/gmodem/gmodem_sms.c
+	"gmodem.h"
+	"coders.h"
+	<stdarg.h>
+	"vos.h"
+	"../smppTest/im.c"
+
+1406044007 /prj/smppTest/im.c
+	"vos.h"
+	<openssl/des.h>
+
+1410848110 source:/prj/gmodem/main.c
+	<stdio.h>
+	<stdlib.h>
+	"gmodem.h"
+	<unistd.h>
+	<readline/readline.h>
+	<readline/history.h>
+	<stdarg.h>
+	<getopt.h>
+	"vstrutil.h"
+	"voice_stream.h"
+
+1402952298 source:/prj/gmodem/pa-e1550.c
+	<stdio.h>
+	<string.h>
+	"voice_stream.h"
+	<pulse/pulseaudio.h>
+	<stdio.h>
+	<unistd.h>
+	<fcntl.h>
+	<termios.h>
+	<sys/stat.h>
+	<errno.h>
+
+1406115828 source:/prj/gmodem/phoenix_reader.c
+	"gmodem.h"
+	"gsm_sim.h"
+	<termios.h>
+
+1406117380 source:/prj/gmodem/sec_packet.c
+	"gsm_sim.h"
+	<openssl/des.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<openssl/des.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1405804103 source:/prj/gmodem/sims_cfg.c
+	"gmodem.h"
+	"gsm_sim.h"
+	<stdio.h>
+	"coders.h"
+
+1412540373 source:/prj/gmodem/sms_codec.c
+	"coders.h"
 

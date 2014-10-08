@@ -5,8 +5,9 @@
 #include "voice_stream.h"
 
 
-#define gmodem_version 0,0,0,6
+#define gmodem_version 0,0,0,7
 
+// 0.0.0.7  -- added CSD calls
 // 0.0.0.6   -- added build-in http-sever
 // 0.0.0.5  -- added apdu getData (and delta for EEPORM and RAM)
 // 0.0.0.4   -- apdu over at+CSIM or --phoenix reader
@@ -80,6 +81,7 @@ typedef struct _gmodem {
      char release_request; // smb requested to kill a call (cleared by sent ath)
      char incall; // 0 - nothing, -1=kill, 1 = accept
      int ring; // ring counter. at callNone=0
+     int dur; // connected duration (updated in gmodem_call.
     } o;
     //
     char imsi[16]; // updated by gmodem_imsi
@@ -107,6 +109,10 @@ int gmodem_run (gmodem  *g); // main @run@ procedure
 int gmodem_At  (gmodem *g, char *cmd); // send At command at a modem
 int gmodem_At2buf(gmodem *g,char *cmd,char *out, int size);
 int gmodem_At2bufFilter(gmodem *g,char *cmd,char *filter,char *out, int size);
+
+/* call at_command, filter output and call on_line_call on every mathed line */
+int gmodem_At2Lines(gmodem *g,char *at_cmd,char *filter,int (*on_line_call)(),void *handle);
+
 
 int gmodem_clear(gmodem *g, int ms); // ms sec silence
 int gmodem_echo_off(gmodem *g);
@@ -161,10 +167,11 @@ int gmodem_Atf(gmodem *g,char *fmt, ... );
 int gmodem_info(gmodem *g) ;
 int gmodem_cmd(gmodem *g,char *cmd);
 int gmodem_cb(gmodem *g,char *cmd);
-int gmodem_sms(gmodem *g,char *sms);
+int gmodem_sms(gmodem *g,uchar *sms);
 
 // call
 
+int gmodem_kill(gmodem *g);
 int gmodem_dtmf(gmodem *g, char *c);
 
 
@@ -176,5 +183,9 @@ int gmodem_crsm_iccid(gmodem *g); // on ok - result in g->out
 
 // CSIM & APDU
 int gmodem_apdu_cmd(gmodem *g, uchar *cmd);
+
+// Phoenix commands
+
+int gmodem_atr(gmodem *g); // Answer to reset...
 
 #endif // GMODEM_H_INCLUDED

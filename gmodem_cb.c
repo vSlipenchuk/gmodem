@@ -67,7 +67,7 @@ if (lcmp(&cmd,"dec")) {
    return 1;
    }
 if (lcmp(&cmd,"start")) {
-    gmodem_At(m,"+CSCB=0,\”1-65535\”,\”\”");
+    gmodem_At(m,"+CSCB=0,\"1-65535\",\"\"");
     //gmodem_At(m,"+CSCB=0");
    // gmodem_At(m,"+CNMI=2,,2"); // ACCEPT INLINE
     gmodem_At(m,"+CNMI=2,2,2"); // ACCEPT INLINE

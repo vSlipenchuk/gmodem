@@ -38,6 +38,7 @@ return 0; // not mine
 int gmodem_kill(gmodem *g) { // kill a call
 gmodem_At(g,"+CHUP");
 g->o.release_request=1;
+//g->o.dur=0; // last duration
 voice_stream *v = g->voice;
 if (v) v->incall=0;
 //incall=0;
@@ -66,7 +67,7 @@ switch(newstate) {
       break;
    case callNone:
       strcpy(g->o.num,"-"); // on
-      g->o.ring=0; // ring counter
+      g->o.ring=0; g->o.dur = 0; // ring counter, call duration
       voice_stream *v = g->voice;
       if (v) v->incall=0;
       break;
@@ -94,9 +95,7 @@ return 0;
 }
 
 int toPresent = 0; // wait ringing
-
-int toAnswer  = 3;  // autoanswer (no yet)
-
+int toAnswer  = 2;  // autoanswer (no yet)
 int toActive =  40; // max conversation
 
 
@@ -124,7 +123,7 @@ switch(g->o.state) {
     //
     break;
  case callPresent:
-    if (dur0!=dur) { printf("Present %d sec\n",dur);   dur0=dur;}
+    if (dur0!=dur) { printf("Present %d sec\n",dur);   dur0=dur; g->o.dur=dur0; }
     if ((toPresent>0) && (ta>1000*toPresent)) { // 3sec - enough to define kill or accept???
         printf("more %d sec preseting - set call to kill have ta=%d ====== \n",dur,toPresent);
         gmodem_kill(g); // request to kill
@@ -199,7 +198,7 @@ int gmodem_dial(gmodem *g,char *num) {
 }
 
 int gmodem_dtmf(gmodem *g, char *c) {
-for(;*c;c++) if (gmodem_Atf(g,"+vts=%c",*c)<=0) return -1;
+for(;*c;c++) if (gmodem_Atf(g,"+vts=%c",*c)<=0) return -2;
 return 1; // all ok
 }
 

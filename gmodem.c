@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include "vstrutil.h"
 
+extern gsm_device gsm_devices[];
 
 int gmodem_init(gmodem *g, char *name) {
 g->name[0]=0;
@@ -17,6 +18,7 @@ vstream *s=&g->port;
   g->now=g->o.modified = os_ticks(); //
   strcpy(g->o.num,"-");
 s->p=&vstream_com_procs;
+if (!g->dev) g->dev = gsm_devices; // default - first device
 // printf("Open %s\n",name);
 s->handle = s->p->open(name);
 // printf("Done handle %d\n",s->handle);
@@ -54,7 +56,7 @@ return (*buf==0) && (*fmt==0); // not match
 
 extern int incall;
 
-int gmodem_spam_callback(gmodem *g,char *cmd) { // very annoing
+int gmodem_spam_callback(gmodem *g,uchar *cmd) { // very annoing
 if (*cmd==0) { // empty
     return 1;
    }
@@ -67,7 +69,7 @@ if (lcmp(&cmd,"^BOOT:")) {
 return 0;
 }
 
-int g_modem_do_line(gmodem *g,char *buf,int ll) { // call processing
+int g_modem_do_line(gmodem *g,uchar *buf,int ll) { // call processing
 int code=0; char *cmd = buf;
 code = gmodem_spam_callback(g,buf);
 if (code) {
@@ -143,7 +145,10 @@ if (r>0) { // yes, read !
           gmodem_put(g,&chZ,1);
           }
       }
-  if (g->on_data) g->on_data(g,g->in+g->in_len-r,r); // raport
+  if (g->f.console) printf("%*.*s",r,r, g->in+g->in_len-r);
+  if (g->on_data) {
+       g->on_data(g,g->in+g->in_len-r,r); // raport
+       }
   if (g->mode == 0) while (gmodem_do_lines(g)); // process line by line
   //printf("*%*.*s",r,r,buf); // just print on a screen!!!
   if (g->logLevel>10) hexdump("MODEM_RECV",g->in,g->in_len);
@@ -197,6 +202,12 @@ while (g->res == 0) {
    if (gmodem_run(g) == 0) msleep(100); // wait for answer
    }
 return g->res; // anyway ^)
+}
+
+int gmodem_Atf(gmodem *g,char *fmt, ... ) {
+char buf[256];
+BUF_FMT(buf,fmt);
+return gmodem_At2buf(g,buf,0,0);
 }
 
 
@@ -456,30 +467,33 @@ return 1;
 int gmodem_pin(gmodem *g,char *pin) {
 char cpin[80];
 int ok;
- strcpy(cpin,"EMPTY");
- gmodem_At2bufFilter(g,"+CPIN?","+CPIN",cpin,sizeof(cpin));
+strcpy(cpin,"EMPTY");
+ok = gmodem_At2bufFilter(g,"+CPIN?","+CPIN",cpin,sizeof(cpin));
  //printf("cpin state: <%s>\n",cpin);
-int ready =  (strcmp(cpin,"READY")==0)||(cpin[0]==0);
-if (!pin) return ready; // just report it
+int ready = (ok>0) &&  ((strcmp(cpin,"READY")==0)||(cpin[0]==0));
+if (!pin || !pin[0]) { // just report
+   if (ready) return gmodem_errorf(g,1,"pin_ready");
+   return gmodem_errorf(g,-2,"no pin yet");
+   }
  // now - 'READY' is OK
  if (!ready) {
-   printf("not ready, try enter %s\n",pin);
-   char buf[80]; sprintf(buf,"+CPIN=\"%s\"",pin);
-   ok = gmodem_At(g,buf);
-   if (ok<=0) return -1; // fail
+   gmodem_logf(g,1,"pin not ready, try enter : '%s'",pin);
+   ok = gmodem_Atf(g,"+CPIN=\"%s\"",pin);
+   if (ok<=0) return gmodem_errorf(g,-2,"pin enter failed"); // fail
    }
 gmodem_imsi(g);
-printf("--pin ok, wait for imsi\n");
+gmodem_logf(g,1,"pin entered, wait for imsi 100 sec");
 int i;
 gmodem_At(g,""); gmodem_clear(g,1000); // dump OK
 for(i=0;i<100;i++) { // 100 sec
   //int k=1;
-  if ( gmodem_imsi(g) >0 )  return 1; // here!
+  if ( gmodem_imsi(g) >0 )  {
+     return gmodem_errorf(g,1,"pin_ok,imsi_here:%s",g->imsi);
+     }
   sleep(1);
   //if (gmodem_)
   }
-printf("Timeout wait imsi\n");
-return -3;
+return gmodem_errorf(g,-3,"time_out wait on imsi");
 }
 
 int gmodem_balance(gmodem *g) {

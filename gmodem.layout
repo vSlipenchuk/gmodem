@@ -1,70 +1,70 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Release" />
-	<File name="common.c" open="0" top="0" tabpos="7">
-		<Cursor position="261" topLine="0" />
+	<File name="common.c" open="1" top="0" tabpos="4">
+		<Cursor position="74" topLine="1" />
 	</File>
-	<File name="gmodem.c" open="1" top="1" tabpos="4">
-		<Cursor position="5858" topLine="0" />
+	<File name="gmodem.c" open="1" top="0" tabpos="2">
+		<Cursor position="1389" topLine="0" />
 	</File>
-	<File name="gmodem.h" open="1" top="0" tabpos="9">
-		<Cursor position="5081" topLine="138" />
+	<File name="gmodem.h" open="1" top="0" tabpos="3">
+		<Cursor position="6116" topLine="160" />
 	</File>
-	<File name="gmodem_apdu.c" open="1" top="0" tabpos="3">
-		<Cursor position="11135" topLine="15" />
+	<File name="gmodem_apdu.c" open="0" top="0" tabpos="2">
+		<Cursor position="0" topLine="9" />
 	</File>
-	<File name="gmodem_call.c" open="1" top="0" tabpos="13">
-		<Cursor position="2682" topLine="91" />
+	<File name="gmodem_call.c" open="0" top="0" tabpos="8">
+		<Cursor position="502" topLine="9" />
 	</File>
-	<File name="gmodem_cb.c" open="0" top="0" tabpos="15">
-		<Cursor position="2048" topLine="48" />
+	<File name="gmodem_cb.c" open="0" top="0" tabpos="10">
+		<Cursor position="1162" topLine="31" />
 	</File>
-	<File name="gmodem_cmd.c" open="1" top="0" tabpos="12">
-		<Cursor position="8146" topLine="249" />
+	<File name="gmodem_cmd.c" open="1" top="0" tabpos="11">
+		<Cursor position="9307" topLine="292" />
 	</File>
-	<File name="gmodem_crsm.c" open="0" top="0" tabpos="11">
-		<Cursor position="2702" topLine="61" />
-	</File>
-	<File name="gmodem_device.c" open="0" top="0" tabpos="11">
-		<Cursor position="702" topLine="10" />
-	</File>
-	<File name="gmodem_http.c" open="1" top="0" tabpos="0">
+	<File name="gmodem_crsm.c" open="0" top="0" tabpos="10">
 		<Cursor position="0" topLine="0" />
 	</File>
-	<File name="gmodem_oper.c" open="0" top="0" tabpos="9">
-		<Cursor position="55" topLine="0" />
+	<File name="gmodem_device.c" open="0" top="0" tabpos="9">
+		<Cursor position="221" topLine="0" />
 	</File>
-	<File name="gmodem_scan.c" open="0" top="0" tabpos="2">
-		<Cursor position="988" topLine="22" />
+	<File name="gmodem_http.c" open="0" top="0" tabpos="9">
+		<Cursor position="0" topLine="0" />
 	</File>
-	<File name="gmodem_sms.c" open="0" top="0" tabpos="13">
-		<Cursor position="5511" topLine="149" />
+	<File name="gmodem_oper.c" open="0" top="0" tabpos="7">
+		<Cursor position="0" topLine="0" />
+	</File>
+	<File name="gmodem_scan.c" open="0" top="0" tabpos="11">
+		<Cursor position="0" topLine="0" />
+	</File>
+	<File name="gmodem_sms.c" open="1" top="1" tabpos="6">
+		<Cursor position="0" topLine="127" />
 	</File>
 	<File name="gsm_sim.h" open="0" top="0" tabpos="6">
-		<Cursor position="484" topLine="9" />
+		<Cursor position="0" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="2884" topLine="24" />
+		<Cursor position="6566" topLine="241" />
 	</File>
-	<File name="pa-e1550.c" open="0" top="0" tabpos="7">
-		<Cursor position="8583" topLine="205" />
+	<File name="pa-e1550.c" open="0" top="0" tabpos="16">
+		<Cursor position="622" topLine="27" />
 	</File>
-	<File name="phoenix_reader.c" open="1" top="0" tabpos="5">
-		<Cursor position="587" topLine="9" />
+	<File name="phoenix_reader.c" open="0" top="0" tabpos="13">
+		<Cursor position="2545" topLine="0" />
 	</File>
-	<File name="sec_packet.c" open="1" top="0" tabpos="2">
-		<Cursor position="5150" topLine="134" />
+	<File name="sec_packet.c" open="0" top="0" tabpos="14">
+		<Cursor position="0" topLine="264" />
 	</File>
-	<File name="sims_cfg.c" open="0" top="0" tabpos="8">
-		<Cursor position="1210" topLine="47" />
+	<File name="sims_cfg.c" open="0" top="0" tabpos="15">
+		<Cursor position="0" topLine="24" />
 	</File>
-	<File name="sms_codec.c" open="0" top="0" tabpos="4">
-		<Cursor position="4616" topLine="794" />
+	<File name="sms_codec.c" open="1" top="0" tabpos="5">
+		<Cursor position="0" topLine="0" />
 	</File>
 	<File name="voice_stream.h" open="0" top="0" tabpos="6">
-		<Cursor position="318" topLine="0" />
+		<Cursor position="0" topLine="0" />
 	</File>
 	<File name="vstrutil.h" open="0" top="0" tabpos="2">
-		<Cursor position="261" topLine="0" />
+		<Cursor position="192" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>
