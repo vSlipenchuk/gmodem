@@ -48,13 +48,3 @@ return 1;
 }
 */
 
-/// -- normal scan begins -----
-
-int gmodem_scan2(char *str, char *fmt, ... ) { // d s h ...
-char buf[256]; int r=0;
-strNcpy(buf,str); str=buf; // make local copy
-while(*fmt) {
-//
-  }
-return r; // scanned fields
-}

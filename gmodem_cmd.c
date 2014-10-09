@@ -304,6 +304,10 @@ if (lcmp(&c,"dtmf")) return gmodem_dtmf(m,c);
 // APDU
 if (lcmp(&c,"apdu")) return gmodem_apdu_cmd(m,c);
 
+// phonebook
+
+if (lcmp(&c,"book")) return gmodem_book_cmd(m,(uchar*)c);
+
 if (lcmp(&c,"crlf")) {
     if (*c=='=') c++; int val=0;
     sscanf(c,"%d",&val);

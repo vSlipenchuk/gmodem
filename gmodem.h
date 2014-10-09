@@ -188,4 +188,9 @@ int gmodem_apdu_cmd(gmodem *g, uchar *cmd);
 
 int gmodem_atr(gmodem *g); // Answer to reset...
 
+
+// Phonebook sim card & phones
+
+int gmodem_book_cmd(gmodem *g,uchar *cmd);
+
 #endif // GMODEM_H_INCLUDED

@@ -43,6 +43,9 @@
 		<Unit filename="gmodem_apdu.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gmodem_book.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="gmodem_call.c">
 			<Option compilerVar="CC" />
 		</Unit>

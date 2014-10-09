@@ -12,7 +12,7 @@
 	<readline/readline.h>
 	<readline/history.h>
 
-1412661093 /mnt/c/prj/gmodem/gmodem.h
+1412848808 /mnt/c/prj/gmodem/gmodem.h
 	"../vos/vos.h"
 	"voice_stream.h"
 
@@ -79,7 +79,7 @@
 1409808947 source:/mnt/c/prj/gmodem/gmodem_oper.c
 	"gmodem.h"
 
-1402577737 source:/mnt/c/prj/gmodem/gmodem_scan.c
+1412849403 source:/mnt/c/prj/gmodem/gmodem_scan.c
 	"gmodem.h"
 	"vstrutil.h"
 
@@ -98,7 +98,7 @@
 1412620667 source:/mnt/c/prj/gmodem/gmodem_cb.c
 	"gmodem.h"
 
-1412621595 source:/mnt/c/prj/gmodem/gmodem_cmd.c
+1412848857 source:/mnt/c/prj/gmodem/gmodem_cmd.c
 	"gmodem.h"
 	"vstrutil.h"
 	<stdio.h>
@@ -116,7 +116,7 @@
 	"vos.h"
 	"../smppTest/im.c"
 
-1412755338 /mnt/c/prj/vos/coders.h
+1412854485 /mnt/c/prj/vos/coders.h
 	"vtypes.h"
 
 1412755764 source:/mnt/c/prj/gmodem/sms_codec.c
@@ -162,7 +162,7 @@
 	<stdlib.h>
 	<string.h>
 
-1406122163 source:/mnt/c/prj/gmodem/gmodem_apdu.c
+1412855442 source:/mnt/c/prj/gmodem/gmodem_apdu.c
 	"gmodem.h"
 	"gsm_sim.h"
 
@@ -500,4 +500,9 @@
 
 1412540373 source:/prj/gmodem/sms_codec.c
 	"coders.h"
+
+1412856033 source:/mnt/c/prj/gmodem/gmodem_book.c
+	"gmodem.h"
+	"coders.h"
+	"stdarg.h"
 
