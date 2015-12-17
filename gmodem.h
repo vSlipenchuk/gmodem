@@ -149,6 +149,7 @@ int gmodem_balance(gmodem *g); // send USSD based on imsi?
 typedef struct _gsm_device {
  char *name; char imei[20]; // name & first imei numbers
  int   crlf; int ussd; // 7bit flags for huawei E1550
+ int dmode; // 0: ATD->OK means start dial; 1: ATD->OK means connect
  } gsm_device;
 
 int gmodem_imei(gmodem *g);

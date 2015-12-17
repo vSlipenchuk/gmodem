@@ -36,7 +36,9 @@ return 0; // not mine
 }
 
 int gmodem_kill(gmodem *g) { // kill a call
-gmodem_At(g,"+CHUP");
+gmodem_set_call_state(g,callDisconnecting); // or other?
+//gmodem_At(g,"+CHUP");
+gmodem_put(g,"AT+CHUP\r\n",-1);
 g->o.release_request=1;
 //g->o.dur=0; // last duration
 voice_stream *v = g->voice;
@@ -187,7 +189,17 @@ int gmodem_dial(gmodem *g,char *num) {
     if (!*num)
     num="0611"; // temp beeline callcentre
      //num="88002004064"; // rostelec conf
-    int ok = gmodem_Atf(g,"d%s;",num);
+     if (g->o.state != callNone) {
+        printf("not null call state, skip dial\n");
+        return 0;
+        }
+    int dmode = g->dev?g->dev->dmode:0; // dialmode
+    int ok;
+    if (dmode==0) {ok = gmodem_Atf(g,"d%s;",num);
+                    if (ok>0) gmodem_set_call_state(g,callSetup);
+                   }
+               else ok = _gmodem_dial(g,num,1);
+
     if (ok<=0) return -1;
 
     if (g->voice) {

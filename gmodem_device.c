@@ -3,6 +3,10 @@
  //case 1: return "\r"; // E1550 by default!!!
  //case 2: return "\n";
 
+ /*
+   dmode=1 - no command can be send after ATD till OK accepted, which means OK,Connected or any negative answer
+ */
+
 gsm_device gsm_devices[] = {
     {
         .name="default", .crlf=3 ,/*\r\n*/ // GSM-0707
@@ -10,7 +14,9 @@ gsm_device gsm_devices[] = {
     {
         .name="SIMCOM", .imei="0132260", .crlf=1, .ussd=8,
     },
-
+{
+        .name="HOJY", .imei="3530360", .crlf=1, .ussd=8, .dmode=1,
+    },
     {   /*
           Qualcomm based - can support SD Card
           AT^U2DIAG=0 (девайс в режиме "только модем")
@@ -41,9 +47,7 @@ gsm_device gsm_devices[] = {
     {
         .name="Telit", .imei="3550940",.crlf=3
     },
-    {
-        .name="HOJY",  .imei="3530360",.crlf=1   /*\n*/   // !!! ussd_coder !!! and other space!!!
-    },
+
 
 {
  .name="EM770W", // Huawei
