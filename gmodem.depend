@@ -250,7 +250,7 @@
 	"vos.h"
 	"mutex-1.1.c"
 
-1406121745 source:/prj/gmodem/common.c
+1450357246 source:/prj/gmodem/common.c
 	"gmodem.h"
 	"../vos/vos_com_linux.c"
 	"../vos/vos_linux_kbhit.c"
@@ -258,16 +258,17 @@
 	"../vos/coders.c"
 	"../vos/strutil.c"
 	"../vos/hexdump.c"
+	"./gsm2utf.c"
 	<string.h>
-	"curses.h"
+	<curses.h>
 	<readline/readline.h>
 	<readline/history.h>
 
-1406126194 /prj/gmodem/gmodem.h
+1450339002 /prj/gmodem/gmodem.h
 	"../vos/vos.h"
 	"voice_stream.h"
 
-1402319442 /prj/vos/vos.h
+1442847738 /prj/vos/vos.h
 	"vtypes.h"
 	<fcntl.h>
 	<netdb.h>
@@ -276,31 +277,32 @@
 	<windows.h>
 	<unistd.h>
 
-1400828470 /prj/vos/vtypes.h
+1442847738 /prj/vos/vtypes.h
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	<time.h>
+	<windows.h>
 
-1402949922 /prj/gmodem/voice_stream.h
+1450339002 /prj/gmodem/voice_stream.h
 
-1412592481 /prj/vos/vos_com_linux.c
+1450339566 /prj/vos/vos_com_linux.c
 	"vos.h"
 	"stdio.h"
 	"unistd.h"
 	"fcntl.h"
-	"sys/ioctl.h"
-	"sys/types.h"
+	<sys/ioctl.h>
+	<sys/types.h>
 	<termios.h>
 
-1400828435 /prj/vos/vos_linux_kbhit.c
+1442847738 /prj/vos/vos_linux_kbhit.c
 	"vos.h"
 	<termios.h>
 	<stropts.h>
 	<stdio.h>
 	<sys/ioctl.h>
 
-1402310288 /prj/vos/vos.c
+1442847738 /prj/vos/vos.c
 	"vos.h"
 	"pthread.h"
 	"stdlib.h"
@@ -308,22 +310,23 @@
 	<sys/time.h>
 	<stdio.h>
 	<sys/resource.h>
+	"vos_win.c"
 
-1412540343 /prj/vos/coders.c
+1442847738 /prj/vos/coders.c
 	"coders.h"
 	<stdarg.h>
-
-1402634535 /prj/vos/coders.h
 	"vtypes.h"
 
-1402596924 /prj/vos/strutil.c
+1442847738 /prj/vos/coders.h
+	"vtypes.h"
+
+1446810009 /prj/vos/strutil.c
 	"coders.h"
 	<stdarg.h>
 
-1406122184 /prj/vos/hexdump.c
-	"coders.h"
+1450354325 /prj/vos/hexdump.c
 
-1412592688 source:/prj/gmodem/gmodem.c
+1450339002 source:/prj/gmodem/gmodem.c
 	"gmodem.h"
 	<string.h>
 	<stdio.h>
@@ -332,25 +335,25 @@
 	"vstrutil.h"
 	"../vos/vos.h"
 
-1402637721 /prj/gmodem/vstrutil.h
+1450354152 /prj/gmodem/vstrutil.h
 	<string.h>
 
-1406122163 source:/prj/gmodem/gmodem_apdu.c
+1450339002 source:/prj/gmodem/gmodem_apdu.c
 	"gmodem.h"
 	"gsm_sim.h"
 
-1405802802 /prj/gmodem/gsm_sim.h
+1450339002 /prj/gmodem/gsm_sim.h
 	"gmodem.h"
 
-1402954082 source:/prj/gmodem/gmodem_call.c
+1450339002 source:/prj/gmodem/gmodem_call.c
 	"gmodem.h"
 	<stdio.h>
 	"vstrutil.h"
 
-1405972177 source:/prj/gmodem/gmodem_cb.c
+1450339002 source:/prj/gmodem/gmodem_cb.c
 	"gmodem.h"
 
-1412573767 source:/prj/gmodem/gmodem_cmd.c
+1450354185 source:/prj/gmodem/gmodem_cmd.c
 	"gmodem.h"
 	"vstrutil.h"
 	<stdio.h>
@@ -358,14 +361,14 @@
 	"coders.h"
 	"vstrutil.h"
 
-1406108192 source:/prj/gmodem/gmodem_crsm.c
+1450339002 source:/prj/gmodem/gmodem_crsm.c
 	"gmodem.h"
 	"gsm_sim.h"
 
-1409809175 source:/prj/gmodem/gmodem_device.c
+1450339002 source:/prj/gmodem/gmodem_device.c
 	"gmodem.h"
 
-1406124155 source:/prj/gmodem/gmodem_http.c
+1450339002 source:/prj/gmodem/gmodem_http.c
 	"gmodem.h"
 	"../vos/std_sock.c"
 	"../vos/logger.c"
@@ -375,84 +378,85 @@
 	"../vos/vs0.c"
 	"../vos/vss.c"
 
-1402333141 /prj/vos/std_sock.c
+1442847738 /prj/vos/std_sock.c
 	"vos.h"
-	"mutex-1.1.c"
+	"vtypes.h"
+	<sys/stat.h>
 
-1400828435 /prj/vos/logger.c
+1442847738 /prj/vos/logger.c
 	"logger.h"
 	<time.h>
 	<stdarg.h>
 	"vos.h"
 
-1400828435 /prj/vos/logger.h
+1442847738 /prj/vos/logger.h
 	"vs0.h"
 	<stdio.h>
 	<time.h>
 	"coders.h"
 
-1400828435 /prj/vos/vs0.h
+1442847738 /prj/vos/vs0.h
 	"vtypes.h"
 	"vss.h"
 
-1400828435 /prj/vos/vss.h
+1442847738 /prj/vos/vss.h
 	"vtypes.h"
 
-1400828435 /prj/vos/exe.c
+1442847738 /prj/vos/exe.c
 	"vtypes.h"
 	"coders.h"
 	"vos.h"
 
-1402308989 /prj/vos/sock.c
+1447325004 /prj/vos/sock.c
 	"sock.h"
 	<stdarg.h>
 
-1400828435 /prj/vos/sock.h
+1442847738 /prj/vos/sock.h
 	"vos.h"
 	"vs0.h"
 	"vss.h"
 	"logger.h"
 	"vtypes.h"
 
-1402309579 /prj/vos/httpSrv.c
+1442847738 /prj/vos/httpSrv.c
 	"httpSrv.h"
 	<stdarg.h>
+	<fcntl.h>
 	<dirent.h>
 
-1400828435 /prj/vos/httpSrv.h
+1442847738 /prj/vos/httpSrv.h
 	"vos.h"
 	"sock.h"
 	"vss.h"
 
-1402308843 /prj/vos/vs0.c
+1442847738 /prj/vos/vs0.c
 	<fcntl.h>
 	"vs0.h"
 	"vos.h"
+	<sys/stat.h>
 	<fcntl.h>
 
-1402309279 /prj/vos/vss.c
+1442847738 /prj/vos/vss.c
 	"vss.h"
 	"vos.h"
 
-1409808947 source:/prj/gmodem/gmodem_oper.c
+1450339002 source:/prj/gmodem/gmodem_oper.c
 	"gmodem.h"
 
-1402577737 source:/prj/gmodem/gmodem_scan.c
+1450339002 source:/prj/gmodem/gmodem_scan.c
 	"gmodem.h"
 	"vstrutil.h"
 
-1406292943 source:/prj/gmodem/gmodem_sms.c
+1450354535 source:/prj/gmodem/gmodem_sms.c
 	"gmodem.h"
 	"coders.h"
 	<stdarg.h>
 	"vos.h"
 	"../smppTest/im.c"
 
-1406044007 /prj/smppTest/im.c
-	"vos.h"
-	<openssl/des.h>
+1446810009 /prj/smppTest/im.c
 
-1410848110 source:/prj/gmodem/main.c
+1450354537 source:/prj/gmodem/main.c
 	<stdio.h>
 	<stdlib.h>
 	"gmodem.h"
@@ -464,7 +468,7 @@
 	"vstrutil.h"
 	"voice_stream.h"
 
-1402952298 source:/prj/gmodem/pa-e1550.c
+1450353885 source:/prj/gmodem/pa-e1550.c
 	<stdio.h>
 	<string.h>
 	"voice_stream.h"
@@ -476,12 +480,12 @@
 	<sys/stat.h>
 	<errno.h>
 
-1406115828 source:/prj/gmodem/phoenix_reader.c
+1450357360 source:/prj/gmodem/phoenix_reader.c
 	"gmodem.h"
 	"gsm_sim.h"
 	<termios.h>
 
-1406117380 source:/prj/gmodem/sec_packet.c
+1450354037 source:/prj/gmodem/sec_packet.c
 	"gsm_sim.h"
 	<openssl/des.h>
 	<stdio.h>
@@ -492,17 +496,35 @@
 	<stdlib.h>
 	<string.h>
 
-1405804103 source:/prj/gmodem/sims_cfg.c
+1450339002 source:/prj/gmodem/sims_cfg.c
 	"gmodem.h"
 	"gsm_sim.h"
 	<stdio.h>
 	"coders.h"
 
-1412540373 source:/prj/gmodem/sms_codec.c
+1450339983 source:/prj/gmodem/sms_codec.c
 	"coders.h"
 
 1412856033 source:/mnt/c/prj/gmodem/gmodem_book.c
 	"gmodem.h"
 	"coders.h"
 	"stdarg.h"
+
+1442847738 /prj/vos/vos_win.c
+	<stdio.h>
+	<stdlib.h>
+	<winsock.h>
+	<time.h>
+	<sys/types.h>
+	<sys/stat.h>
+	"vos.h"
+	<psapi.h>
+	<windows.h>
+
+1450339002 source:/prj/gmodem/gmodem_book.c
+	"gmodem.h"
+	"coders.h"
+	"stdarg.h"
+
+1450357845 /prj/gmodem/gsm2utf.c
 

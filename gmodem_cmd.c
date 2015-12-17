@@ -254,7 +254,7 @@ gmodem_logf(m,2,"process file: %s",file);
 if (!txt) return gmodem_errorf(m,-2,"file %s not found",file);
 char *b = txt, *e;
 while( ! m->f.eof ) { // while we can ...
-  e  = strchr(b,"\n");
+  e  = strchr(b,'\n');
   if (e) { *e=0; e++; }
     gmodem_cmd(m, b); // process this line
   if (!e) break;

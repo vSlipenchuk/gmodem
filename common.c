@@ -11,6 +11,7 @@
 #include "../vos/coders.c"
 #include "../vos/strutil.c"
 #include "../vos/hexdump.c"
+#include "./gsm2utf.c"
 
 //#include "../vos/sock.c"
 //#include "../vos/httpSrv.c"
@@ -25,7 +26,9 @@ vstream_proc vstream_com_procs = {
    .write  = prt_write
   };
 
-#include "curses.h"
+//apt-get install libncurses5-dev  || yum install ncurses-devel ncurses
+#include <curses.h>
+//apt-get install libreadline-dev
 #include <readline/readline.h>
 #include <readline/history.h>
 

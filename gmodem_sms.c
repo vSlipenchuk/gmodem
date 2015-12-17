@@ -85,7 +85,7 @@ printf("TEXT[UDL:%d]:%s\n",sms->udl,sms->text);
 }
 }
 
-int sms_dump(char *bin,int len,int flags) {
+int sms_dump(uchar *bin,int len,int flags) {
 t_sms sms;
 if (sms_decode_data(&sms,bin,len,flags)<=0) {
    printf (">>> FAIL_DECODE_SMS: %s\n",sms.error);
@@ -288,10 +288,11 @@ if (lcmp(&cmd,"init")) {
   uchar *tar = get_word(&cmd);
   uchar *master = get_word(&cmd);
   if (!phone[0] || !key[0] || !tar[0]) return gmodem_errorf(g,-2,"usage: im init phone key tar");
-  im_init(phone,key,tar,master);
+     //im_init(phone,key,tar,master); ZUZUKA!
   sprintf(g->out,"im inited for phone %s",phone);
   return 1;
   }
+  /*
 if (lcmp(&cmd,"live")) {
   char out[256];
   int l = im_code_IdleModeText(out+19,cmd);
@@ -300,5 +301,6 @@ if (lcmp(&cmd,"live")) {
   //hexdump("live_packet",out,l);
   return gmodem_SendOtaSms(g,im_phone,out,l);
   }
+  */
 return gmodem_errorf(g,-2,"usage: im <init|live>");
 }

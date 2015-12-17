@@ -1,3 +1,5 @@
+LANG="C"
+
 all:	gmodem
 
 SRC=main.c common.c gmodem.c gmodem_apdu.c  gmodem_call.c \
@@ -7,8 +9,8 @@ SRC=main.c common.c gmodem.c gmodem_apdu.c  gmodem_call.c \
   
 LIBS=-lcrypto -lpulse -lpthread -lreadline -ltermcap
 
-gmodem0: $(SRC)
-		$(CC)  -I . -I ../vos -Wno-pointer-sign -O2 $(SRC) -o gmodem0 $(LIBS)
+gmodem: gmodem_src.c
+		$(CC)  -I . -I ../vos -Wno-pointer-sign -O2 gmodem_src.c -o gmodem $(LIBS)
 
 pa-e1550: pa-e1550.c
 		$(CC) pa-e1550.c  -lpulse -o pa 

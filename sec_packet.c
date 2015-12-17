@@ -5,6 +5,7 @@
 */
 
 #include "gsm_sim.h"
+// apt-get install libssl-dev
 #include <openssl/des.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -93,7 +93,7 @@ default: // 8bit
   sms->sm_udhl = udhlen;
   break;
 }
-sms->payload_len = payload; // Сколько максимально можно засчитать?
+sms->payload_length = payload; // Сколько максимально можно засчитать?
 s = sms->data; // Кодировать будем во внутреннее поле - text?
 *s = 1 /* SUBMIT*/ | ( 0<<2) /*RD*/ | (0<<3) /*VP*/ | (0<<5) /*RP отчет?*/ |
        ( (udhlen?1:0)<<6) /*UDHI*/ | (0<<7) /*RS*/;
@@ -136,12 +136,12 @@ switch(sms->dcs&(8+4)) { // По разному это очень делаетс
 case 0: // Однако - надо кодировать???
     l = 0;
     //if (sms->Len>0) ZUZUKA
-    l = gsm7_code(sms->offset,sms->payload_len,sms->szText,sms->data+sms->smHead,&coded,sms->Len); // CodeMe
+    l = gsm7_code(sms->offset,sms->payload_length,sms->szText,sms->data+sms->smHead,&coded,sms->Len); // CodeMe
     if (l<0) {
         printf("GSM CODE ERROR error\n");
         return l; // SomeError ???
         }
-    printf("Coded %d bytes of %d, payload:%d\n",coded,sms->Len,sms->payload_len);
+    printf("Coded %d bytes of %d, payload:%d\n",coded,sms->Len,sms->payload_length);
     sms->szText+=coded; sms->Len-=coded; // Удаляем из буфера
     *(sms->slen) = sms->sm_udhl + coded; // Длина в септетах с учетом хедера!!!
     //printf("sms->slen=%d, sms->sm_udhl=%d\n",*sms->slen,sms->sm_udhl);
@@ -150,7 +150,7 @@ case 0: // Однако - надо кодировать???
     return sms->smLen;
 case 8: // UNICODE
 default: // Binary
-    l = sms->payload_len; // Сколько букв забрать
+    l = sms->payload_length; // Сколько букв забрать
     if (sms->Len<l) l = sms->Len; // Если только остаток -)))
     if (l>0) {
       memcpy(sms->data+sms->smHead, sms->szText,l); // Возврат - количество байтов

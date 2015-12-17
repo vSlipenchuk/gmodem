@@ -15,6 +15,10 @@ AID CardManager: A0000000030000 00 может быть и меньше!
 #include "gsm_sim.h"
 #include <termios.h>
 
+int prt_reset(int fd) { // ZUZUKA - need atr
+
+}
+
 /*
 void init_personal() {
 static int inited = 0;
@@ -78,6 +82,8 @@ tcsetattr(ttyDev, TCSAFLUSH, &term_attr);
 //clear RTS
 //ioctl(ttyDev, TIOCMBIC, &mcs);
 }
+
+
 
 void  prt_config_phoenix(int fd) {
   //prt_cfg2(fd, B9600, 0, PARENB, 2 ); // no flow, even parity, 2 stop bit

@@ -4,7 +4,7 @@
  */
 
 
-
+#ifdef P_AUDIO
 
 #include <stdio.h>
 #include <string.h>
@@ -480,3 +480,5 @@ int voice_init(voice_stream *v) { // Main PulseAudio thread
   //sleep(100);
   return 1; // OK anyway
 }
+
+#endif

@@ -225,6 +225,7 @@ m->logLevel = 1; // default log level
        }
     m->o.on_call_state = on_call_state;
 //printf("VOICE=%s\n",voice);
+#ifdef VOICE
 if (voice[0]) {
        voice_stream *vs = &VS;
        vs->name = voice; // same name for pulseaudio channel
@@ -238,6 +239,7 @@ if (voice[0]) {
           }
         printf("done voice_init\n");
        }
+#endif // VOICE
     fprintf(stderr,"gmodem %s opened ok\n",szmodem);
 if (gmode == 1) m->mode = 1; // set phoenix mode
     if (! no_init) {
