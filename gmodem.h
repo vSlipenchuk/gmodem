@@ -5,7 +5,7 @@
 #include "voice_stream.h"
 
 
-#define gmodem_version 0,0,0,7
+#define gmodem_version 0,0,0,8
 
 // 0.0.0.7  -- added CSD calls
 // 0.0.0.6   -- added build-in http-sever

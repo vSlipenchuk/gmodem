@@ -227,7 +227,8 @@ if (g->oper) o=g->oper;
 if (o) { // known network
  printf("HPLMN:{name:'%s',imsi:'%s',gprs:'%s',apn:'%s'}\n",o->name,o->imsi,o->gprs_num,o->apn);
  }
-(gmodem_cnum(g)>0) || (gmodem_cnum_get(g)>0); // try any of AT+CNUM or AT+CRSM
+(gmodem_cnum(g)>0) ;
+  //  || (gmodem_cnum_get(g)>0); // try any of AT+CNUM or AT+CRSM -- some modems NOT safe
 printf("SIM:{pin_ready:%d,iccid:'%s',imsi:'%s',cnum:'%s'}\n",pin==1?1:0,g->iccid,g->imsi,g->cnum);
 return 1; //ok
 }

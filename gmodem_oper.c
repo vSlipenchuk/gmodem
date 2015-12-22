@@ -19,6 +19,11 @@ gsm_operator gsm_operators[]={
      .gprs_num="*99***1#",.apn="mts/mts@internet.mts.ru"
    },
    {
+     .name="V-TELL",.imsi="25048",.ussd_balance="*100#", // smsc="+79168999100" at+csca=""+79168999100"
+     .gprs_num="*99***1#",.apn="internet.v-tell.com"
+   },
+
+   {
      .name="BEE",.imsi="25099",.ussd_balance="#102#",
      .gprs_num="*99***1#",
      .apn="beeline/beeline@internet.beeline.ru",
