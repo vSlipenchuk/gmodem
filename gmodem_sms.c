@@ -35,6 +35,9 @@ for(bin+=2;nl>0;nl--,num+=2,bin++) {
 return r; // converted length
 }
 
+int gsm2utf(char *out,char *ucs2,int len);
+int bin2hexstr(uchar *out,uchar *bin,int len);
+
 int sms_decode_data(t_sms *sms, char *bin,int len,int flags) {
 char BUF[256];
 memset(sms,0,sizeof(*sms));
@@ -84,6 +87,8 @@ printf("Mti:'%s',SMSC:'%s',NUM:'%s',SENT:'%s',pid:0x%x,dcs:0x%x,udhi:%d\n",mti[s
 printf("TEXT[UDL:%d]:%s\n",sms->udl,sms->text);
 }
 }
+
+int hexdump(char *msg,uchar *s,int len);
 
 int sms_dump(uchar *bin,int len,int flags) {
 t_sms sms;
@@ -231,6 +236,90 @@ else
 return 1;
 }
 
+
+char buf[1024];
+unsigned char  t[256],text2[256];
+
+
+int encode_utf8_(u_char *d,u_char *s,int sl) { // Results in UTF8 ...
+int len = 0; //wchar_t w;
+if (sl<0) sl = strlen(s);
+while (sl>0) {
+	int ulen; short w; char buf[8];
+	str_to_unicode((char*)&w,4,s,1); // Convert 1 char ...
+	//printf("%4x\n",w);
+	ulen = utf8_poke(d?d:buf,w,8); // Enough space ...
+	len+=ulen;
+	if (d) d+=ulen; // Move out buf ...
+	sl--; s++;
+	}
+if (d) *d=0; // Zero terminated ...
+return len;
+}
+
+
+int _gmodem_sms_enum(char *mode, t_sms *sms,gmodem *g) { // callback function for DELETE_ALL
+char *text=sms->text; char *phone=sms->da;
+
+int i;
+ decode_utf8(t,text,strlen(text)); // to win1251
+for(i=0;t[i];i++) if ( (t[i]=='\"') || (t[i]=='\'') || (t[i]<=32))  t[i]=32 ; // no bad symbols
+ encode_utf8_(text2,t,-1);
+
+sprintf(buf,"%s \"%s\" \"%s\"",mode,text2,phone);
+printf("CALL: %s\n",buf);
+int res = system(buf);
+if (res == 0) {
+   if (gmodem_sms_delete(g,sms->pos))
+   gmodem_logf(g,2,"OK DELETE SMS#%d TEXT:%s\n",sms->pos,sms->text);
+   }
+return 1;
+}
+
+
+int gmodem_sms_copy(gmodem *g,t_sms *sms, int size) { // enum sms-> array of size, reurn real size
+int r = 0; // real size
+int add_sm(void *h,t_sms *s) {
+  if (r+1<size)  { memcpy(sms+r,s,sizeof(*s)); r++;}
+  return 1; // do it again
+}
+gmodem_sms_enum(g,add_sm,0);
+return r;
+}
+
+int gmodem_sms_system(gmodem *g,char *mode) { // callback function for DELETE_ALL
+static t_sms s[100]; int k;
+int r = gmodem_sms_copy(g,s,100);
+printf("Found %d sms, process them\n",r);
+for(k=0;k<r;k++) {
+  t_sms *sms = s+k;
+  char *text=sms->text; char *phone=sms->da;
+int i;
+ decode_utf8(t,text,strlen(text)); // to win1251
+for(i=0;t[i];i++) if ( (t[i]=='\"') || (t[i]=='\'') || (t[i]<=32))  t[i]=32 ; // no bad symbols
+ encode_utf8_(text2,t,-1);
+
+sprintf(buf,"%s \"%s\" \"%s\"",mode,text2,phone);
+printf("CALL: %s\n",buf);
+int res = system(buf);
+if (res == 0) {
+ if (gmodem_sms_delete(g,sms->pos))
+gmodem_logf(g,2,"OK DELETE SMS#%d TEXT:%s\n",sms->pos,sms->text);
+   }
+   }
+g->cmt=0; // clear flag
+return 1;
+}
+
+
+char on_in_sms[512]; // script to call
+
+int on_mt_sms(gmodem *g) { // called when incoming sms here
+ gmodem_sms_system(g,on_in_sms);
+return 1; // ok
+}
+
+
 int gmodem_sms(gmodem *g,uchar *sms) {
 if (lcmp(&sms,"dump")) {
     uchar out[512];
@@ -253,6 +342,20 @@ if (lcmp(&sms,"rm") || lcmp(&sms,"del")) {
   }
 if (lcmp(&sms,"list") || lcmp(&sms,"ls") ) {
   gmodem_sms_enum(g, _gmodem_sms_print_ls, g ); // just print it
+  return 1;
+  }
+if (lcmp(&sms,"system") ) {
+  char *sys = get_word(&sms);
+  if (!sys || !sys[0]) sys="echo";
+  gmodem_sms_system(g,sys ); // just print it
+  return 1;
+  }
+if (lcmp(&sms,"on_mt") || lcmp(&sms,"on_incoming")) {
+  gmodem_Atf(g,"+CNMI=1,1"); // request SMS for me
+  char *sys = get_word(&sms);
+  if (!sys || !sys[0]) sys="echo";
+  strNcpy(on_in_sms,sys);
+  g->on_mt = on_mt_sms;
   return 1;
   }
 uchar *phone=get_word((void*)&sms);

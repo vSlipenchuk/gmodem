@@ -168,6 +168,7 @@ if (g->o.release_request) {
 
   //gmodem_At(g,"+chup");
   }
+if (g->cmt && g->on_mt) g->on_mt(g);
 return cnt;
 }
 

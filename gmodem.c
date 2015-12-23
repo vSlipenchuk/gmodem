@@ -85,6 +85,9 @@ if (lcmp(&cmd,"+CUSD:")) { // CUSD responce ???
      // on_cusd ?
   return 1;
   }
+if (lcmp(&cmd,"+CMTI:")) { // EW77 Huawei sms notification
+  g->cmt++;
+  }
 // status codes - changes flow
 char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR","+CMS ERROR",
      "BUSY","NO CARRIER","NO DIAL TONE",0};

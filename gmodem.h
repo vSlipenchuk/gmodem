@@ -100,6 +100,8 @@ typedef struct _gmodem {
     struct _gmodem *mon,*parent; // monitor port for Qualcomm (E1550)
     voice_stream *voice; // if we have voice_serial connected
     int mode; // 0 - AtComPort, 1-PhoenixCard reader
+    int  cmt; // counter for mt-sms
+    int (*on_mt)(); // called when cmt>0 if accessed
 } gmodem;
 
 
