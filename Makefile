@@ -15,3 +15,7 @@ gmodem: $(SRC)
 
 pa-e1550: pa-e1550.c
 		$(CC) pa-e1550.c  -lpulse -o pa 
+		
+		
+test_on__mt:
+	./gmodem -D /dev/ttyUSB0 "http start" "sms on_mt ./on_sms"

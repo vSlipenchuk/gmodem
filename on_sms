@@ -1,0 +1,29 @@
+echo "Called ON_SMS from $2 with text $1"
+
+sms() {
+# sms PHONE TEXT
+  echo "SMSTO PHONE $1 TEXT $2"
+  wget --post-data="sms $1 $2" http://localhost/.at -O -  &
+}
+
+case "$1" in
+  *status*)
+    echo "ignore status reports"
+     exit 0;
+     ;;
+esac
+
+case "$2" in
+  +795838981*)
+     echo Skip Self SMS
+    ;;
+  +7*)
+     echo Send SMS back
+       sms $2  "Hello $2  `date`"
+    ;;
+   *)
+    echo "SMS Sender Unknown"
+    ;;
+esac
+
+exit 0
