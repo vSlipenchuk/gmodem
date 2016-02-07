@@ -66,6 +66,9 @@ if (lcmp(&cmd,"^RSSI:")) { // e1550
 if (lcmp(&cmd,"^BOOT:")) {
   return 1;
   }
+if (lcmp(&cmd,"+HTTPREAD:")) { // it is preamble of HTTPREAD <len>
+    return 1;
+  }
 return 0;
 }
 
@@ -85,6 +88,14 @@ if (lcmp(&cmd,"+CUSD:")) { // CUSD responce ???
      // on_cusd ?
   return 1;
   }
+
+if (lcmp(&cmd,"+HTTPACTION:")) { // CUSD responce ???
+  int code,resp,len;
+  //printf("CALLBACK FOUND: %s, REST:%s\n",cmd,cmd+12);
+  if (sscanf(cmd,"%d,%d,%d",&code,&resp,&len)>=2)  g->http_action = resp;
+  return 1;
+  }
+
 if (lcmp(&cmd,"+CMTI:")) { // EW77 Huawei sms notification
   g->cmt++;
   }
@@ -400,7 +411,7 @@ for(i=0;i<30000;i+=100) {
         int l;
         //dcs=72;
 
-        gmodem_logf(g,3,"USSD for decode dcs=%d , data: %s",dcs,txt);
+        gmodem_logf(g,3,"USSD for decode dcs=%d , data: '%s'",dcs,txt);
         switch (dcs) {
         case 72: // decode UCS2
           l = hexstr2bin(txt,txt,-1);
@@ -408,8 +419,17 @@ for(i=0;i<30000;i+=100) {
           //printf("TEXT:%s\n",buf);
           break;
         case 15: // // as is
-          l = hexstr2bin(buf2,txt,-1);
-          gsm7_decode(buf,buf2,l,0);
+          // Sometimes here not HEX data, but just normal text...
+          {
+            int bad=0,i ;
+            for(i=0;txt[i];i++) if (!strchr("0123456789ABCDEFabcdef",txt[i])) bad++;
+            if (bad == 0) {
+                l = hexstr2bin(buf2,txt,-1);
+                gsm7_decode(buf,buf2,l,0);
+                } else { // leave as is
+                strNcpy(buf,txt);
+                }
+          }
           break;
         default:
           strNcpy(buf,txt);

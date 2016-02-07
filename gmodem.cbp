@@ -24,6 +24,8 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-Wno-pointer-sign" />
+			<Add option="-Wno-pointer-sign" />
+			<Add option="-Wno-strict-aliasing" />
 			<Add directory="../vos" />
 		</Compiler>
 		<Linker>

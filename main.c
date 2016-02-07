@@ -130,6 +130,8 @@ fprintf(stderr,"usage: %s version %s\n"
         "\t-X          or --phoenix phoenix card reader\n"
         "\t-e <cmd>    or --exec=<command>\n"
         "\t-i <runcmd> or --on_in_call=<shell_command>\n"
+        "\t--logLevel  <level>  log_level (default:1)\n"
+
         ,name,szVersion);
 }
 
@@ -148,6 +150,7 @@ while (1){
                     {"on_in_call",   1,0, 'i'},
                     {"voice", 1,0, 'V'},
                     {"phoenix", 0,0, 'X'},
+                    {"logLevel", 1,0,'l'},
                     {0,0,0,0}
                    };
   if((c = getopt_long(argc, argv, "D:h:M:oe:i:V", long_opt, &optIdx)) == -1) {
@@ -186,6 +189,10 @@ while (1){
             gmode = 1;
             no_init = 1;
             break;
+     case 'l':
+             //printf("Here l, value=%d\n",optarg);
+              m->logLevel = atoi(optarg);
+             break;
      default:
           usage(argv[0]);
           exit(-1);
@@ -240,7 +247,7 @@ if (voice[0]) {
         printf("done voice_init\n");
        }
 #endif // VOICE
-    fprintf(stderr,"gmodem %s opened ok\n",szmodem);
+if (m->logLevel>0) fprintf(stderr,"gmodem %s opened ok\n",szmodem);
 if (gmode == 1) m->mode = 1; // set phoenix mode
     if (! no_init) {
      gmodem_clear(m,1000);
@@ -269,6 +276,7 @@ if (gmode == 1) gmodem_atr(m); // call ATR
         printf("%s\n",m->out); // auto-mode
         }
     //gmodem_info(m); // callit ???
+if (m->logLevel>0)
     fprintf(stderr,"gmodem '%s' ready, usage: \n (info|console|+clac|balance|pppd|ussd<num>|sms<num><text>)\n",szmodem);
     while(1) {
        int cnt=0;

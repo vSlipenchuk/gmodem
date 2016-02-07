@@ -5,8 +5,11 @@
 #include "voice_stream.h"
 
 
-#define gmodem_version 0,0,0,8
+#define gmodem_version 0,0,0,9
 
+
+// 0.0.0.9 -- gprs added: attach/detach/wget/ping for SIM800L modem
+//   0.0.0.8 -- rebuilds with new libs
 // 0.0.0.7  -- added CSD calls
 // 0.0.0.6   -- added build-in http-sever
 // 0.0.0.5  -- added apdu getData (and delta for EEPORM and RAM)
@@ -102,6 +105,9 @@ typedef struct _gmodem {
     int mode; // 0 - AtComPort, 1-PhoenixCard reader
     int  cmt; // counter for mt-sms
     int (*on_mt)(); // called when cmt>0 if accessed
+
+    // gprs actions
+    int http_action; // HTTP action responce code for gprs wget
 } gmodem;
 
 

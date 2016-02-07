@@ -149,14 +149,28 @@ return gmodem_crsm_cnum_get(g);
 }
 
 
-
+uchar *get_till_quoted(uchar **data,uchar *del,int dl) { // get_till but allows delimiters inside quotes '"'
+uchar *str = *data; int sl,ipos;
+if (dl<0) dl = strlen(del); sl = strlen(str);
+int q=0; // quote
+int i;
+for(i=0,ipos=-1;i<=sl-dl;i++) {
+     if ( (q==0) && (memcmp(str+i,del,dl)==0)) { ipos=i; break;}
+     if (str[i]=='"') q=!q;
+   }
+//ipos = strnstr(str,sl,del,dl);
+//printf("get_till ipos=%d in %s the %s\n",ipos,str,del);
+if (ipos<0) {  *data=str+sl; return str; } // return all
+str[ipos]=0; *data=str+ipos+dl; // remove delimiter
+return str;
+}
 
 char *gmodem_par(char **cmd,int skip) {
 char *p=0; char *del=",";
 //printf("PAR1_IN:%x VAL:%x\n",cmd,*cmd);
 while(skip>=0) {
   //printf(">>>cmd:%s==SKIP:%d,ptr=%x\n",*cmd,skip,*cmd);
-  p  = get_till((void*)cmd,del,-1);
+  p  = get_till_quoted((void*)cmd,del,-1);
   //printf("==p:%s,cmd:%s\n",p,*cmd);
   skip--;
   *cmd=trim(*cmd);
@@ -302,6 +316,9 @@ if (lcmp(&c,"dial")) return gmodem_dial(m,c); // start dial???
 if (lcmp(&c,"answer")) return gmodem_answer(c); //
 if (lcmp(&c,"kill")) return gmodem_kill(m); // start dial???
 if (lcmp(&c,"dtmf")) return gmodem_dtmf(m,c);
+
+if (lcmp(&c,"gprs")) return gmodem_gprs(m,c);
+
 // APDU
 if (lcmp(&c,"apdu")) return gmodem_apdu_cmd(m,c);
 
