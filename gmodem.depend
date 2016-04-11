@@ -13,7 +13,7 @@
 	<readline/readline.h>
 	<readline/history.h>
 
-1450906014 /mnt/c/prj/gmodem/gmodem.h
+1454863955 /mnt/c/prj/gmodem/gmodem.h
 	"../vos/vos.h"
 	"voice_stream.h"
 
@@ -59,7 +59,7 @@
 	<sys/resource.h>
 	"vos_win.c"
 
-1450907369 source:/mnt/c/prj/gmodem/gmodem.c
+1454863358 source:/mnt/c/prj/gmodem/gmodem.c
 	"gmodem.h"
 	<string.h>
 	<stdio.h>
@@ -76,7 +76,7 @@
 	<stdio.h>
 	"vstrutil.h"
 
-1450809535 source:/mnt/c/prj/gmodem/gmodem_device.c
+1459200368 source:/mnt/c/prj/gmodem/gmodem_device.c
 	"gmodem.h"
 
 1450810293 source:/mnt/c/prj/gmodem/gmodem_oper.c
@@ -86,7 +86,7 @@
 	"gmodem.h"
 	"vstrutil.h"
 
-1450735452 source:/mnt/c/prj/gmodem/main.c
+1454864665 source:/mnt/c/prj/gmodem/main.c
 	<stdio.h>
 	<stdlib.h>
 	"gmodem.h"
@@ -101,7 +101,7 @@
 1450735452 source:/mnt/c/prj/gmodem/gmodem_cb.c
 	"gmodem.h"
 
-1454848121 source:/mnt/c/prj/gmodem/gmodem_cmd.c
+1459202072 source:/mnt/c/prj/gmodem/gmodem_cmd.c
 	"gmodem.h"
 	"vstrutil.h"
 	<stdio.h>
@@ -328,9 +328,9 @@
 	"coders.h"
 	<stdarg.h>
 
-1450735506 /prj/vos/hexdump.c
+1460330015 /prj/vos/hexdump.c
 
-1454863358 source:/prj/gmodem/gmodem.c
+1460415788 source:/prj/gmodem/gmodem.c
 	"gmodem.h"
 	<string.h>
 	<stdio.h>
@@ -357,7 +357,7 @@
 1450735452 source:/prj/gmodem/gmodem_cb.c
 	"gmodem.h"
 
-1454850031 source:/prj/gmodem/gmodem_cmd.c
+1459202072 source:/prj/gmodem/gmodem_cmd.c
 	"gmodem.h"
 	"vstrutil.h"
 	<stdio.h>
@@ -369,7 +369,7 @@
 	"gmodem.h"
 	"gsm_sim.h"
 
-1450809535 source:/prj/gmodem/gmodem_device.c
+1459200368 source:/prj/gmodem/gmodem_device.c
 	"gmodem.h"
 
 1450735452 source:/prj/gmodem/gmodem_http.c
@@ -548,4 +548,10 @@
 1454865047 source:/prj/gmodem/gmodem_gprs.c
 	"gmodem.h"
 	"vss.h"
+
+1459202097 source:/mnt/c/prj/gmodem/gmodem_m590.c
+	"gmodem.h"
+
+1460415583 source:/prj/gmodem/gmodem_m590.c
+	"gmodem.h"
 

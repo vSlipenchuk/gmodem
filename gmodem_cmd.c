@@ -279,6 +279,9 @@ strClear(&txt); // free text
 return 1; // OK
 }
 
+
+int gmodem_neoway(gmodem *g,char *cmd); // spec neoway commands
+
 int gmodem_cmd(gmodem *m,char *c0) {
 uchar *c=c0;
 if (lcmp(&c,"@")) { // run file
@@ -292,6 +295,8 @@ if (lcmp(&c,"try"))   {  int code = gmodem_cmd(m,c); if (code>0) return code; //
                        } // always OK
 
 if (lcmp(&c,"pin")) return gmodem_pin(m,c);
+
+if (lcmp(&c,"neoway")) return gmodem_neoway(m,c);
 
 if (lcmp(&c,"http"))    return gmodem_http(m,c);
 if (lcmp(&c,"balance")) return gmodem_balance(m);
@@ -317,7 +322,7 @@ if (lcmp(&c,"answer")) return gmodem_answer(c); //
 if (lcmp(&c,"kill")) return gmodem_kill(m); // start dial???
 if (lcmp(&c,"dtmf")) return gmodem_dtmf(m,c);
 
-if (lcmp(&c,"gprs")) return gmodem_gprs(m,c);
+//if (lcmp(&c,"gprs")) return gmodem_gprs(m,c);
 
 // APDU
 if (lcmp(&c,"apdu")) return gmodem_apdu_cmd(m,c);

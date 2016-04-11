@@ -72,6 +72,8 @@ if (lcmp(&cmd,"+HTTPREAD:")) { // it is preamble of HTTPREAD <len>
 return 0;
 }
 
+int gmodem_ignore_stdresp = 0;
+
 int g_modem_do_line(gmodem *g,uchar *buf,int ll) { // call processing
 int code=0; char *cmd = buf;
 code = gmodem_spam_callback(g,buf);
@@ -116,18 +118,28 @@ if ( code == g_connect && (g->o.state == callInit || g->o.state == callSetup) ) 
      gmodem_set_call_state(g, callActive); // YES!
      return 1;
     }
-if (code && g->res==0 ) g->res = code; // set global flag
+if (code && g->res==0 && gmodem_ignore_stdresp == 0) g->res = code; // set global flag
 if (g->on_line) g->on_line(g,buf,ll,code); // recollect
 return 1; // anyway
 }
+
+
+int gmodem_lines_trim = 1;
 
 int gmodem_do_lines(gmodem *g) {
 int i;
 unsigned char *s = (void*)g->in;
 for(i=0;i<g->in_len;i++) if (s[i]=='\n' || s[i]=='\r') break;
+if (i>0 && (i+1)<g->in_len && s[i+1]=='\n') i++;
+ //for(;i<g->in_len;i++) if (s[i]=='\n' ||  s[i]=='\r') continue; else break; // collect EOL
 if (i<g->in_len || (i==sizeof(g->in)-1))  { // Yes  - do a line !!!
   int ll=i; // now - line trim
-  while(ll>0 && s[ll-1]<=32) ll--;
+  if (gmodem_lines_trim)  {
+        while(ll>0 && s[ll-1]<=32) ll--;
+        } else {
+        if (i<g->in_len) ll++;
+        }
+  //printf("LEN[%d]<%*.*s>\n",ll,ll,ll,g->in);
   char buf[sizeof(g->in)]; memcpy(buf,g->in,ll); buf[ll]=0; // gets a copy buffer
   if (i<g->in_len) i++;    memcpy(g->in,g->in+i,g->in_len-i); g->in_len-=i;   g->in[g->in_len]=0; // remove it freom a queue
   g_modem_do_line(g,buf,ll); // call processing
@@ -136,7 +148,24 @@ if (i<g->in_len || (i==sizeof(g->in)-1))  { // Yes  - do a line !!!
 return 0; // not yet
 }
 
-int gmodem_run(gmodem *g) {
+int gmodem_do_lines_full(gmodem *g) {
+int i;
+unsigned char *s = (void*)g->in;
+for(i=0;i<g->in_len;i++) if (s[i]=='\n' || s[i]=='\r') break;
+if (i<g->in_len || (i==sizeof(g->in)-1))  { // Yes  - do a line !!!
+  int ll=i; // now - line trim
+  //while(ll>0 && s[ll-1]<=32) ll--; --! no trim!
+  char buf[sizeof(g->in)]; memcpy(buf,g->in,ll); buf[ll]=0; // gets a copy buffer
+  if (i<g->in_len) i++;    memcpy(g->in,g->in+i,g->in_len-i); g->in_len-=i;   g->in[g->in_len]=0; // remove it freom a queue
+  g_modem_do_line(g,buf,ll); // call processing
+  return 1; // ok
+  }
+return 0; // not yet
+}
+
+
+
+int gmodem_run_do_lines(gmodem *g,int (*run_do_lines)()) {
 int cnt=0;
 cnt = gmodem_onidle(g); // starts with it
 //char buf[1024]; // need collect it !!!
@@ -163,7 +192,7 @@ if (r>0) { // yes, read !
   if (g->on_data) {
        g->on_data(g,g->in+g->in_len-r,r); // raport
        }
-  if (g->mode == 0) while (gmodem_do_lines(g)); // process line by line
+  if (g->mode == 0) while (run_do_lines(g)); // process line by line
   //printf("*%*.*s",r,r,buf); // just print on a screen!!!
   if (g->logLevel>10) hexdump("MODEM_RECV",g->in,g->in_len);
   cnt++; g->f.idle = 0;
@@ -171,9 +200,12 @@ if (r>0) { // yes, read !
   if (r<0) g->f.eof=1; // EOF!
   g->f.idle++;
   }
-if (g->mon)  cnt+=gmodem_run(g->mon); // run monitor as well
+if (g->mon)  cnt+=gmodem_run_do_lines(g->mon,run_do_lines); // run monitor as well
 return cnt;
 }
+
+int gmodem_run(gmodem *g) { return gmodem_run_do_lines(g,gmodem_do_lines);}
+
 
 int gmodem_setLogLevel(gmodem *g,int logLevel) {
 g->logLevel=logLevel;
@@ -187,6 +219,7 @@ return 1;
 
 int gmodem_put(gmodem *g, char *out,int len) {
 vstream *s=&g->port;
+if (len<0) len=strlen(out);
 if (g->f.eof) return 0;
 if (len<0) len=strlen(out);
  if (g->logLevel>10) hexdump("serial_write",out,len);
@@ -318,9 +351,11 @@ g->res = 0;
      // here - we are
  return 0; // continue
  }
+if (cmd) { // Allow cmd = NULL for just check lines till g->res set up
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
 if (g->logLevel>3) printf("gmodem_send: at%s<crlf>\n",cmd);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
+ }
 proc=g->on_line; g->on_line = on_line;
 while (g->res == 0 ) {
    if (g->f.eof) g->res=g_eof;

@@ -24,7 +24,6 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-Wno-pointer-sign" />
-			<Add option="-Wno-pointer-sign" />
 			<Add option="-Wno-strict-aliasing" />
 			<Add directory="../vos" />
 		</Compiler>
@@ -64,6 +63,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="gmodem_http.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_m590.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="gmodem_oper.c">

@@ -14,7 +14,9 @@ gsm_device gsm_devices[] = {
     {
         .name="SIMCOM", .imei="0132260", .crlf=1, .ussd=8,
     },
-
+    {
+        .name="m590", .imei="8681060", .crlf=1, .ussd=8, // neoway m 590
+    },
     //355735003810571
     {
         .name="SIM600", .imei="3557350", .crlf=1, .ussd=8, // Novacom
