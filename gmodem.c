@@ -410,9 +410,29 @@ int i;for(i=0;i<len;i++,s++,d+=2) sprintf(d,"%02X",*s);
 return len*2;
 }
 
+// move to -> coders
+int uni2utf(char *out,char *ucs2,int len) { // converts UCS2 -> utf8, len in bytes
+//hexdump("gsm2utf:",ucs2,len);
+int tlen=0;
+    while(len>0) {
+      int wch  = ( ucs2[1]<<8 | ucs2[0] ); // first go page
+      int rlen = utf8_poke(out,wch,4);
+      //printf("rlen=%d wch=%d\n",rlen,wch);
+      //hexdump("U",out,rlen); hexdump("rest",ucs2,len);
+      len-=2; ucs2+=2;  tlen+=rlen;
+    if (out) { out+=rlen;   }
+    }
+if (out) *out=0;
+return tlen;
+
+}
+
+
 int gmodem_ussd(gmodem *g,char *str) { // call string
 char buf[1024]; int dcs=15; // or 15 for
-if (g->dev && g->dev->ussd == 7) { // 7bit mode for string - E1550
+int ussd = 0;
+if (g->dev) ussd = g->dev->ussd;
+if (ussd == 7) { // 7bit mode for string - E1550
   char numbin[100],num[100]; int len=0;
   int l = gsm7_code(0,sizeof(num),str,numbin,&len,strlen(str));
   //if (!g->mon) {
@@ -424,7 +444,10 @@ if (g->dev && g->dev->ussd == 7) { // 7bit mode for string - E1550
   //hexdump("2",numbin,l);
   bin2hex(num,numbin,len);
   sprintf(buf,"+CUSD=1,%s,%d",num,dcs);
-  } else {
+  } else if (ussd ==-1)  { // via ATD command - neoway
+       sprintf(buf,"d%s",str);
+  }
+  else {
  sprintf(buf,"+CUSD=1,\"%s\",%d",str,dcs);
   }
 g->cusd[0]=0;
@@ -453,17 +476,22 @@ for(i=0;i<30000;i+=100) {
           gsm2utf(buf,txt,l);
           //printf("TEXT:%s\n",buf);
           break;
-        case 15: // // as is
+        case 15: // GSM-default-alphabet. A LOT of modems have a BUG here ...
           // Sometimes here not HEX data, but just normal text...
           {
             int bad=0,i ;
             for(i=0;txt[i];i++) if (!strchr("0123456789ABCDEFabcdef",txt[i])) bad++;
-            if (bad == 0) {
+            if (bad == 0 && ussd == -1) { // !!! BAG - neoway returns in UCS2 anyway
+                l = hexstr2bin(buf2,txt,-1);
+                gsm2utf(buf,buf2,l);
+                }
+            else if (bad == 0) { // It is normally here, but
                 l = hexstr2bin(buf2,txt,-1);
                 gsm7_decode(buf,buf2,l,0);
-                } else { // leave as is
+                } else { // leave as is - it can be HEX anyway
                 strNcpy(buf,txt);
                 }
+
           }
           break;
         default:

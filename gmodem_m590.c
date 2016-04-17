@@ -173,7 +173,7 @@ if (!ok) return gmodem_errorf(g,-3,"failed connectd in timeout");
 char data[512];
 snprintf(data,sizeof(data),"GET /%s HTTP/1.0\r\nHost: %s\r\n\r\n",p,url);
 g->bin=data;
-gmodem_Atf(g,"+tcpsend=0,%d",strlen(data)); // ">" equal OK
+gmodem_Atf(g,"+tcpsend=0,%d",strlen(data)); // ">" equal OK !!! ZO '+TCPSEND:Error' without OK can be returned
 //printf("SENT OK, push data\n");
 
 int recv_len = 0, total_recv=0;;
