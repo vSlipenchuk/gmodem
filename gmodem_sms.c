@@ -381,7 +381,7 @@ return gmodem_SendOtaSms(g,phone,data,bl);
 //return gmodem_SendTextSms(g,"+79151999003","Привет");
 }
 
-#include "../smppTest/im.c"
+//#include "../smppTest/im.c" ZU
 
 
 int gmodem_im(gmodem *g,uchar *cmd) {

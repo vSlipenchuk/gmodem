@@ -264,6 +264,7 @@ return gmodem_Atf(g,"+CSCA=\"%s\",%d",num,code);
 //AT+CRSM=220,28480,1,4,26,FFFFFFFFFFFFFFFFFFFFFF07819861206687F8FFFFFFFFFFFFFF
 
 int gmodem_cmd_file(gmodem *m,char *file) {
+/*
 char *txt = strLoad(file);
 gmodem_logf(m,2,"process file: %s",file);
 if (!txt) return gmodem_errorf(m,-2,"file %s not found",file);
@@ -277,6 +278,7 @@ while( ! m->f.eof ) { // while we can ...
   }
 strClear(&txt); // free text
 return 1; // OK
+*/
 }
 
 
@@ -297,6 +299,10 @@ if (lcmp(&c,"try"))   {  int code = gmodem_cmd(m,c); if (code>0) return code; //
 if (lcmp(&c,"pin")) return gmodem_pin(m,c);
 
 if (lcmp(&c,"neoway")) return gmodem_neoway(m,c);
+if (lcmp(&c,"sim800")) {
+   if (c[0]=='.') c++;
+   return gmodem_sim800(m,c);
+   }
 
 if (lcmp(&c,"http"))    return gmodem_http(m,c);
 if (lcmp(&c,"balance")) return gmodem_balance(m);

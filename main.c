@@ -11,6 +11,8 @@ char exec_cmd[512]; // exec command
 char on_in_call[512]; // on in call
 int gmode = 0; // phoenix mode - default off
 
+extern int gmodem_port_speed; // default 1115200
+
 gmodem Modem,*m=&Modem; // my main modem
 
 // some utils - defained in common.c
@@ -124,13 +126,14 @@ void usage(char *name) {
 fprintf(stderr,"usage: %s version %s\n"
         "\t-h print this message\n"
         "\t-D <modem>    or ---modem=<modem>   (default: /dev/modem)\n"
+        "\t-S <speed>    or --speed=<speed>    (default: 115200, zero means no configure)\n"
         "\t-M <monitor>  or ---monitor=<modem> (default: empty)\n"
         "\t-V <port>     or --voice=<port>\n"
         "\t-o          or --no-init\n"
         "\t-X          or --phoenix phoenix card reader\n"
         "\t-e <cmd>    or --exec=<command>\n"
         "\t-i <runcmd> or --on_in_call=<shell_command>\n"
-        "\t--logLevel  <level>  log_level (default:1)\n"
+        "\t-L <level>  or --logLevel  <level>  log_level (default:1)\n"
 
         ,name,szVersion);
 }
@@ -144,6 +147,7 @@ while (1){
   static struct option long_opt[] = {
                     {"help",  0, 0, 'h'},
                     {"modem", 1, 0, 'D'},
+                    {"speed",1,0,'S'},
                     {"monitor", 1, 0, 'M'},
                     {"no-init",0,0, 'o'},
                     {"exec",   1,0, 'e'},
@@ -151,9 +155,10 @@ while (1){
                     {"voice", 1,0, 'V'},
                     {"phoenix", 0,0, 'X'},
                     {"logLevel", 1,0,'l'},
+
                     {0,0,0,0}
                    };
-  if((c = getopt_long(argc, argv, "D:h:M:oe:i:V", long_opt, &optIdx)) == -1) {
+  if((c = getopt_long(argc, argv, "D:S:L:h:M:oe:i:V", long_opt, &optIdx)) == -1) {
      // printf("Done, index=%d optopt=%d\n",optIdx,optind);
    break;
   }
@@ -189,10 +194,14 @@ while (1){
             gmode = 1;
             no_init = 1;
             break;
-     case 'l':
+     case 'L':
              //printf("Here l, value=%d\n",optarg);
               m->logLevel = atoi(optarg);
              break;
+     case 'S':
+               //printf("Here s, value=%d\n",optarg);
+              gmodem_port_speed = atoi(optarg);
+              break;
      default:
           usage(argv[0]);
           exit(-1);

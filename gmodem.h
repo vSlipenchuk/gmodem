@@ -22,7 +22,7 @@
 */
 
 typedef struct { // vstream functions
- void* (*open)(void *); // constructor
+ void* (*open)(void *,int); // constructor
  void  (*close)(void *);   // destructor
  int   (*peek)(void*,void*,int);    // read data
  int   (*write)(void*,void*,int);   // write data
@@ -107,7 +107,7 @@ typedef struct _gmodem {
     int (*on_mt)(); // called when cmt>0 if accessed
 
     // gprs actions
-    int http_action; // HTTP action responce code for gprs wget
+    int http_action,http_len; // HTTP action responce code for gprs wget
 } gmodem;
 
 

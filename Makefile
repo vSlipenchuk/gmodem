@@ -9,6 +9,10 @@ SRC=main.c common.c gmodem.c gmodem_apdu.c  gmodem_call.c \
   
 LIBS=-lcrypto -lpulse -lpthread -lreadline -ltermcap
 
+sim800test:
+	    ./gmodem -D/dev/ttyUSB0 -S19200 -L1 'sim800 wget http://api.thingspeak.com/update.json?api_key=Y31691C0KOZAI3Z1&field1=10&field2=20&field3=30'
+         
+         
 gmodem: $(SRC)
 		$(CC)  -I . -I ../vos -Wno-pointer-sign \
 		$(SRC) -o gmodem $(LIBS)

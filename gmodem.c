@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include "vstrutil.h"
 
+int gmodem_port_speed = 115200;
 extern gsm_device gsm_devices[];
 
 int gmodem_init(gmodem *g, char *name) {
@@ -20,7 +21,7 @@ vstream *s=&g->port;
 s->p=&vstream_com_procs;
 if (!g->dev) g->dev = gsm_devices; // default - first device
 // printf("Open %s\n",name);
-s->handle = s->p->open(name);
+s->handle = s->p->open(name,gmodem_port_speed);
 // printf("Done handle %d\n",s->handle);
 if (!s->handle) return 0;
 strNcpy(g->name,name);
@@ -93,8 +94,8 @@ if (lcmp(&cmd,"+CUSD:")) { // CUSD responce ???
 
 if (lcmp(&cmd,"+HTTPACTION:")) { // CUSD responce ???
   int code,resp,len;
-  //printf("CALLBACK FOUND: %s, REST:%s\n",cmd,cmd+12);
-  if (sscanf(cmd,"%d,%d,%d",&code,&resp,&len)>=2)  g->http_action = resp;
+    //printf("CALLBACK FOUND: %s\n",cmd);
+  if (sscanf(cmd,"%d,%d,%d",&code,&resp,&len)>=2)  { g->http_action = resp; g->http_len=len;}
   return 1;
   }
 
@@ -328,6 +329,7 @@ gmodem_echo_off(g); // check off echo
 g->res = 0;
 //memset(out,0,size); size--;
  int on_line(gmodem *g,unsigned char *line,int len,int code) {
+     //printf("LINE:%s FILTER:%s\n",line,filter);
      if (filter) {
          int fl=strlen(filter);
          if (memcmp(filter,line,fl)!=0) return 0; // not mine
