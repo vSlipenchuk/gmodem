@@ -74,6 +74,9 @@
 		<Unit filename="gmodem_scan.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gmodem_sim800.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="gmodem_sms.c">
 			<Option compilerVar="CC" />
 		</Unit>

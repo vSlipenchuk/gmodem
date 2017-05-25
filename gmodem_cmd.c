@@ -148,6 +148,7 @@ int gmodem_cnum_get(gmodem *g) {
 return gmodem_crsm_cnum_get(g);
 }
 
+char *str_unquote(char *buf) ;
 
 uchar *get_till_quoted(uchar **data,uchar *del,int dl) { // get_till but allows delimiters inside quotes '"'
 uchar *str = *data; int sl,ipos;
