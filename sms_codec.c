@@ -83,7 +83,7 @@ case 8: // UCS2 - каждая буква = 2 байта, границы соо�
   sms->sm_udhl = udhlen;
   break;
 default: // 8bit
-  printf("BINARY_CODE");
+  printf("BINARY_CODE\n");
   if (payload<len && chainsTR) { // Добавляем в хедер
       if (!udhlen) { udhlen++; payload--;} // Add Header length
       udhlen+=5; payload-=5; sms->chains=chainsTR; // Simple Chain Header 00-03- TR NN AL
@@ -485,7 +485,7 @@ return 1; // Ok ...
 int sms_decode(t_sms *sm,unsigned char *s,int len) {
 int code;
 sm->mti =(*s)&3;
- //printf("decode MTI=%d\n",sm->mti);
+  printf("decode MTI=%d code=%d\n",sm->mti,*s);
 switch(sm->mti) {
 case SMS_DELIVER: code=sms_decode_deliver(sm,s,len); break; // 0
 case SMS_SUBMIT:  code=sms_decode_submit(sm,s,len); break; // Decode This...

@@ -34,7 +34,10 @@ return r; // anyway
 
 char *str_unquote(char *buf) {
 int l = strlen(buf);
+ //printf("UnquoteLen=%d\n",l);
 if (l>=2 && strchr("\"'",*buf) && buf[0]==buf[l-1]) { buf++; l-=2; buf[l]=0 ;}
+ //printf("UnquoteLen=%d\n",l);
+ //printf("S=<%s>\n",buf);
 return buf;
 }
 /*

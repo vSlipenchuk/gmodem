@@ -165,9 +165,11 @@ str[ipos]=0; *data=str+ipos+dl; // remove delimiter
 return str;
 }
 
+char *str_unquote(char *buf);
+
 char *gmodem_par(char **cmd,int skip) {
 char *p=0; char *del=",";
-//printf("PAR1_IN:%x VAL:%x\n",cmd,*cmd);
+ //printf("PAR1_IN:%x VAL:%x\n",cmd,*cmd);
 while(skip>=0) {
   //printf(">>>cmd:%s==SKIP:%d,ptr=%x\n",*cmd,skip,*cmd);
   p  = get_till_quoted((void*)cmd,del,-1);
@@ -175,8 +177,12 @@ while(skip>=0) {
   skip--;
   *cmd=trim(*cmd);
   }
+//printf(">>>done\n");
 p=trim(p);
+//printf(">>>done2  ->%s\n",p);
 p=str_unquote(p);
+//printf(">>>done3   ->%s\n",p);
+
 return p;
 }
 
@@ -189,9 +195,10 @@ ok = gmodem_At2bufFilter(g,"+CNUM","+CNUM:",cnum,sizeof(cnum))>0;
 if (ok<=0) return -1; // failed
  /// need to get 1 param...
  //p0=cnum;
- //printf("res:%s, ptr=%x PAR1=%x ptrVAL=%x\n",cnum,cnum,&p0,p0);
+//printf("res:%s, ptr=%x PAR1=%x ptrVAL=%x\n",cnum,cnum,&p0,p0);
 char *p = cnum;
 p = gmodem_par(&p,1);
+//printf("P=%p\n",p);
 if (strlen(p)>0) {
    strNcpy(g->cnum,p);
    strNcpy(g->out,p);
@@ -238,12 +245,16 @@ gsm_device *d = g->dev;
 printf("Modem:{name:'%s',imei:'%s',file:'%s'},\n",d->name,g->imei,g->name);
 gsm_operator *o = gsm_operators;
 if (g->oper) o=g->oper;
+//printf("DONE0\n");
 if (o) { // known network
  printf("HPLMN:{name:'%s',imsi:'%s',gprs:'%s',apn:'%s'}\n",o->name,o->imsi,o->gprs_num,o->apn);
  }
+//printf("DONE-0\n");
 (gmodem_cnum(g)>0) ;
   //  || (gmodem_cnum_get(g)>0); // try any of AT+CNUM or AT+CRSM -- some modems NOT safe
+  //printf("DONE1\n");
 printf("SIM:{pin_ready:%d,iccid:'%s',imsi:'%s',cnum:'%s'}\n",pin==1?1:0,g->iccid,g->imsi,g->cnum);
+  //printf("DONE2\n");
 return 1; //ok
 }
 

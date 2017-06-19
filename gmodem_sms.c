@@ -159,7 +159,7 @@ if (i<=0) {
 //printf("OK, coded <%s> <%s>\n",phone,text);
 int len; char data[200];
 while((len=sms_fetch(&sms))>0) { // Send It to Phone
-            sms_dump(sms.data,len,0);
+            //sms_dump(sms.data,len,0);
             strcpy(data,"00");
             for(i=0;i<len;i++) sprintf(data+2+2*i,"%02x",sms.data[i]); // Create ComPort Commsnd
             //hexdump("smsdata",data,strlen(data));

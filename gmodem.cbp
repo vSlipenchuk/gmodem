@@ -11,7 +11,7 @@
 				<Option object_output="./" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='-o -m /dev/null &quot;sms dump 200481556500004170526161726106c8329bfd9601&quot;' />
+				<Option parameters="-D /dev/ttyUSB0 " />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wno-pointer-sign" />
@@ -31,7 +31,6 @@
 			<Add library="pthread" />
 			<Add library="readline" />
 			<Add library="termcap" />
-			<Add library="pulse" />
 			<Add library="crypto" />
 		</Linker>
 		<Unit filename="common.c">
@@ -72,6 +71,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="gmodem_scan.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_sim800.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="gmodem_sms.c">
