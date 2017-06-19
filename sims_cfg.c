@@ -49,7 +49,7 @@ int cardJobLoadCfg(struct _cardJob *j,char *_iccid,char *filename) { // Loads In
 if (!j) j = &cardJob;
 if (!filename) filename="/root/.telco/sims.cfg";
 FILE *f = fopen(filename,"r");
-if (!f) {  printf("Load File %s failed\n",filename); return -2;   }
+if (!f) {  printf("Load File %s failed\n",filename); return 1;   } // ZUZUK!
 char buf[1024];
 while( fgets(buf,sizeof(buf),f) ) {
   uchar *c=buf;
@@ -83,5 +83,5 @@ while( fgets(buf,sizeof(buf),f) ) {
   }
 fclose(f);
 printf("DataFor ICCID %s not found\n",_iccid);
-return 0;
+return 1;
 }

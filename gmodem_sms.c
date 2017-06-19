@@ -86,8 +86,13 @@ case 1:
   printf(" %02d>%s (%s,%s)\n",sms->pos,sms->text,sms->da,sms->vp); // normal print of sms in list
   break;
 default: // shpow max of fields
-printf("Mti:'%s',SMSC:'%s',NUM:'%s',SENT:'%s',pid:0x%x,dcs:0x%x,udhi:%d\n",mti[sms->mti&3],
+ printf("Mti:'%s',SMSC:'%s',NUM:'%s',SENT:'%s',pid:0x%x,dcs:0x%x,udhi:%d\n",mti[sms->mti&3],
          sms->smsc,sms->da,sms->vp,sms->pid,sms->dcs,sms->udhi);
+  if (sms->udhi && sms->udh) {
+      printf("UDH[%d] %02X",sms->udh[0]+1,sms->udh[0]);
+      int i; for(i=0;i<sms->udh[0];i++) printf("%02X",sms->udh[i+1]);
+  printf("\n");
+      }
  printf("TEXT[UDL:%d]:%s\n",sms->udl,sms->text);
 }
 }
@@ -335,9 +340,10 @@ return 1; // ok
 
 int gmodem_sms(gmodem *g,uchar *sms) {
 if (lcmp(&sms,"dump")) {
-    uchar out[512];
+    uchar out[512],*o=out;
     int l = hexstr2bin(out,sms,-1);
-    sms_dump(out,l,flSmsc );
+    if (l>0 && (out[0]==0 ))  { o++; l--;}; // if starts from "default SMSC"
+    sms_dump(o,l,0) ; //flSmsc );
   return 1;
   }
 if (lcmp(&sms,"rm") || lcmp(&sms,"del")) {

@@ -31,7 +31,6 @@
 			<Add library="pthread" />
 			<Add library="readline" />
 			<Add library="termcap" />
-			<Add library="pulse" />
 			<Add library="crypto" />
 		</Linker>
 		<Unit filename="common.c">

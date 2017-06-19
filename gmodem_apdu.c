@@ -131,18 +131,20 @@ apdu[0]=l;
 return l;
 }
 
-int apdu_pack2delivr(uchar *apdu,char *_num) {
+int apdu_pack2sms_delivr(uchar *apdu,char *_num) { // just SMS BINARY for send
 int l = apdu[0]; char num[24];
 int nl = sms_put_addr2(num,_num,strlen(_num));
 int sz = l+11+nl+2;
 uchar buf[sz],*c=buf;
-c[0]=0x8B;
+/*
+c[0]=0x88; // 0x8B; - was command !!!
  int rl = 11+nl+l;
  if (rl>=0x80) {
      c[1]=0x81;c[2]=rl; c+=3; sz++; // SMS_PDU_TAG + length followes
    } else {
    c[1]=11+nl+l; c+=2; // SMS_PDU_TAG + length followes
    }
+*/
 c[0]=0x40; c++; memcpy(c,num,nl); c+=nl; *c = 0x7F; c++; *c=0xF6; c++; // MTI, OD, PID, DCS
 char smsc_ts[7]={0x14,0x06,0x04,0x17,0x31,0x49,0x04 }; // YYMMDDHHNNSS offset
 memcpy(c,smsc_ts,7); c+=7;
@@ -151,12 +153,30 @@ memcpy(apdu+1,buf,sz); apdu[0]=sz;
 return sz;
 }
 
+
+
+
 int apdu_ins(uchar *apdu,uchar *head,int len) {
 int l = apdu[0], sz = l+len; // now_len and new_size
 uchar buf[sz];
 memcpy(buf,head,len); memcpy(buf+len,apdu+1,l);
 memcpy(apdu+1,buf,sz); apdu[0]=sz;
 return sz; // new size
+}
+
+int apdu_wrap28b(uchar *apdu) {
+int l = apdu[0];
+ unsigned char buf[3]={0x8B,0x81,l};
+ if (l>=0x80) apdu_ins(apdu,buf,3);
+      else { buf[2]=l; apdu_ins(apdu,buf,2); }
+return apdu[0];
+}
+
+
+
+int apdu_pack2delivr(uchar *apdu,char *_num) {
+ apdu_pack2sms_delivr(apdu,_num);
+ return apdu_wrap28b(apdu); // add envelope header
 }
 
 int apdu_pack2env(uchar *apdu) {
@@ -171,6 +191,7 @@ uchar a[5]={0xA0,0xC2,0x00,0x00,apdu[0]};   apdu_ins(apdu,a,5);
   }
 return 1;
 }
+
 
 void gmodem_dump_out(gmodem *g, char *msg) {
 if (g->logLevel>3) hexdump(msg ,g->out+1,g->out[0]);
@@ -338,6 +359,47 @@ if (!por_ok( p->sw[0])) {
    }
 return 1;
 }
+
+
+int gmodem_apdu_send_PP(gmodem *g,uchar *szData) { // Send binary (secured) data as SMS PP
+uchar data[512];
+struct _cardJob *j = &cardJob;
+//char tar[3]={0,0,0};
+  //apdu_add_secure(data, j->spi, j->kic, j->kid , tar,
+    //              j->KIC,j->KID, j->counter );
+//gmodem_dump_out(g,"sec_packet");  apdu_add_udh70(data);
+int len = strlen(szData); if (len>512) szData[512]=0; // ZU
+   data[0]=hexstr2bin(data+1,szData,-1);  // create a data
+if (g->logLevel>5) hexdump("SMS_UDHL_SECURED",data+1,data[0]);
+  apdu_pack2sms_delivr(data,"556677");
+if (g->logLevel>5) hexdump("SMS_PDU",data+1,data[0]);
+  apdu_wrap28b(data);
+  apdu_pack2env(data);
+if (g->logLevel>5) hexdump("Envelope",data+1,data[0]);
+// -- now - we may be want to sign it?
+//  sec_packet?
+
+//gmodem_dump_out(g,"ENVELOPE");
+porPacket *p=&j->por;
+if (gmodem_apdu_exchange(g,data,0)<=0) return -2;
+ j->counter++;  if (j->saveCounter) j->saveCounter(j); // updateCounterValue
+if (gmodem_apdu_POR(g,p)<=0) return -2;
+// now - check POR.status field, 0 - is a good responce
+if (p->status!=0) {
+    sprintf(g->out,"POR_err[%d]:%s, {new_counter:%d}",p->status,porStatusName(p->status),j->counter);
+    printf("ERROR:%s\n",g->out);
+    return -3;
+    }
+if (g->logLevel>1) printf(" ---  PoR:%d (%s) Command:%d SW:%02x%02x nextCounter:%d--- \n",
+                            p->status,porStatusName(p->status),p->command,p->sw[0],p->sw[1],j->counter);
+if (!por_ok( p->sw[0])) {
+   return gmodem_errorf(g,-3, "PoR return error status, expect %s found %02x",szPoR,p->sw[0]);
+   }
+return 1;
+}
+
+
+
 
 char *szaid(uchar *aid) {
 static uchar szbuf[100];
@@ -788,6 +850,10 @@ if ( cardJob.ICCID[0]==0 ) { // not inited
     gmodem_apdu_iccid(g);
     }
   };
+if (lcmp(&cmd,"pp")) {
+    return gmodem_apdu_send_PP(g,cmd) ;
+
+}
 if (lcmp(&cmd,"iccid")) { // personalize me
    return gmodem_apdu_iccid(g);
    }
