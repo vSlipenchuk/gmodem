@@ -40,6 +40,7 @@ int bin2hexstr(uchar *out,uchar *bin,int len);
 
 int sms_decode_data(t_sms *sms, char *bin,int len,int flags) {
 char BUF[256];
+if (len<0) len=strlen(bin);
 memset(sms,0,sizeof(*sms));
 if (flags & flText) {
    int maxsz=2*sizeof(BUF)-1;
@@ -48,27 +49,30 @@ if (flags & flText) {
   }
 if (flags & flSmsc) { // extract SMSC
   int nl = gsm_get_smaddr(sms->smsc,bin,len);
-  //printf("SMSC:<%s>\n",sms.smsc);
+  printf("SMSC:<%s>\n",sms->smsc);
   len-=nl; bin+=nl;
   }
-//hexdump("todecode:",bin,len);
+hexdump("todecode:",bin,len);
 int l = sms_decode(sms,bin,len);
-//printf("decodedsms %d err:%s\n",l,sms.error);
+//printf("decodedsms %d err:%s\n",l,sms->error);
 if (l<=0) return l;
 /*
 char *mti[4]={"DELIVER","SUBMIT","REPORT","RESERVED"}; // message type info
 printf("MTI:'%s',SMSC:'%s',NUM:'%s',SENT:'%s',pid:0x%x,dcs:0x%x,udhi:%d\n",mti[sms.mti&3],
          sms.smsc,sms.da,sms.vp,sms.pid,sms.dcs,sms.udhi);
 */
+//printf("SMS->DCS & 0XF=%d\n",sms->dcs&0xF);
 if ( (sms->dcs & 0xF) == 8) { // we have UCS2?
   gsm2utf(sms->text,sms->ud,sms->udl);
   //char utf[512]; gsm2utf(utf,sms->ud,sms->udl);  printf("UTFtext:<%s>\n",utf);  hexdump("UTF1",sms->ud,sms->udl);
-  } else if ( (sms->dcs==0xF) ==0) {
+  } else if ( (sms->dcs&0xF) ==0) {
   //char txt[512];
   gsm7_decode(sms->text,sms->ud,sms->udl,0);
   //printf("7bit:%s\n",txt);
   } else {
+  //    printf("BINHERE!\n");
   bin2hexstr(sms->text,sms->ud,sms->udl);
+    //   printf("SMSTEXT=%s\n",sms->text);
   //hexdump("UD",sms.ud,sms.udl);
   }
 return 1;
@@ -82,9 +86,14 @@ case 1:
   printf(" %02d>%s (%s,%s)\n",sms->pos,sms->text,sms->da,sms->vp); // normal print of sms in list
   break;
 default: // shpow max of fields
-printf("Mti:'%s',SMSC:'%s',NUM:'%s',SENT:'%s',pid:0x%x,dcs:0x%x,udhi:%d\n",mti[sms->mti&3],
+ printf("Mti:'%s',SMSC:'%s',NUM:'%s',SENT:'%s',pid:0x%x,dcs:0x%x,udhi:%d\n",mti[sms->mti&3],
          sms->smsc,sms->da,sms->vp,sms->pid,sms->dcs,sms->udhi);
-printf("TEXT[UDL:%d]:%s\n",sms->udl,sms->text);
+  if (sms->udhi && sms->udh) {
+      printf("UDH[%d] %02X",sms->udh[0]+1,sms->udh[0]);
+      int i; for(i=0;i<sms->udh[0];i++) printf("%02X",sms->udh[i+1]);
+  printf("\n");
+      }
+ printf("TEXT[UDL:%d]:%s\n",sms->udl,sms->text);
 }
 }
 
@@ -92,6 +101,7 @@ int hexdump(char *msg,uchar *s,int len);
 
 int sms_dump(uchar *bin,int len,int flags) {
 t_sms sms;
+hexdump("sms_dump",bin,len);
 if (sms_decode_data(&sms,bin,len,flags)<=0) {
    printf (">>> FAIL_DECODE_SMS: %s\n",sms.error);
    hexdump(">>> OFFENDING_DATA:",bin,len);
@@ -147,11 +157,19 @@ printf("Done OK");
 return 1;
 }
 
+/*
+int sms_submit(t_sms *sms,int rejDup, int repRequest,
+  int mRef, uchar *phone, int pid,int dcs, int vp,
+      int chainsTR, uchar *udh, uchar *text, int len) { // StartDecode me ...
+*/
+
 int gmodem_SendOtaSms(gmodem *g,char *phone,char *utext,int dlen) { // send it as SMS
 t_sms sms;
 int reqReport = 1, msgRef=1, dcs=0xf6;
 hexdump("ota2send",utext,dlen);
-int i= sms_submit(&sms, 0, reqReport ,msgRef,phone, 0x7f, dcs, 0,msgRef,utext ,utext,dlen); // HAS UDH
+int i= sms_submit(&sms, 0, reqReport ,msgRef,phone, 0x7f, dcs, 0,
+                  0,0,  //  msgRef,utext  -- No rtansRef & UDHI and
+                  utext,dlen); // HAS UDH
 if (i<=0) {
   printf("Some coding error=%s\n",sms.error);
   return 0;
@@ -169,7 +187,7 @@ while((len=sms_fetch(&sms))>0) { // Send It to Phone
             //break; // do not yest send
 
             if (gmodem_Atf(g,"+cmgs=%d",len)<=0) {
-              printf("Send data error\n");
+              printf("\nSend data error\n");
               break;
               }
          //   CLOG(com,3,"SmsSending... %d/%d message (%d row bytes) DATA:'%s'\n",sms.segment,sms.total,len,data);
@@ -322,9 +340,10 @@ return 1; // ok
 
 int gmodem_sms(gmodem *g,uchar *sms) {
 if (lcmp(&sms,"dump")) {
-    uchar out[512];
+    uchar out[512],*o=out;
     int l = hexstr2bin(out,sms,-1);
-    sms_dump(out,l,flSmsc | flText);
+    if (l>0 && (out[0]==0 ))  { o++; l--;}; // if starts from "default SMSC"
+    sms_dump(o,l,0) ; //flSmsc );
   return 1;
   }
 if (lcmp(&sms,"rm") || lcmp(&sms,"del")) {

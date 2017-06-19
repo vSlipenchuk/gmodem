@@ -93,8 +93,15 @@ if (r%2) { *num='F'; num++; r++;}
 return r;
 }
 
+int gmodem_cnum_set_on(gmodem *g,char *num) {
+gmodem_At(g,"+CPBS=\"ON\""); // set proper sim-book
+return gmodem_Atf(g,"+CPBW=1,\"%s\",%d",num,(num[0]=='+')?145:129);
+
+}
+
 int gmodem_cnum_set(gmodem *g, char *num) {
-    return gmodem_crsm_cnum_set(g,num);
+                  //return gmodem_crsm_cnum_set(g,num);
+                  return gmodem_cnum_set_on(g,num);
 int ton_npi;
 char n[20]; // max 20 digits
 int nl = num_scan(n,num,&ton_npi); //+CRSM=192,28480,0,0,30
@@ -148,6 +155,7 @@ int gmodem_cnum_get(gmodem *g) {
 return gmodem_crsm_cnum_get(g);
 }
 
+char *str_unquote(char *buf) ;
 
 uchar *get_till_quoted(uchar **data,uchar *del,int dl) { // get_till but allows delimiters inside quotes '"'
 uchar *str = *data; int sl,ipos;

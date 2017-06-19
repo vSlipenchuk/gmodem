@@ -429,6 +429,7 @@ s+=l; len-=l;
 //printf("\n");
  //hexdump("ud",s,len);
 //eturn 1;
+  //hexdump("SMS_DECODE_DELIVR, UD:",s,len);
 return sms_decode_ud(sm,s,len);
 }
 
