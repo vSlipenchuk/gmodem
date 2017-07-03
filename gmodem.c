@@ -2,6 +2,7 @@
   common gsm modem functions -
   at command handling
   send & recv bytes
+
 */
 
 #include "gmodem.h"
@@ -655,6 +656,21 @@ sprintf(g->out,"pppd:%d",code);
 // now - wait for that... and run system(pppd)???
 //return gmodem_ussd(g,num);
 return 1;
+}
+
+int gmodem_creg(gmodem *g) { // >0 means registred
+char buf[200];
+int c1,c2;
+if (gmodem_At2bufFilter(g,"+CREG?","+CREG",buf,sizeof(buf))<0) return gmodem_errorf(g,-1,"command failed");
+if ( sscanf(buf,"%d,%d",&c1,&c2)!=2) return gmodem_errorf(g,-3,"invalid creg resp: '%s'",buf);
+if ( (c1 == 1) || (c1 == 2) ) { // has register code
+  if (c2 == 1) return gmodem_errorf(g,1,"home registred");
+  if (c2 == 5) return gmodem_errorf(g,2,"roaming reistred");
+  if (c2 == 3) return gmodem_errorf(g,-2,"forbiden registration");
+  if (c2 == 0) return gmodem_errorf(g,-3,"not registred");
+  if (c2 == 2) return gmodem_errorf(g,-1,"searching");
+  }
+return gmodem_errorf(g,-1,"creg unknown status %d,%d",c1,c2);
 }
 
 

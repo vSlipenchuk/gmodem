@@ -117,6 +117,7 @@ int gmodem_SendTextSms(gmodem *g,char *phone,char *utext) { // send it as SMS
 t_sms sms;
 int reqReport = 1, msgRef=1, dcs=0x8;
 char text[256];
+int r = gmodem_creg(g); if (r<0) return r; // not registred
 int dlen = utf2gsm(text,utext,-1);
 int i= sms_submit(&sms, 0, reqReport ,msgRef,phone,0,dcs,0,msgRef,0,text,dlen); // No UHDI
 if (i<=0) {
@@ -396,6 +397,8 @@ char data[512];
 printf("OTA_SMS:<%s><%s>\n",phone,sms);
 int bl = hexstr2bin(data,sms,-1);
 hexdump("ota_data",data,bl);
+int r = gmodem_creg(g); if (r<0) return r; // not registred
+
 return gmodem_SendOtaSms(g,phone,data,bl);
 //return gmodem_SendTextSms(g,"+79151999003","Привет");
 }

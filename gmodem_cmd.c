@@ -347,6 +347,9 @@ if (lcmp(&c,"answer")) return gmodem_answer(c); //
 if (lcmp(&c,"kill")) return gmodem_kill(m); // start dial???
 if (lcmp(&c,"dtmf")) return gmodem_dtmf(m,c);
 
+if (lcmp(&c,"creg")) return gmodem_creg(m);
+if (lcmp(&c,"reg")) return gmodem_creg(m);
+
 //if (lcmp(&c,"gprs")) return gmodem_gprs(m,c);
 
 // APDU

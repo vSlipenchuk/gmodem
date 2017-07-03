@@ -5,8 +5,10 @@
 #include "voice_stream.h"
 
 
-#define gmodem_version 0,0,0,9
+#define gmodem_version 0,0,1,0
 
+
+// 0.0.1.0 -- add  gmodem_creg() - check register state
 
 // 0.0.0.9 -- gprs added: attach/detach/wget/ping for SIM800L modem
 //   0.0.0.8 -- rebuilds with new libs
@@ -201,5 +203,10 @@ int gmodem_atr(gmodem *g); // Answer to reset...
 // Phonebook sim card & phones
 
 int gmodem_book_cmd(gmodem *g,uchar *cmd);
+
+
+// register check
+
+int gmodem_creg(gmodem *g); // update register state
 
 #endif // GMODEM_H_INCLUDED
