@@ -3,10 +3,14 @@
 
 #include "../vos/vos.h"
 #include "voice_stream.h"
+#include "coders.h"
+#include "gsm_sim.h"
 
 
-#define gmodem_version 0,0,1,0
+#define gmodem_version 0,0,1,1
 
+
+// 0.0.1.1 - fixed some pointer warinings for x64 (i.e. errors)
 
 // 0.0.1.0 -- add  gmodem_creg() - check register state
 
@@ -208,5 +212,22 @@ int gmodem_book_cmd(gmodem *g,uchar *cmd);
 // register check
 
 int gmodem_creg(gmodem *g); // update register state
+
+
+// other
+int gmodem_sim800(gmodem *g,char *cmd) ;
+int gmodem_http(gmodem *g,uchar *par);
+int gmodem_ota(gmodem *g,uchar *sms);
+int gmodem_im(gmodem *g,uchar *cmd);
+int gmodem_answer(gmodem *g);
+char *gmodem_par(uchar **cmd,int skip);
+int num_scan(char *num,char *sznum,int *ton_npi);
+int gmodem_apdu2(gmodem *g,uchar *cmd,int len,uchar *sw,uchar *out) ;
+
+int gmodem_apdu_select(gmodem *g, uchar *aid);
+int cardJobLoadCfg(struct _cardJob *j,char *_iccid,char *filename);
+int gmodem_iccid(gmodem *g);
+
+int kbhit2();
 
 #endif // GMODEM_H_INCLUDED

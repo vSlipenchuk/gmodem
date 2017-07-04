@@ -1,5 +1,5 @@
 #include "gmodem.h"
-
+#include "coders.h"
 
 int gmodem_wait_status(gmodem *g) {
 while (g->res == 0 ) {

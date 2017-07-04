@@ -7,7 +7,7 @@
 #include "coders.h"
 #include "vstrutil.h"
 
-char *gmodem_par(char **cmd,int skip);
+
 
 //DF_TELECOM 0x7f10
 //EF_MSISDN (6F40).
@@ -175,7 +175,7 @@ return str;
 
 char *str_unquote(char *buf);
 
-char *gmodem_par(char **cmd,int skip) {
+char *gmodem_par(uchar **cmd,int skip) {
 char *p=0; char *del=",";
  //printf("PAR1_IN:%x VAL:%x\n",cmd,*cmd);
 while(skip>=0) {

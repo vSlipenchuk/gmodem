@@ -15,9 +15,10 @@
 #include "../vos/vs0.c"
 #include "../vos/vss.c"
 
+
 int onHttpStat(Socket *sock, vssHttp *req, SocketMap *map) { // Ãåíåðàöèÿ ñòàòèñòèêè ïî ñåðâåðó
 char buf[1024];
-httpSrv *srv = sock->pool;
+httpSrv *srv = (void*)sock->pool;
 strSetLength(&srv->buf,0); // ClearResulted
 sprintf(buf,"{clients:%d,connects:%d,requests:%d,mem:%d,serverTime:'%s',pps:%d}",arrLength(srv->srv.sock)-1,
   srv->srv.connects,
@@ -32,7 +33,7 @@ gmodem *G;
 
 int onHttpCmd(Socket *sock,vssHttp *req, SocketMap *map) { // call at command and send back results
 char buf[1024]; gmodem *g = G;
-httpSrv *srv = sock->pool;
+//httpSrv *srv = (void*)sock->pool;
  sprintf(buf,"%*.*s", VSS(req->B));  //VSS(req->args)); // arguments = atCommand
 printf("Start a command <%s>\n",buf);
   int ok = gmodem_cmd(g,buf);
@@ -55,14 +56,17 @@ if (!srv) return 0;
 }
 
 int httpStart(gmodem *g) {
-int i,Limit=1000000;
+int Limit=1000000;
+  printf("create0\n");
 net_init();
 TimeUpdate();
+ printf("create1\n");
 srv = httpSrvCreate(0); // New Instance, no ini
 //srv->log =  srv->srv.log = logOpen("microHttp.log"); // Create a logger
 srv->logLevel = srv->srv.logLevel = g->logLevel;
 //srv->keepAlive=keepAlive;
 //srv->readLimit.Limit = Limit;
+  printf("create2\n");
 IFLOG(srv,0,"...starting microHttp {port:%d,logLevel:%d,rootDir:'%s',keepAlive:%d,Limit:%d},\n   mimes:'%s'\n",
   port,logLevel,rootDir,keepAlive,Limit,
   mimes);

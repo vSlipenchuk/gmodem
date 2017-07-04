@@ -1,4 +1,5 @@
 #include "gmodem.h"
+#include "coders.h"
 #include "gsm_sim.h"
 
 char szPoR[]="90,61";
@@ -133,7 +134,7 @@ return l;
 
 int apdu_pack2sms_delivr(uchar *apdu,char *_num) { // just SMS BINARY for send
 int l = apdu[0]; char num[24];
-int nl = sms_put_addr2(num,_num,strlen(_num));
+int nl = sms_put_addr2(num,_num); //,strlen(_num));
 int sz = l+11+nl+2;
 uchar buf[sz],*c=buf;
 /*

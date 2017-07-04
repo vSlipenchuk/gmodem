@@ -36,7 +36,7 @@ return r; // converted length
 }
 
 int gsm2utf(char *out,char *ucs2,int len);
-int bin2hexstr(uchar *out,uchar *bin,int len);
+
 
 int sms_decode_data(t_sms *sms, char *bin,int len,int flags) {
 char BUF[256];

@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "vstrutil.h"
+#include "coders.h"
 
 int gmodem_port_speed = 115200;
 extern gsm_device gsm_devices[];
@@ -58,6 +59,7 @@ return (*buf==0) && (*fmt==0); // not match
 
 extern int incall;
 
+
 int gmodem_spam_callback(gmodem *g,uchar *cmd) { // very annoing
 if (*cmd==0) { // empty
     return 1;
@@ -75,9 +77,10 @@ return 0;
 }
 
 int gmodem_ignore_stdresp = 0;
+int gmodem_call_callback(gmodem *g, uchar *cmd);
 
 int g_modem_do_line(gmodem *g,uchar *buf,int ll) { // call processing
-int code=0; char *cmd = buf;
+int code=0; uchar *cmd = buf;
 code = gmodem_spam_callback(g,buf);
 if (code) {
    if (g->logLevel>10) printf("<%s>\n",buf);
@@ -166,6 +169,8 @@ return 0; // not yet
 }
 
 
+int hexdump(char *msg,uchar *s,int len);
+int gmodem_onidle(gmodem *g);
 
 int gmodem_run_do_lines(gmodem *g,int (*run_do_lines)()) {
 int cnt=0;
@@ -413,6 +418,9 @@ int i;for(i=0;i<len;i++,s++,d+=2) sprintf(d,"%02X",*s);
 return len*2;
 }
 
+
+int utf8_poke ( char *utf8char, int wchar, size_t count );
+
 // move to -> coders
 int uni2utf(char *out,char *ucs2,int len) { // converts UCS2 -> utf8, len in bytes
 //hexdump("gsm2utf:",ucs2,len);
@@ -430,6 +438,13 @@ return tlen;
 
 }
 
+char *str_unquote(char *buf);
+
+int gsm7_code(unsigned int offset, int max_out, unsigned char *input,
+		   unsigned char *output, unsigned int *get_len, int maxLen); // coded below in this file
+
+		   char *gmodem_par(uchar **cmd,int skip);
+int gsm2utf(char *out,char *ucs2,int len) ;
 
 int gmodem_ussd(gmodem *g,char *str) { // call string
 char buf[1024]; int dcs=15; // or 15 for
@@ -437,7 +452,8 @@ int ussd = 0;
 if (g->dev) ussd = g->dev->ussd;
 if (ussd == 7) { // 7bit mode for string - E1550
   char numbin[100],num[100]; int len=0;
-  int l = gsm7_code(0,sizeof(num),str,numbin,&len,strlen(str));
+  //int l =
+  gsm7_code(0,sizeof(num),str,numbin,&len,strlen(str));
   //if (!g->mon) {
     // sprintf(g->out,"No monitor interface (while USSD %s)",str);
     // return -1;
