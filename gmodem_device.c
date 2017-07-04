@@ -37,9 +37,10 @@ gsm_device gsm_devices[] = {
         //  bug:    +CUSD: <mode>,<text>,<dcs> always report dcs=15 (even in CSCS=UCS2 mode)
         //  example:+CREG: 1, "0EE3", "2CE3"
     },
-    {
-        .name="E171",   .imei="3548070",.crlf=1, .ussd=7,
-    },
+    {   .name="E3533",  .imei="8671990", .crlf=1, .ussd=7 }, // ipad revision
+    {   .name="E3533",  .imei="8671990", .crlf=1, .ussd=7 }, // ipad revision
+    {   .name="E171",   .imei="356356", .crlf=1, .ussd=7}, // r1
+    {   .name="E171",   .imei="3548070",.crlf=1, .ussd=7 }, // r2
 
 
   {
