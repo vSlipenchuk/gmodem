@@ -3,7 +3,11 @@
 #include <stdlib.h>
 #include "gmodem.h"
 
-char szmodem[80]="/dev/ttyUSB0"; // "/dev/gobi/modem"; //"/dev/modem"; // default modem name
+#ifndef DEFDEVICE
+#define DEFDEVICE "/dev/ttyUSB0"
+#endif
+
+char szmodem[80]=DEFDEVICE; // "/dev/gobi/modem"; //"/dev/modem"; // default modem name
 char voice[80]; // /dev/ttyUSB1 (if first ppp-port is /dev/ttyUSB0)
 char szmon[80]; // monitor port
 int no_init = 0;

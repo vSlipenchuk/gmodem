@@ -4,7 +4,7 @@
 
 #include "gmodem.h"
 #include <stdio.h>
-#include "vstrutil.h"
+#include "vstrutil.h"ř
 
 int lcmp(uchar **str,uchar *cmp); //@strutil.c
 
@@ -75,7 +75,7 @@ switch(newstate) {
       break;
    }
 int oldstate = g->o.state; g->o.state=newstate; g->o.modified=g->now;
-if (g->o.on_call_state) g->o.on_call_state(g,newstate,oldstate); // notify
+if (g->o.on_call_state && (newstate!=oldstate)) g->o.on_call_state(g,newstate,oldstate); // notify
 return 1;
 }
 
