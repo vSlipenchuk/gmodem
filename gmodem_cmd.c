@@ -194,6 +194,13 @@ p=str_unquote(p);
 return p;
 }
 
+int gmodem_parInt(uchar **cmd,int skip,int def) {
+char *p = gmodem_par(cmd,skip);
+if (!p) return def;
+sscanf(p,"%d",&def);
+return def;
+}
+
 
 int gmodem_cnum(gmodem *g) { // try read cnum from a rsim?
  int ok;

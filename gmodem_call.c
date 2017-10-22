@@ -4,7 +4,14 @@
 
 #include "gmodem.h"
 #include <stdio.h>
-#include "vstrutil.h"ř
+#include "vstrutil.h"
+
+/* default handling call values */
+int toPresent = 0; // wait ringing
+int toAnswer  = 10;  // autoanswer (no yet)
+int toActive =  40; // max conversation
+
+
 
 int lcmp(uchar **str,uchar *cmp); //@strutil.c
 
@@ -17,8 +24,14 @@ if (lcmp(&cmd,"RING")) {
     return 1;
    }
 if (lcmp(&cmd,"+CLIP:")) { // check - if call report ed...
-   char *num = gmodem_par((char**)&cmd,0);
-   if (num[0] && g->o.num[0]=='-' ) { strNcpy(g->o.num,num); } // set new code
+   char *num = gmodem_par((char**)&cmd,0); // text
+   int code =  gmodem_parInt((char**)&cmd,0,0);
+   if (num[0] && g->o.num[0]=='-' ) {
+      char sz[100];
+      if (code==145) sprintf(sz,"+%s",num);
+                else strcpy(sz,num);
+      strNcpy(g->o.num,sz);
+      } // set new code
    gmodem_set_call_state(g,callPresent);
    return 1;
    }
@@ -38,6 +51,7 @@ return 0; // not mine
 //char ATH[10]="+CHUP"; // or H
 
 int gmodem_kill(gmodem *g) { // kill a call
+
 gmodem_set_call_state(g,callDisconnecting); // or other?
 //gmodem_At(g,"+CHUP");
 gmodem_put(g,"ATH\r\n",-1); // ZUZUKA - not every time !
@@ -53,9 +67,10 @@ return 1;
 // 2move -> gmodem_call.c
 int gmodem_set_call_state(gmodem *g,int newstate) {
 int st = g->o.state;
+if (g->o.state==newstate) return 1;
 voice_stream *v = g->voice;
 printf("set_call_state new=%d old=%d\n",newstate,g->o.state);
-if (newstate == g->o.state) return 1; // ok, already
+//if (newstate == g->o.state) return 1; // ok, already
 switch(newstate) {
    case callRing:
       if (st == callPresent || st == callActive) return 0; // just ignore
@@ -99,9 +114,6 @@ sprintf(g->out,"modem decline answer");
 return 0;
 }
 
-int toPresent = 0; // wait ringing
-int toAnswer  = 2;  // autoanswer (no yet)
-int toActive =  40; // max conversation
 
 
 int gmodem_run2(gmodem *g) { // calls

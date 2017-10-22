@@ -220,7 +220,10 @@ int gmodem_http(gmodem *g,uchar *par);
 int gmodem_ota(gmodem *g,uchar *sms);
 int gmodem_im(gmodem *g,uchar *cmd);
 int gmodem_answer(gmodem *g);
+
 char *gmodem_par(uchar **cmd,int skip);
+int gmodem_parInt(uchar **cmd,int skip,int def);
+
 int num_scan(char *num,char *sznum,int *ton_npi);
 int gmodem_apdu2(gmodem *g,uchar *cmd,int len,uchar *sw,uchar *out) ;
 

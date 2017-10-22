@@ -108,13 +108,16 @@ printf("MODEM: newstate: <%d> num:%s new_state:%d time=%ld\n",newstate,g->o.num,
 int code;
 switch(newstate) {
  case callPresent: // now we have a call?
-   code = systemf("export NUM=%s;export MODEM=%s;%s begin",g->o.num,g->cnum,on_in_call);
-   printf("on_in_call returns code:%d\n",code); // now - ?
-     //gmodem_kill(g);
+   if (on_in_call[0]) {
+     code = systemf("export NUM=%s;export MODEM=%s;%s begin",g->o.num,g->cnum,on_in_call);
+     printf("on_in_call returns code:%d\n",code); // now - ?
+     gmodem_kill(g); // kill a call
+     }
    return 0;
  case callNone:
-    code = systemf("export NUM=%s;export MODEM=%s;DUR=%d;%s end",g->o.num,g->cnum,g->o.dur,on_in_call);
-   printf("on_in_call returns code:%d\n",code); // now - ?
+   //
+   // code = systemf("export NUM=%s;export MODEM=%s;DUR=%d;%s end",g->o.num,g->cnum,g->o.dur,on_in_call);
+   //printf("on_in_call returns code:%d\n",code); // now - ?
    printf("CALL DONE\n");
    break;
   }
