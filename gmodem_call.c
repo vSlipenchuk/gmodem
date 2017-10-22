@@ -35,10 +35,13 @@ if (lcmp(&cmd,"^CEND:")) {
 return 0; // not mine
 }
 
+//char ATH[10]="+CHUP"; // or H
+
 int gmodem_kill(gmodem *g) { // kill a call
 gmodem_set_call_state(g,callDisconnecting); // or other?
 //gmodem_At(g,"+CHUP");
-gmodem_put(g,"AT+CHUP\r\n",-1);
+gmodem_put(g,"ATH\r\n",-1); // ZUZUKA - not every time !
+//gmodem_put(g,"AT+CHUP\r\n",-1);
 g->o.release_request=1;
 //g->o.dur=0; // last duration
 voice_stream *v = g->voice;
