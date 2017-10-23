@@ -131,26 +131,29 @@ return 1; // anyway
 
 int gmodem_lines_trim = 1;
 
+
 int gmodem_do_lines(gmodem *g) {
-int i;
+static char buf[GMODEM_READ_BUF+2]; // ZU - overflow of buffer?
 unsigned char *s = (void*)g->in;
-for(i=0;i<g->in_len;i++) if (s[i]=='\n' || s[i]=='\r') break;
-if (i>0 && (i+1)<g->in_len && s[i+1]=='\n') i++;
- //for(;i<g->in_len;i++) if (s[i]=='\n' ||  s[i]=='\r') continue; else break; // collect EOL
-if (i<g->in_len || (i==sizeof(g->in)-1))  { // Yes  - do a line !!!
-  int ll=i; // now - line trim
-  if (gmodem_lines_trim)  {
-        while(ll>0 && s[ll-1]<=32) ll--;
-        } else {
-        if (i<g->in_len) ll++;
-        }
-  //printf("LEN[%d]<%*.*s>\n",ll,ll,ll,g->in);
-  char buf[sizeof(g->in)]; memcpy(buf,g->in,ll); buf[ll]=0; // gets a copy buffer
-  if (i<g->in_len) i++;    memcpy(g->in,g->in+i,g->in_len-i); g->in_len-=i;   g->in[g->in_len]=0; // remove it freom a queue
-  g_modem_do_line(g,buf,ll); // call processing
-  return 1; // ok
-  }
-return 0; // not yet
+//hex_dump("gmodem_do_lines,begin",g->in,g->in_len);
+int i,ll=0,rlen=0; // define nonzero and full length
+for(i=0;i<g->in_len;i++) {
+     if ( i<g->in_len-1 && s[i]=='\r' && s[i+1]=='\n') { rlen=i+2; ll=i; break;}
+     if ( s[i]=='\r' || s[i]=='\n') { rlen=i+1; ll=i; break;}
+     }
+if (rlen == 0) {
+     if (i<sizeof(g->in)) return 0; // not yet line
+     rlen = ll= sizeof(g->in); // overflow - get it all, split a line
+     }
+//printf("ll=%d rlen=%d in_len=%d\n",ll,rlen,g->in_len);
+memmove(buf,g->in,ll); buf[ll]=0; // gets a copy buffer
+//hex_dump("gmodem_copy_buf",buf,ll);
+//hex_dump("gmodem_do_lines,before",g->in,g->in_len);
+memmove(g->in,g->in+rlen,g->in_len-rlen); g->in_len-=rlen; g->in[g->in_len]=0; // remove from a buffer
+//hex_dump("call_do_line",buf,ll);
+//hex_dump("rest_line",g->in,g->in_len);
+g_modem_do_line(g,buf,ll); // call processing
+return 1; // ok
 }
 
 int gmodem_do_lines_full(gmodem *g) {
@@ -160,8 +163,8 @@ for(i=0;i<g->in_len;i++) if (s[i]=='\n' || s[i]=='\r') break;
 if (i<g->in_len || (i==sizeof(g->in)-1))  { // Yes  - do a line !!!
   int ll=i; // now - line trim
   //while(ll>0 && s[ll-1]<=32) ll--; --! no trim!
-  char buf[sizeof(g->in)]; memcpy(buf,g->in,ll); buf[ll]=0; // gets a copy buffer
-  if (i<g->in_len) i++;    memcpy(g->in,g->in+i,g->in_len-i); g->in_len-=i;   g->in[g->in_len]=0; // remove it freom a queue
+  char buf[sizeof(g->in)]; memmove(buf,g->in,ll); buf[ll]=0; // gets a copy buffer
+  if (i<g->in_len) i++;    memmove(g->in,g->in+i,g->in_len-i); g->in_len-=i;   g->in[g->in_len]=0; // remove it freom a queue
   g_modem_do_line(g,buf,ll); // call processing
   return 1; // ok
   }
@@ -184,6 +187,7 @@ g->now = os_ticks();
 if (g->in_len>=0 && sz>0) r = s->p->peek(s->handle,g->in+g->in_len,sz); // if can read - do it
 if (r>0) { // yes, read !
   char *dat = g->in+g->in_len; // data_starts
+  if (g->logLevel>10) hex_dump("modem_peek",dat,r);
   g->in_len+=r;  g->in[g->in_len]=0; // correct collected buffer
   if (g->bin && g->mode == 0 ) { // we have binary data ready to send, need '>' in a stream
        int i; for(i=0;i<r;i++) if (dat[i]=='>') break;
@@ -199,9 +203,10 @@ if (r>0) { // yes, read !
   if (g->on_data) {
        g->on_data(g,g->in+g->in_len-r,r); // raport
        }
+  if (g->logLevel>10) hex_dump("MODEM_LINE",g->in,g->in_len);
   if (g->mode == 0) while (run_do_lines(g)); // process line by line
   //printf("*%*.*s",r,r,buf); // just print on a screen!!!
-  if (g->logLevel>10) hexdump("MODEM_RECV",g->in,g->in_len);
+  if (g->logLevel>10) hex_dump("REST_LINE",g->in,g->in_len);
   cnt++; g->f.idle = 0;
   } else {
   if (r<0) g->f.eof=1; // EOF!
@@ -277,6 +282,7 @@ if (g->f.c1 || gmodem_At(g,"+clip=1")>0) g->f.c1=1;
 return g->f.c1;
 }
 
+
 int gmodem_At2buf(gmodem *g,char *cmd,char *out, int size) {
 int (*proc)();
 char buf[256];
@@ -289,6 +295,7 @@ if (g->mode == 1) {
 g->res = 0;
  memset(out,0,size); size--;
  int on_line(gmodem *g,char *line,int len,int code) {
+     //printf("ON LINE HERE %s\n",line);
      if (proc) proc(g,line,len,code); // call prev
      if (len<=0) return 0; // ignore
      if (code==0 && size>0) { // my line, have a buffer
@@ -296,7 +303,7 @@ g->res = 0;
          lineno++;
          int r = strlen(line); // first line ???
          if (r>size) { r=size; g->f.over++;} // over
-         memcpy(out,line,r); size-=r; out+=r;
+         memmove(out,line,r); size-=r; out+=r;
          //memcpy()
          //printf("Line:<%s>\n",line);
          }
@@ -307,11 +314,13 @@ g->res = 0;
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
 if (g->logLevel>3) printf("gmodem_send: at%s<crlf:%d>\n",cmd,g->dev->crlf);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
-proc=g->on_line;
-g->on_line = on_line;
+proc=g->on_line; g->on_line = on_line;
 while (g->res == 0 ) {
    if (g->f.eof) g->res=g_eof;
-   if (gmodem_run(g) == 0) msleep(100); // wait for answer
+   if (gmodem_run(g) == 0) {
+      msleep(100); // wait for answer
+      //printf("RES=0, wait <%s>\n",g->in);
+      }
    }
 g->on_line=proc; // restore proc
 return g->res; // anyway ^)
@@ -384,7 +393,7 @@ int on_line(gmodem *g,char *line,int len,int code) {
          lineno++;
          int r = strlen(line); // first line ???
          if (r>size) { r=size; g->f.over++;} // over
-         memcpy(out,line,r); size-=r; out+=r;
+         memmove(out,line,r); size-=r; out+=r;
          //memcpy()
          //printf("Line:<%s>\n",line);
          }

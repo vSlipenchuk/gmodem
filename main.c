@@ -13,9 +13,12 @@ char szmon[80]; // monitor port
 int no_init = 0;
 char exec_cmd[512]; // exec command
 char on_in_call[512]; // on in call
+char on_in_sms[512]; // on incoming sms call
+
 int gmode = 0; // phoenix mode - default off
 
-extern int gmodem_port_speed; // default 1115200
+
+extern int gmodem_port_speed; // default 115200
 
 gmodem Modem,*m=&Modem; // my main modem
 
@@ -45,7 +48,7 @@ char *g = readline(""); // read, no prompt
 if (!g)  { *buf=0;return 0; }  // eof
 int l = strlen(g);
 if (l>=sz-1) l = sz-1;
-memcpy(buf,g,l); buf[l]=0;
+memmove(buf,g,l); buf[l]=0;
 add_history(buf);
 free(g);
 return 1; // OK
@@ -140,6 +143,7 @@ fprintf(stderr,"usage: %s version %s\n"
         "\t-X          or --phoenix phoenix card reader\n"
         "\t-e <cmd>    or --exec=<command>\n"
         "\t-i <runcmd> or --on_in_call=<shell_command>\n"
+        "\t-s <runcmd> or --on_in_sms=<shell_command>\n"
         "\t-L <level>  or --logLevel  <level>  log_level (default:1)\n"
 
         ,name,szVersion);
@@ -159,19 +163,22 @@ while (1){
                     {"no-init",0,0, 'o'},
                     {"exec",   1,0, 'e'},
                     {"on_in_call",   1,0, 'i'},
+                    {"on_in_sms",   1,0, 's'},
+
                     {"voice", 1,0, 'V'},
                     {"phoenix", 0,0, 'X'},
                     {"logLevel", 1,0,'l'},
 
                     {0,0,0,0}
                    };
-  if((c = getopt_long(argc, argv, "D:S:L:h:M:oe:i:V", long_opt, &optIdx)) == -1) {
+  if((c = getopt_long(argc, argv, "D:S:L:h:M:oe:i:V:s", long_opt, &optIdx)) == -1) {
      // printf("Done, index=%d optopt=%d\n",optIdx,optind);
    break;
   }
   //printf("ch=%c here\n",c);
 
   switch( c ){
+
      case 'h':
           usage(argv[0]);
           exit(-1);
@@ -189,6 +196,9 @@ while (1){
            break;
      case 'i':
            strNcpy(on_in_call,optarg);
+           break;
+     case 's':
+           strNcpy(on_in_sms,optarg);
            break;
      case 'e':
             strNcpy(exec_cmd,optarg);
@@ -263,11 +273,12 @@ if (voice[0]) {
         printf("done voice_init\n");
        }
 #endif // VOICE
-if (m->logLevel>0) fprintf(stderr,"gmodem %s opened ok\n",szmodem);
+if (m->logLevel>0) fprintf(stderr,"gmodem %s opened at %d speed\n",szmodem,gmodem_port_speed);
 if (gmode == 1) m->mode = 1; // set phoenix mode
     if (! no_init) {
      gmodem_clear(m,1000);
      gmodem_echo_off(m);
+     //  printf("Begin info\n");
      gmodem_info(m);
      gmodem_clip_on(m);
      gmodem_At(m,"+creg=2"); // register & report of changes
@@ -277,7 +288,7 @@ if (gmode == 1) gmodem_atr(m); // call ATR
 
     int i; for(i=optind;i<argc;i++) { // process all commands one-by one
         char *cmd = argv[i];
-        gmodem_echo_off(m);
+        //if (! no_init) gmodem_echo_off(m);
         gmodem_run2(m);
         m->out[0]=0;
         if (strcmp(cmd,"exit")==0) exit(0); // OK
@@ -291,6 +302,7 @@ if (gmode == 1) gmodem_atr(m); // call ATR
              }
         printf("%s\n",m->out); // auto-mode
         }
+//printf("DONE INIT\n");
     //gmodem_info(m); // callit ???
 if (m->logLevel>0)
     fprintf(stderr,"gmodem '%s' ready, usage: \n (info|console|+clac|balance|pppd|ussd<num>|sms<num><text>)\n",szmodem);
@@ -301,6 +313,11 @@ if (m->logLevel>0)
            break;
           }
        cnt= gmodem_run2(m); // And - check time-outs
+       //printf("gmodem_run2=%d\n",cnt);
+       if (on_in_sms[0] && (m->cmt>0) ) { // check do we have new sms and proceess ZUZULKA
+             gmodem_sms_system(m,on_in_sms);
+             if (m->cmt>0) m->cmt--;
+           }
        if (cnt==0) msleep(100); // not 100% CPU
        if (kbhit2()) { // run at command here
            char buf[256],*c=buf;
@@ -317,12 +334,17 @@ if (m->logLevel>0)
                   else   gmodem_put(m,&ch,1);
 
               } else {
+                //printf("BEGIN GETS BUF\n");
                 gets_buf2(buf,sizeof(buf));
+                //printf("DONE GETS BUF=%s\n",buf);
            if (buf[0]==0 || 0==strcmp(buf,"exit") || 0==strcmp(buf,"quit")) break;
 
            int ok;
            m->out[0]=0;
+             //printf("Begin CMD %s\n",c);
+
            ok = gmodem_cmd(m,c);
+              //printf("DONE CMD code=%d\n",ok);
            if (ok) {
               printf("{%d}{%s} result for {%s}\n",ok,m->out,buf);
               continue;

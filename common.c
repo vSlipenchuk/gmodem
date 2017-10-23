@@ -67,7 +67,7 @@ set_echo(0);
 if (!g)  { *buf=0;return 0; }  // eof
 int l = strlen(g);
 if (l>=sz-1) l = sz-1;
-memcpy(buf,g,l); buf[l]=0;
+memmove(buf,g,l); buf[l]=0;
 add_history(buf);
 free(g);
 return 1; // OK

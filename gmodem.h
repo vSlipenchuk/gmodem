@@ -7,9 +7,10 @@
 #include "gsm_sim.h"
 
 
-#define gmodem_version 0,0,1,1
+#define gmodem_version 0,0,1,2
 
 
+// 0.0.1.2 - on_in_call & on_in_sms command line options
 // 0.0.1.1 - fixed some pointer warinings for x64 (i.e. errors)
 
 // 0.0.1.0 -- add  gmodem_creg() - check register state
@@ -230,6 +231,7 @@ int gmodem_apdu2(gmodem *g,uchar *cmd,int len,uchar *sw,uchar *out) ;
 int gmodem_apdu_select(gmodem *g, uchar *aid);
 int cardJobLoadCfg(struct _cardJob *j,char *_iccid,char *filename);
 int gmodem_iccid(gmodem *g);
+int gmodem_sms_system(gmodem *g,char *mode);
 
 int kbhit2();
 

@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include "vos.h"
 /*
-  do test sms, first - check a book?
+  +CMTI: - sms notifications require AT+CMTI=1
 */
 
 /*
@@ -299,7 +299,7 @@ return 1;
 int gmodem_sms_copy(gmodem *g,t_sms *sms, int size) { // enum sms-> array of size, reurn real size
 int r = 0; // real size
 int add_sm(void *h,t_sms *s) {
-  if (r+1<size)  { memcpy(sms+r,s,sizeof(*s)); r++;}
+  if (r+1<size)  { memmove(sms+r,s,sizeof(*s)); r++;}
   return 1; // do it again
 }
 gmodem_sms_enum(g,add_sm,0);
@@ -316,11 +316,13 @@ for(k=0;k<r;k++) {
 int i;
  decode_utf8(t,text,strlen(text)); // to win1251
 for(i=0;t[i];i++) if ( (t[i]=='\"') || (t[i]=='\'') || (t[i]<=32))  t[i]=32 ; // no bad symbols
- encode_utf8_(text2,t,-1);
+ encode_utf8_(text2,t,-1); // back to UTF
 
-sprintf(buf,"%s \"%s\" \"%s\"",mode,text2,phone);
-printf("CALL: %s\n",buf);
-int res = system(buf);
+sprintf(buf,"export NUM_A='%s'; export NUM_B='%s'; export TXT='%s'; %s ",g->cnum,phone,text2,mode);
+
+printf("CALL on_in_sms: %s\n",buf);
+
+int res = system(buf); // must return 0 for delete message
 if (res == 0) {
  if (gmodem_sms_delete(g,sms->pos))
 gmodem_logf(g,2,"OK DELETE SMS#%d TEXT:%s\n",sms->pos,sms->text);

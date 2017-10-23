@@ -44,7 +44,7 @@ while(*fmt && *str) {
   case 'S': // UCS string -- need to convert to utf
        scan_v( &V ); if (V.len>128) V.len=128;
        s=va_arg(ap,char*);
-       memcpy(s,V.data,V.len); s[V.len]=0;
+       memmove(s,V.data,V.len); s[V.len]=0;
        break;
   case 'U': // UCS string -- need to convert to utf
        scan_v( &V ); if (V.len>128) V.len=128;
