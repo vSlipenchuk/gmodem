@@ -24,7 +24,110 @@ for(i=0;i<hx;i++) {
 return hx+2; // Len + TON + ADDR
 }
 
-int sms_submit(t_sms *sms,int rejDup, int repRequest,
+int sms_submit(t_sms *sms,int rejDup, int repRequest, // as submit but checks for vp
+  int mRef, uchar *phone, int pid,int dcs, int vp,
+      int chainsTR, uchar *udh, uchar *text, int len) { // StartDecode me ...
+unsigned char *s = sms->data; // Сюда кодируем
+int udhlen,payload,smspayload=140,coded,l;
+char buf[140]; // temp buffer
+if (len<0) len = strlen(text);
+sms->dcs = dcs; sms->szText = text; sms->Len = len;
+udhlen=udh?udh[0]+1:0;  // Сначала определяем длину пользовательского хедера...
+// Теперь - нужно понять какой пейлоад образовался
+payload = smspayload; if (udhlen) payload -= udhlen; // udhlen еще будет содержать собственную длину - 1 байт
+// Теперь нужно понять - вмещаемся мы своим объемом в оставшийся пейлоад или нет. Если нет - нужно добавлять хедер по чейнам???
+if (payload<=0) { // no more space
+    sprintf(sms->error,"sms_coder: too small space for payload %d (udhlen=%d,all=%d)",payload,udhlen,smspayload);
+    return -3;
+    }
+sms->offset=0; sms->total = 1; sms->segment = 0;  sms->chains = 0; // no chains yet
+sms->sm_udhl=0; int pdcs=dcs;
+if (dcs == 0xf6) pdcs=4; // binary data
+//printf(">>> udl_before_chainging %d\n",udhlen);
+switch (pdcs & (4+8)) { // Алфавит 0=>дефаулт,4=>8бит,8=>UCS2,12=>Reserved(=8bit)
+case 0: // GSM Default
+ // Сначала пытаемся закодировать то, что есть с использованием текущего хедера (без чейнов)
+  if (udhlen) sms->offset = (7-((udhlen)%7))%7; // Offset of 7bit coding
+//  int l=0;
+  if (len) l=gsm7_code(sms->offset,payload,text,buf,&coded,len); // CodeMe
+  //printf("gsm7_code: bytes=%d, codedChars=%d for len=%d\n",l,coded,len);
+  if (coded<len) { // Не все сообщение убралось. жопа?
+      if (chainsTR) { // Attach a new header to UDH
+         sms->chains=chainsTR; // Yes
+         if (!udhlen) { udhlen++; payload--;} // Add Header length
+         udhlen+=5; // Simple Chain Header 00-03- TR NN AL
+         payload-=5; // Remove
+         if (payload<2) { sprintf(sms->error,"sms_coder: too small space for payload %d (udhlen=%d,all=%d)",payload,udhlen,smspayload);    return -3; }
+         };
+      // calc new total anyway
+      int l = len; uchar *t = text;
+      sms->total = 0; sms->offset = (7-((udhlen)%7))%7; // Вычисляем заново - с новым оффсетом
+       while(l>0) { // Eval it now...
+             //int sz =
+             gsm7_code(sms->offset,payload,t,buf,&coded,l);
+             //printf("szBytes=%d codedChars=%d for payload %d\n",sz,coded,payload);
+             t+=coded; l-=coded; sms->total++;
+             }
+      }
+    if (udhlen) sms->sm_udhl = ((udhlen) * 8 + 6) / 7; // Длина хедера в септетах!!!
+  break;
+case 8: // UCS2 - каждая буква = 2 байта, границы сообщений буква пересекать не должна!!!
+  //printf("UCS2 code \n");
+  if (payload<len && chainsTR) { // Добавляем в хедер
+      if (!udhlen) { udhlen++; payload--;} // Add Header length
+      udhlen+=5; payload-=5; sms->chains=chainsTR; // Simple Chain Header 00-03- TR NN AL
+      }
+  if (payload%2) payload--; // Только целые буквы -)))
+  if (payload<2) { sprintf(sms->error,"sms_coder: too small space for payload %d (udhlen=%d,all=%d)",payload,udhlen,smspayload);  return -3; }
+  sms->total = (len)/payload; if ((len)%payload) sms->total++; // Готово - определили размерчик
+  sms->sm_udhl = udhlen;
+  break;
+default: // 8bit
+  printf("BINARY_CODE\n");
+  if (payload<len && chainsTR) { // Добавляем в хедер
+      if (!udhlen) { udhlen++; payload--;} // Add Header length
+      udhlen+=5; payload-=5; sms->chains=chainsTR; // Simple Chain Header 00-03- TR NN AL
+      }
+  if (payload<2) { sprintf(sms->error,"sms_coder: too small space for payload %d (udhlen=%d,all=%d)",payload,udhlen,smspayload);  return -3; }
+  sms->total = len/payload; if (len%payload) sms->total++; // Готово - определили размерчик
+  sms->sm_udhl = udhlen;
+  break;
+}
+sms->payload_length = payload; // Сколько максимально можно засчитать?
+s = sms->data; // Кодировать будем во внутреннее поле - text?
+int has_vp = (vp>0)?2:0;
+*s = 1 /* SUBMIT*/ | ( 0<<2) /*RD*/ | (has_vp<<3) /*VP*/ | (0<<5) /*RP отчет?*/ |
+       ( (udhlen?1:0)<<6) /*UDHI*/ | (0<<7) /*RS*/;
+//if (rejDup) *s|=(1<<2);
+if (repRequest) *s |= (1<<5) ; /*RS - отчет или RS?? */
+len = 1; s++;
+*s=mRef; s++; len++;  /*MR*/ // Потом -- MessageReference -- 1 octet
+l = sms_put_addr2(s,phone); s+=l; len+=l; // Put address here...
+if (l<0) {  sprintf(sms->error,"fail code dest address");  return -1;}  // Invalid address
+*s=pid; s++; len++; // ProtocolIdentifier
+*s = dcs; s++; len++; // DataCodingSheme
+//printf("SetDataCode=%d udhlen(withlen)=%d\n",dcs,udhlen);
+if (has_vp) {*s=vp-1; s++; len++;} // OneByte Validity Period
+sms->slen = s; s++; len++; sms->udh=0; // Тут будет лежать вычисляемая sm_length
+if (udhlen) { // Если есть хедер - нужно его закодировать
+    sms->udh = s; // Header+with length?
+    *s=udhlen-1; s++; len++; // Собственно - длина буфера (без учета собственно этого поля)
+    if (sms->chains) { // Автодобавляем чейн-буфер
+        //printf("Add a chains total=%d\n",sms->total);
+        s[0]=00; s[1]=03; s[2]=sms->chains; s[3]=sms->total; s[4]=sms->segment; // Это собственно весь мой хедер
+        s+=5; len+=5;
+        }
+    if (udh) { // Добавляем то, что отдал юзер
+        int l = udh[0];
+        //printf("Add UserHeader %d len, totudhlen=%d\n",l,udhlen);
+        memcpy(s,udh+1,l); s+=l; len+=l;
+        }
+    }
+sms->smHead=sms->smLen = len; // Откуда начинаются реальные данные
+return 1; // ok ?
+}
+
+int sms_submit_old(t_sms *sms,int rejDup, int repRequest,
   int mRef, uchar *phone, int pid,int dcs, int vp,
       int chainsTR, uchar *udh, uchar *text, int len) { // StartDecode me ...
 unsigned char *s = sms->data; // Сюда кодируем

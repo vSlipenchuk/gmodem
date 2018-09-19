@@ -106,6 +106,10 @@ if (lcmp(&cmd,"+HTTPACTION:")) { // CUSD responce ???
 if (lcmp(&cmd,"+CMTI:")) { // EW77 Huawei sms notification
   g->cmt++;
   }
+if (lcmp(&cmd,"+CDS:")) { // treat delivery reports as a new messages
+  g->cmt++;
+  }
+
 // status codes - changes flow
 char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR","+CMS ERROR",
      "BUSY","NO CARRIER","NO DIAL TONE",0};
@@ -459,6 +463,10 @@ int gmodem_ussd(gmodem *g,char *str) { // call string
 char buf[1024]; int dcs=15; // or 15 for
 int ussd = 0;
 if (g->dev) ussd = g->dev->ussd;
+if (*str=='.') { // strict
+   str++;
+   ussd = atoi (get_word(&str));
+   }
 if (ussd == 7) { // 7bit mode for string - E1550
   char numbin[100],num[100]; int len=0;
   //int l =

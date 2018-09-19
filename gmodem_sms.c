@@ -16,6 +16,14 @@ gmodemAtf(g,"at+cpbw=%d,\"%s\",%d,\"%s\"",slot,num,num[0]=='+'?145:129,hxname);
 }
 */
 
+int sms_submit(t_sms *sms,int rejDup, int repRequest,
+  int mRef, uchar *phone, int pid,int dcs, int vp,
+      int chainsTR, uchar *udh, uchar *text, int len) ;
+int sms_fetch(t_sms *sms) ;
+
+int str_to_unicode(u_char *wbuf,size_t wsize,u_char *buf,size_t size);
+int utf8_poke ( char *utf8char, int wchar, size_t count );
+
 enum {
  flText=4,
  flSmsc = 8,
@@ -113,13 +121,13 @@ return 1;
 
 
 
-int gmodem_SendTextSms(gmodem *g,char *phone,char *utext) { // send it as SMS
+int gmodem_SendTextSms(gmodem *g,char *phone,char *utext,int vp) { // send it as SMS
 t_sms sms;
 int reqReport = 1, msgRef=1, dcs=0x8;
 char text[256];
 int r = gmodem_creg(g); if (r<0) return r; // not registred
 int dlen = utf2gsm(text,utext,-1);
-int i= sms_submit(&sms, 0, reqReport ,msgRef,phone,0,dcs,0,msgRef,0,text,dlen); // No UHDI
+int i= sms_submit(&sms, 0, reqReport ,msgRef,phone,0,dcs,vp,msgRef,0,text,dlen); // No UHDI
 if (i<=0) {
   printf("Some coding error=%s\n",sms.error);
   return 0;
@@ -164,11 +172,59 @@ int sms_submit(t_sms *sms,int rejDup, int repRequest,
       int chainsTR, uchar *udh, uchar *text, int len) { // StartDecode me ...
 */
 
-int gmodem_SendOtaSms(gmodem *g,char *phone,char *utext,int dlen) { // send it as SMS
+
+
+int gmodem_SendSpecSms(gmodem *g,char *phone,int specCode,int vp) { // send it as SMS
+t_sms sms;
+int reqReport = 1, msgRef=1, dcs= specCode;
+printf("SendSpecSms dcs=0x%x\n",dcs);
+//hexdump("specSMS",utext,dlen);
+int i= sms_submit(&sms, 0, reqReport ,msgRef,phone, 0x0, dcs, vp,
+                  0,0,  //  msgRef, no UDHI
+                  0,0); // no text
+if (i<=0) {
+  printf("Some coding error=%s\n",sms.error);
+  return 0;
+  }
+//printf("OK, coded <%s> <%s>\n",phone,text);
+int len; char data[200];
+while((len=sms_fetch(&sms))>0) { // Send It to Phone
+            //sms_dump(sms.data,len,0);
+            strcpy(data,"00");
+            for(i=0;i<len;i++) sprintf(data+2+2*i,"%02x",sms.data[i]); // Create ComPort Commsnd
+            //hexdump("smsdata",data,strlen(data));
+            printf("Ready to send at+cmgs=%d bin=%s",len,data);
+            g->bin=data;
+
+            //break; // do not yest send
+
+            if (gmodem_Atf(g,"+cmgs=%d",len)<=0) {
+              printf("\nSend data error\n");
+              break;
+              }
+         //   CLOG(com,3,"SmsSending... %d/%d message (%d row bytes) DATA:'%s'\n",sms.segment,sms.total,len,data);
+            // sms_dump(data,strlen(data),1+2);
+    /*
+
+              if (comCmd(com,"at+cmgs=%d",len)<=0) { msgRef=-4; break;}  // Это команда, которую надо послать - ошибка???
+
+              comOut(com,data,strlen(data)); uchar ch = 26; comOut(com,&ch,1); // CtrlZ
+               i = comCmd(com,0); // Flash data & wait for it...
+               if (i<=0) {msgRef=-4; break;} // OtherError
+             //  }
+            //CLOG(com,2,"COM_SEND_OK:%d <%s> %s\n",msgRef,phone,data);
+    */
+            }
+// ok - now we need fetch chain/by/chain
+printf("Done OK");
+return 1;
+}
+
+int gmodem_SendOtaSms(gmodem *g,char *phone,char *utext,int dlen,int vp) { // send it as SMS
 t_sms sms;
 int reqReport = 1, msgRef=1, dcs=0xf6;
 hexdump("ota2send",utext,dlen);
-int i= sms_submit(&sms, 0, reqReport ,msgRef,phone, 0x7f, dcs, 0,
+int i= sms_submit(&sms, 0, reqReport ,msgRef,phone, 0x7f, dcs, vp,
                   0,0,  //  msgRef,utext  -- No rtansRef & UDHI and
                   utext,dlen); // HAS UDH
 if (i<=0) {
@@ -247,20 +303,29 @@ return gmodem_errorf(g,1,"sms#%d deleted OK",slot);
 }
 
 int _gmodem_sms_del(int mode, t_sms *sms,gmodem *g) { // callback function for DELETE_ALL
+if (mode == 1 && sms->mti == 2) {
+   if (gmodem_sms_delete(g,sms->pos))
+   gmodem_logf(g,2,"OK DELETE DELIVERY_REPORT SMS#%d TEXT:%s\n",sms->pos,sms->text);
+   return 0;
+   }
 if (mode !=4 ) return 0; // do nothing
+
 if (gmodem_sms_delete(g,sms->pos))
    gmodem_logf(g,2,"OK DELETE SMS#%d TEXT:%s\n",sms->pos,sms->text);
 else
   gmodem_logf(g,0,"FAIL DELETE SMS#%d TEXT:%s\n",sms->pos,sms->text);
-return 1;
+return 0; // process next
 }
 
+void gmodem_sms_delete_reports(gmodem *g) {
+gmodem_sms_enum(g,_gmodem_sms_del, (void*)1); // reports
+}
 
 char buf[1024];
 unsigned char  t[256],text2[256];
 
 
-int encode_utf8_(u_char *d,u_char *s,int sl) { // Results in UTF8 ...
+int encode_utf8_(char *d,char *s,int sl) { // Results in UTF8 ...
 int len = 0; //wchar_t w;
 if (sl<0) sl = strlen(s);
 while (sl>0) {
@@ -325,18 +390,49 @@ printf("CALL on_in_sms: %s\n",buf);
 int res = system(buf); // must return 0 for delete message
 if (res == 0) {
  if (gmodem_sms_delete(g,sms->pos))
-gmodem_logf(g,2,"OK DELETE SMS#%d TEXT:%s\n",sms->pos,sms->text);
+   gmodem_logf(g,2,"OK DELETE SMS#%d TEXT:%s\n",sms->pos,sms->text);
    }
    }
 g->cmt=0; // clear flag
 return 1;
 }
 
+char expect_deliv_report[100]; // number to check deliver on
+int  delivered_status=0;
+
+int gmodem_sms_check_dl(gmodem *g) { // callback function for DELETE_ALL
+static t_sms s[100]; int k;
+int r = gmodem_sms_copy(g,s,100);
+printf("Found %d sms, process them\n",r);
+for(k=0;k<r;k++) {
+  t_sms *sms = s+k;
+  int res=0;
+  if (sms->mti != SMS_REPORT) continue;
+  //printf("deli")
+  sms_print(sms,0);
+  int ok = strncmp(sms->text,"<status:0,",10)==0;
+  printf("Delivered to :%s ok=%d <%s> <my_phone=%s>\n",sms->da,ok,sms->text,expect_deliv_report);
+  int lda=strlen(sms->da);
+  int lphone=strlen(expect_deliv_report);
+  if (lda>=7 && lphone>=7 && strncmp(expect_deliv_report+lphone-7,sms->da+lda-7,7)==0) {
+     delivered_status = atoi(sms->text+8); // code
+     printf("MyPhone! delivered OK=%d, status_code=%d\n",ok,delivered_status);
+     expect_deliv_report[0]=0; // clear flag
+     }
+  if (res == 0) {
+    if (gmodem_sms_delete(g,sms->pos))
+   gmodem_logf(g,2,"OK DELETE SMS#%d TEXT:%s\n",sms->pos,sms->text);
+   }
+   }
+g->cmt=0; // clear flag
+return 1;
+}
 
 char on_in_sms[512]; // script to call
 
 int on_mt_sms(gmodem *g) { // called when incoming sms here
- gmodem_sms_system(g,on_in_sms);
+ if (expect_deliv_report[0]) gmodem_sms_check_dl(g); // check delivery reports and delete it
+ if (on_in_sms[0]) gmodem_sms_system(g,on_in_sms); // on_system called
 return 1; // ok
 }
 
@@ -353,11 +449,11 @@ if (lcmp(&sms,"rm") || lcmp(&sms,"del")) {
   // delete sms from a slot...
   int slot=-2;
   if (lcmp(&sms,"all")) { // remove all messages
-      gmodem_sms_enum(g,_gmodem_sms_del, 4); // DELETE ALL
+      gmodem_sms_enum(g,_gmodem_sms_del, (void*)4); // DELETE ALL
       return 1; // OK - anyway
       }
   if (lcmp(&sms,"rep")) { // delete reports
-      gmodem_sms_enum(g,_gmodem_sms_del, 1); // reports
+      gmodem_sms_delete_reports(g);
       }
   if ( (sscanf(sms,"%d",&slot)<=0) || (slot<0) ) return gmodem_errorf(g,-2,"sms sim_slot >=0 expected");
   return gmodem_sms_delete(g,slot);
@@ -380,9 +476,53 @@ if (lcmp(&sms,"on_mt") || lcmp(&sms,"on_incoming")) {
   g->on_mt = on_mt_sms;
   return 1;
   }
+if (lcmp(&sms,".send")) { /// sms.send <phone> text ; send text sms and wait for an answer
+  int i;
+  gmodem_Atf(g,"+CNMI=1,2,2,1,0"); // request SMS for me
+  char *phone = get_word(&sms);
+  strNcpy(expect_deliv_report,phone); // copy delivery report here
+  g->on_mt = on_mt_sms;
+  int ok = gmodem_SendTextSms(g,phone,sms,1); // need set TTL = 5min
+  if (ok<=0) return ok; // failed
+  //printf("\nBEGIN WAIT\n");
+  gmodem_logf(g,2," \nsms OK sent %d send ok, wait for delivery 10 sec...\n");
+  delivered_status = -1;
+  for(i=0;i<200;i++) { // wait 10 sec...
+     if (delivered_status>=0) break; // done processing
+     while (gmodem_run2(g)>0) ; // process all messages
+     msleep(100);
+     }
+  if (i==200) return gmodem_errorf(g,-3,"sent, but timeout wait delivery answer");
+  if (delivered_status == 0) return gmodem_errorf(g,2,"delivered OK");
+  return gmodem_errorf(g,1," sent, but undelivered code:%d",delivered_status); // ok - found res.
+  }
+if (lcmp(&sms,".ping")) { /// sms.send <phone> text ; send text sms and wait for an answer
+  int i;
+  char head[3]={0x02,0x70,0x00};
+  gmodem_Atf(g,"+CNMI=1,1,0,1,0"); // request SMS for me
+  char *phone = get_word(&sms);
+  strNcpy(expect_deliv_report,phone); // copy delivery report here
+  //g->on_mt = on_mt_sms;
+  //int ok = gmodem_SendSpecSms(g,phone,smsInd|indOn|indVms,10); // need set TTL = 50min
+  int ok = gmodem_SendOtaSms(g,phone,"027000",-1,10); // need set TTL = 50min
+  if (ok<=0) return ok; // failed
+  //printf("\nBEGIN WAIT\n");
+  gmodem_logf(g,2," \nsms OK sent %d send ok, wait for delivery 10 sec...\n");
+  delivered_status = -1;
+  for(i=0;i<300;i++) { // wait 10 sec...
+     if (delivered_status>=0) break; // done processing
+     while (gmodem_run2(g)>0) ; // process all messages
+     msleep(100);
+     if (0==i%10) on_mt_sms(g); // check anyway every second
+     }
+
+  if (i==300) return gmodem_errorf(g,-3,"sent, but timeout wait delivery answer");
+  if (delivered_status == 0) return gmodem_errorf(g,2,"delivered OK");
+  return gmodem_errorf(g,1," sent, but undelivered code:%d",delivered_status); // ok - found res.
+  }
 uchar *phone=get_word((void*)&sms);
 if (!phone[0]) return gmodem_errorf(g,-2,"usage: <phone> <text>");
-return gmodem_SendTextSms(g,phone,sms);
+return gmodem_SendTextSms(g,phone,sms,0); // default VP
 //return gmodem_SendTextSms(g,"+79151999003","Привет");
 }
 
@@ -401,7 +541,7 @@ int bl = hexstr2bin(data,sms,-1);
 hexdump("ota_data",data,bl);
 int r = gmodem_creg(g); if (r<0) return r; // not registred
 
-return gmodem_SendOtaSms(g,phone,data,bl);
+return gmodem_SendOtaSms(g,phone,data,bl,0);
 //return gmodem_SendTextSms(g,"+79151999003","Привет");
 }
 
@@ -413,7 +553,7 @@ if (lcmp(&cmd,"init")) {
   uchar *phone=get_word(&cmd);
   uchar *key = get_word(&cmd);
   uchar *tar = get_word(&cmd);
-  uchar *master = get_word(&cmd);
+//  uchar *master = get_word(&cmd);
   if (!phone[0] || !key[0] || !tar[0]) return gmodem_errorf(g,-2,"usage: im init phone key tar");
      //im_init(phone,key,tar,master); ZUZUKA!
   sprintf(g->out,"im inited for phone %s",phone);
