@@ -339,6 +339,7 @@ if (lcmp(&c,"imei"))    return gmodem_imei(m);
 if (lcmp(&c,"iccid"))   return gmodem_iccid(m);
 if (lcmp(&c,"imsi"))   return gmodem_imsi(m);
 if (lcmp(&c,"cnum_set"))   return gmodem_cnum_set(m,c);
+if (lcmp(&c,"cnum.set"))   return gmodem_cnum_set(m,c);
 if (lcmp(&c,"cnum_get"))   return gmodem_cnum_get(m); // or cnum_get for CRSM
 if (lcmp(&c,"cnum"))       return gmodem_cnum(m); // or cnum_get for CRSM
 if (lcmp(&c,"cb")) return gmodem_cb(m,c);
@@ -375,6 +376,11 @@ if (lcmp(&c,"crlf")) {
     //return gmodem_setLogLevel(m,logLevel);
     }
 
+if (lcmp(&c,"3g")) return gmodem_At(m,"^SYSCFG=14,2,3fffffff,0,1"); // huawei 3g only
+if (lcmp(&c,"2g")) return gmodem_At(m,"^SYSCFG=13,1,3fffffff,0,0"); // huawei 2g only
+if (lcmp(&c,"3g2g")) return gmodem_At(m,"^SYSCFG=2,2,3FFFFFFF,2,4"); // huawei 3g and after 2g
+
+if (lcmp(&c,"no-cd")) return gmodem_At(m,"^SETPORT=\"A1,A2;1,2,3\""); // e171 mode
 
 //if (lcmp(&c,"0"")
 if (lcmp(&c,"logLevel")) {

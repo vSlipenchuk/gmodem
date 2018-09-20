@@ -176,10 +176,11 @@ int sms_submit(t_sms *sms,int rejDup, int repRequest,
 
 int gmodem_SendSpecSms(gmodem *g,char *phone,int specCode,int vp) { // send it as SMS
 t_sms sms;
+int ok = 0;
 int reqReport = 1, msgRef=1, dcs= specCode;
 printf("SendSpecSms dcs=0x%x\n",dcs);
 //hexdump("specSMS",utext,dlen);
-int i= sms_submit(&sms, 0, reqReport ,msgRef,phone, 0x0, dcs, vp,
+int i= sms_submit_old(&sms, 0, reqReport ,msgRef,phone, 0x0, dcs, vp,
                   0,0,  //  msgRef, no UDHI
                   0,0); // no text
 if (i<=0) {
@@ -200,8 +201,10 @@ while((len=sms_fetch(&sms))>0) { // Send It to Phone
 
             if (gmodem_Atf(g,"+cmgs=%d",len)<=0) {
               printf("\nSend data error\n");
+              ok = 0;
               break;
               }
+            ok++; // add it
          //   CLOG(com,3,"SmsSending... %d/%d message (%d row bytes) DATA:'%s'\n",sms.segment,sms.total,len,data);
             // sms_dump(data,strlen(data),1+2);
     /*
@@ -216,8 +219,9 @@ while((len=sms_fetch(&sms))>0) { // Send It to Phone
     */
             }
 // ok - now we need fetch chain/by/chain
-printf("Done OK");
-return 1;
+if (ok) return 1; //printf("Done OK");
+return gmodem_errorf(g,-1,"send SMS error");
+//return 1;
 }
 
 int gmodem_SendOtaSms(gmodem *g,char *phone,char *utext,int dlen,int vp) { // send it as SMS

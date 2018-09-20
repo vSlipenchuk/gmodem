@@ -41,6 +41,7 @@ gsm_device gsm_devices[] = {
     {   .name="E3533",  .imei="8671990", .crlf=1, .ussd=7 }, // ipad revision
     {   .name="E171",   .imei="356356", .crlf=1, .ussd=7}, // r1
     {   .name="E171",   .imei="3548070",.crlf=1, .ussd=7 }, // r2
+    {   .name="HUA",    .imei="867157",  .crlf=1, .ussd=7}, // all other hua
 
 
   {
