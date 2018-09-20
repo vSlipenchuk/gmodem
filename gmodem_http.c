@@ -15,6 +15,22 @@
 #include "../vos/vs0.c"
 #include "../vos/vss.c"
 
+int SocketSendHttpCode(Socket *sock, vssHttp *req, char *code, uchar *data, int len) {
+char buf[1024];
+vss reqID = {0,0};
+if (req && req->reqID.len>0) reqID=req->reqID;
+if (len<0) len = strlen(data);
+sprintf(buf,"HTTP/1.1 %s\r\nConnection: %s\r\n%s: %*.*s\r\nContent-Length: %d\r\n\r\n",code,sock->dieOnSend?"close":"Keep-Alive",
+    X_REQUEST_ID,VSS(reqID),len);
+strCat(&sock->out,buf,-1); // Add a header
+strCat(&sock->out,data,len); // Push it & Forget???
+//printf("TOSEND:%s\n",sock->out);
+sock->state = sockSend;
+// Wait???
+return 1;
+}
+
+
 
 int onHttpStat(Socket *sock, vssHttp *req, SocketMap *map) { // Ãåíåðàöèÿ ñòàòèñòèêè ïî ñåðâåðó
 char buf[1024];

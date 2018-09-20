@@ -496,9 +496,17 @@ if (lcmp(&sms,".send")) { /// sms.send <phone> text ; send text sms and wait for
   if (delivered_status == 0) return gmodem_errorf(g,2,"delivered OK");
   return gmodem_errorf(g,1," sent, but undelivered code:%d",delivered_status); // ok - found res.
   }
+if (lcmp(&sms,".fax+")) {
+  char *phone = get_word(&sms);
+  return gmodem_SendSpecSms(g,phone,smsInd|indOn|indVms,0);
+ }
+if (lcmp(&sms,".fax-")) {
+  char *phone = get_word(&sms);
+  return gmodem_SendSpecSms(g,phone,smsInd|indVms,0);
+ }
 if (lcmp(&sms,".ping")) { /// sms.send <phone> text ; send text sms and wait for an answer
   int i;
-  char head[3]={0x02,0x70,0x00};
+//  char head[3]={0x02,0x70,0x00};
   gmodem_Atf(g,"+CNMI=1,1,0,1,0"); // request SMS for me
   char *phone = get_word(&sms);
   strNcpy(expect_deliv_report,phone); // copy delivery report here
