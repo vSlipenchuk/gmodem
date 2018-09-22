@@ -96,13 +96,14 @@ default: // 8bit
 sms->payload_length = payload; // Сколько максимально можно засчитать?
 s = sms->data; // Кодировать будем во внутреннее поле - text?
 int has_vp = (vp>0)?2:0;
-*s = 1 /* SUBMIT*/ | ( 0<<2) /*RD*/ | (has_vp<<3) /*VP*/ | (0<<5) /*RP отчет?*/ |
-       ( (udhlen?1:0)<<6) /*UDHI*/ | (0<<7) /*RS*/;
+int replayPath = 0; // GSM 03.40 9.2.2.2 SMS_SUBMIT TYPE
+*s = 1 /* SUBMIT*/ | ( (rejDup?1:0) <<2) /*RD*/ | (has_vp<<3) /*VP*/ | ( (0) <<5) /*RP отчет?*/ |
+       ( (udhlen?1:0)<<6) /*UDHI*/ | ((0)<<7) /*Status Report Request*/;
 //if (rejDup) *s|=(1<<2);
 if (repRequest) *s |= (1<<5) ; /*RS - отчет или RS?? */
 len = 1; s++;
 *s=mRef; s++; len++;  /*MR*/ // Потом -- MessageReference -- 1 octet
-l = sms_put_addr2(s,phone); s+=l; len+=l; // Put address here...
+strNcpy(sms->da,phone); l = sms_put_addr2(s,sms->da); s+=l; len+=l; // Put address here...
 if (l<0) {  sprintf(sms->error,"fail code dest address");  return -1;}  // Invalid address
 *s=pid; s++; len++; // ProtocolIdentifier
 *s = dcs; s++; len++; // DataCodingSheme
@@ -123,6 +124,7 @@ if (udhlen) { // Если есть хедер - нужно его закодир
         memcpy(s,udh+1,l); s+=l; len+=l;
         }
     }
+if (sms->total==0) sms->total=1; // magic ^) for send nopayload sms
 sms->smHead=sms->smLen = len; // Откуда начинаются реальные данные
 return 1; // ok ?
 }
@@ -233,7 +235,7 @@ return 1; // ok ?
 int sms_fetch(t_sms *sms) { // Делает один фетч за другим - записывая данные...
 int l,coded;
 sms->segment++; sms->data[1]++; // Add a msgRef???
- printf("sms_fetch segment=%d total=%d dsc=%d\n",sms->segment,sms->total,sms->dcs&(8+4));
+ //printf("sms_fetch segment=%d total=%d dsc=%d\n",sms->segment,sms->total,sms->dcs&(8+4));
 if (sms->segment<=0 || sms->segment>sms->total) return 0; // No More
 if (sms->chains)  sms->udh[5]=sms->segment; // Устанавливаем в чейнах
 sms->smLen = 0; // NoMore???
@@ -266,6 +268,7 @@ default: // Binary
       }
     break;
 }
+sms->data[1]++; // increase msgRef
 return sms->smLen;
 }
 
@@ -592,7 +595,7 @@ return 1; // Ok ...
 int sms_decode(t_sms *sm,unsigned char *s,int len) {
 int code;
 sm->mti =(*s)&3;
-  printf("decode MTI=%d code=%d\n",sm->mti,*s);
+  //printf("decode MTI=%d code=%d\n",sm->mti,*s);
 switch(sm->mti) {
 case SMS_DELIVER: code=sms_decode_deliver(sm,s,len); break; // 0
 case SMS_SUBMIT:  code=sms_decode_submit(sm,s,len); break; // Decode This...

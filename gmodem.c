@@ -27,6 +27,7 @@ s->handle = s->p->open(name,gmodem_port_speed);
 // printf("Done handle %d\n",s->handle);
 if (!s->handle) return 0;
 strNcpy(g->name,name);
+g->msgRef=random()%200; // randoize first msgReference
 return 1; //ok
 }
 
@@ -106,9 +107,11 @@ if (lcmp(&cmd,"+HTTPACTION:")) { // CUSD responce ???
 if (lcmp(&cmd,"+CMTI:")) { // EW77 Huawei sms notification
   g->cmt++;
   }
-if (lcmp(&cmd,"+CDS:")) { // treat delivery reports as a new messages
+if (lcmp(&cmd,"+CDSI:")) { // treat delivery reports as a new messages
   g->cmt++;
   }
+
+
 
 // status codes - changes flow
 char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR","+CMS ERROR",

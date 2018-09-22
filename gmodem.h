@@ -112,7 +112,7 @@ typedef struct _gmodem {
     int mode; // 0 - AtComPort, 1-PhoenixCard reader
     int  cmt; // counter for mt-sms
     int (*on_mt)(); // called when cmt>0 if accessed
-
+    unsigned char msgRef; // reference conuter for sending sms
     // gprs actions
     int http_action,http_len; // HTTP action responce code for gprs wget
 } gmodem;
