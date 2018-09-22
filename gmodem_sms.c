@@ -177,19 +177,19 @@ int sms_submit(t_sms *sms,int rejDup, int repRequest,
 int gmodem_SendSpecSms(gmodem *g,char *phone,int specCode,int vp) { // send it as SMS
 t_sms sms;
 int ok = 0;
-int reqReport = 1, msgRef=1, dcs= specCode;
-printf("SendSpecSms dcs=0x%x\n",dcs);
+int reqReport = 1, msgRef=random()%200, dcs= specCode;
+printf("SendSpecSms dcs=0x%x msgRef=%d\n",dcs,msgRef);
 //hexdump("specSMS",utext,dlen);
 int i= sms_submit_old(&sms, 0, reqReport ,msgRef,phone, 0x0, dcs, vp,
                   0,0,  //  msgRef, no UDHI
-                  0,0); // no text
+                  "",0); // no text
 if (i<=0) {
   printf("Some coding error=%s\n",sms.error);
   return 0;
   }
 //printf("OK, coded <%s> <%s>\n",phone,text);
 int len; char data[200];
-while((len=sms_fetch(&sms))>0) { // Send It to Phone
+while((len=sms_fetch(&sms))>0) { // Send It to Phone - ZU - if no text?
             //sms_dump(sms.data,len,0);
             strcpy(data,"00");
             for(i=0;i<len;i++) sprintf(data+2+2*i,"%02x",sms.data[i]); // Create ComPort Commsnd
@@ -201,7 +201,7 @@ while((len=sms_fetch(&sms))>0) { // Send It to Phone
 
             if (gmodem_Atf(g,"+cmgs=%d",len)<=0) {
               printf("\nSend data error\n");
-              ok = 0;
+              ok = -1;
               break;
               }
             ok++; // add it
@@ -218,8 +218,9 @@ while((len=sms_fetch(&sms))>0) { // Send It to Phone
             //CLOG(com,2,"COM_SEND_OK:%d <%s> %s\n",msgRef,phone,data);
     */
             }
+printf("sms_fetch returns=%d\n",len);
 // ok - now we need fetch chain/by/chain
-if (ok) return 1; //printf("Done OK");
+if (ok>=0) return 1; //printf("Done OK");
 return gmodem_errorf(g,-1,"send SMS error");
 //return 1;
 }
@@ -502,11 +503,27 @@ if (lcmp(&sms,".send")) { /// sms.send <phone> text ; send text sms and wait for
   }
 if (lcmp(&sms,".fax+")) {
   char *phone = get_word(&sms);
-  return gmodem_SendSpecSms(g,phone,smsInd|indOn|indVms,0);
+  return gmodem_SendSpecSms(g,phone,smsInd|indOn|indFax,0);
  }
 if (lcmp(&sms,".fax-")) {
   char *phone = get_word(&sms);
+  return gmodem_SendSpecSms(g,phone,smsInd|indFax,0);
+ }
+ if (lcmp(&sms,".vms+")) {
+  char *phone = get_word(&sms);
+  return gmodem_SendSpecSms(g,phone,smsInd|indOn|indVms,0);
+ }
+if (lcmp(&sms,".vms-")) {
+  char *phone = get_word(&sms);
   return gmodem_SendSpecSms(g,phone,smsInd|indVms,0);
+ }
+if (lcmp(&sms,".mail+")) {
+  char *phone = get_word(&sms);
+  return gmodem_SendSpecSms(g,phone,smsInd|indOn|indEmail,0);
+ }
+if (lcmp(&sms,".mail-")) {
+  char *phone = get_word(&sms);
+  return gmodem_SendSpecSms(g,phone,smsInd|indEmail,0);
  }
 if (lcmp(&sms,".ping")) { /// sms.send <phone> text ; send text sms and wait for an answer
   int i;
@@ -515,8 +532,8 @@ if (lcmp(&sms,".ping")) { /// sms.send <phone> text ; send text sms and wait for
   char *phone = get_word(&sms);
   strNcpy(expect_deliv_report,phone); // copy delivery report here
   //g->on_mt = on_mt_sms;
-  //int ok = gmodem_SendSpecSms(g,phone,smsInd|indOn|indVms,10); // need set TTL = 50min
-  int ok = gmodem_SendOtaSms(g,phone,"027000",-1,10); // need set TTL = 50min
+  int ok = gmodem_SendSpecSms(g,phone,smsInd|indOther|indOn,10); // need set TTL = 50min
+  //int ok = gmodem_SendOtaSms(g,phone,"",0,10); // need set TTL = 50min
   if (ok<=0) return ok; // failed
   //printf("\nBEGIN WAIT\n");
   gmodem_logf(g,2," \nsms OK sent %d send ok, wait for delivery 10 sec...\n");
@@ -525,7 +542,7 @@ if (lcmp(&sms,".ping")) { /// sms.send <phone> text ; send text sms and wait for
      if (delivered_status>=0) break; // done processing
      while (gmodem_run2(g)>0) ; // process all messages
      msleep(100);
-     if (0==i%10) on_mt_sms(g); // check anyway every second
+     if (0==i%100) on_mt_sms(g); // check anyway every second
      }
 
   if (i==300) return gmodem_errorf(g,-3,"sent, but timeout wait delivery answer");

@@ -225,6 +225,7 @@ if (udhlen) { // Если есть хедер - нужно его закодир
         memcpy(s,udh+1,l); s+=l; len+=l;
         }
     }
+if (sms->total==0) sms->total=1;
 sms->smHead=sms->smLen = len; // Откуда начинаются реальные данные
 return 1; // ok ?
 }
@@ -232,9 +233,11 @@ return 1; // ok ?
 int sms_fetch(t_sms *sms) { // Делает один фетч за другим - записывая данные...
 int l,coded;
 sms->segment++; sms->data[1]++; // Add a msgRef???
+ printf("sms_fetch segment=%d total=%d dsc=%d\n",sms->segment,sms->total,sms->dcs&(8+4));
 if (sms->segment<=0 || sms->segment>sms->total) return 0; // No More
 if (sms->chains)  sms->udh[5]=sms->segment; // Устанавливаем в чейнах
 sms->smLen = 0; // NoMore???
+
 switch(sms->dcs&(8+4)) { // По разному это очень делается
 case 0: // Однако - надо кодировать???
     l = 0;
@@ -255,7 +258,7 @@ case 8: // UNICODE
 default: // Binary
     l = sms->payload_length; // Сколько букв забрать
     if (sms->Len<l) l = sms->Len; // Если только остаток -)))
-    if (l>0) {
+    if ( (l>0 ) || (l==0 && (sms->segment==1))) {
       memcpy(sms->data+sms->smHead, sms->szText,l); // Возврат - количество байтов
       *(sms->slen)=l + sms->sm_udhl; // Длина хедера должна быть в байтах!!!
       sms->smLen = sms->smHead + l; // Полная длина сообщения
