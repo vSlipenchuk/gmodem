@@ -90,4 +90,96 @@ RESP:<621E82054221001C0183026F40A5038001718A01058B036F06048002001C>, length:60
 
 
 */
+#include <string.h>
+#include <stdlib.h>
+#include <openssl/md5.h>
+
+#include "huawei_calc.c"
+
+/*
+void encrypt_v1(char* imei, char* resbuf, char* hstr) {
+    unsigned char xbytes[17];
+    char ybytes[100];
+    char hash[100];
+    unsigned int rh[30];
+    unsigned char res[4];
+    int i;
+
+    memset(xbytes,0,17);
+    MD5((unsigned char*)hstr, strlen(hstr), xbytes);
+
+    for(i = 0; i < 16; i++)
+        sprintf(ybytes + (i * 2), "%02x", xbytes[i] & 0xff);
+
+    strcpy(hash, imei);
+    strncat(hash, ybytes + 8, 16);
+    hash[31] = 0;
+    MD5((unsigned char*)hash, 31, xbytes);
+
+    for (i = 0; i < 16; i++)
+        rh[i] = xbytes[i] & 0xff;
+
+    for(i = 0; i < 4; i++)
+        res[3-i] = rh[i] ^ rh[i+4] ^ rh[i+8] ^ rh[i+12];
+
+    i=*((unsigned int*)&res);
+    i |= 0x2000000;
+    i &= 0x3FFFFFF;
+
+    sprintf(resbuf, "%i", i);
+}
+*/
+
+int gmodem_imei_set312s(gmodem *g,char *newimei) { // huawei 312s can support imei change
+char codebuf[100];
+  calc2(g->imei,codebuf);  //printf("  Calc2        = %s\n", codebuf);
+int ok = gmodem_Atf(g,"^DATALOCK=\"%s\"",codebuf) >0 &&
+         gmodem_Atf(g,"^cimei=\"%s\"",newimei) > 0;
+if (ok) {
+   gmodem_logf(g,0,"imei changed to %s, reboot modem",newimei);
+   gmodem_Atf(g,"^RESET");
+   return ok;
+   }
+return gmodem_errorf(g,-2,"imei.set 312s failed");
+}
+
+int gmodem_imei_set(gmodem *g,char *str) { // set new imei on based one
+char codebuf[100],ati[500],*imei;
+if (g->imei[0]==0) gmodem_imei(g); // try it
+gmodem_At2buf(g,"i",ati,sizeof(ati));
+gmodem_logf(g,2,"ATI responce: %s\n",ati);
+
+if (strstr(ati,"Model: E3121") && strstr(ati,"Revision: 21.158")) return gmodem_imei_set312s(g,str);
+if (strstr(ati,"Model: E3121") && strstr(ati,"Revision: 11.102")) return gmodem_errorf(g,-1,"huawei 320s cant support imei.set");
+
+printf("Unknown algo, will try...\n");
+//return -1; // fail
+imei = g->imei;
+     printf("  IMEI              = %s change to new=%s\n", imei,str);
+
+    encrypt_v1(imei, codebuf, "hwe620datacard");  printf("  Unlock code v1code     = %s\n", codebuf);
+
+  //  encrypt_v1(imei, codebuf, "e630upgrade");   printf("  Flash code        = %s\n", codebuf);
+
+  //  calc2(imei,codebuf);  printf("  Calc2     v2code   = %s\n", codebuf);
+  //  calc201(imei,codebuf);  printf("  Calc201        = %s\n", codebuf);
+   //encrypt_5_v2(imei,codebuf); printf(" v2=%s\n",codebuf);
+
+g->logLevel=10;
+
+//nvrex - not support onn 312s, support on 320s
+//gmodem_Atf(g,
+//gmodem_put(g,"AT^NVWREX=50502,0,128,8F 29 FF 8E A8 CA 34 89 78 73 18 BA 9E F5 9C 64 0B A4 DB 81 DC 03 45 6E 72 DA EC 6A 0C 7C 90 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 8B 8C F4 B5 AF 0C F2 2C FE E0 F4 46 9C CF 47 95 36 71 1F 1C BF 05 7F 84 AB A9 F2 92 89 33 3C 12 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00\r",-1);
+//gmodem_run2(g);
+
+//char *newimei = "867157011212248";
+//gmodem_Atf(g,"^CARDLOCK=\"%s\"",codebuf); //v2
+//gmodem_Atf(g,"^DATALOCK=\"%s\"","15364022"); //v2
+gmodem_Atf(g,"^DATALOCK=\"%s\"",codebuf);
+//gmodem_Atf(g,"^DATALOCK=\"%s\"",codebuf);
+gmodem_Atf(g,"^cimei=\"%s\"",imei); // let it be the same
+//gmodem_Atf(g,"^RESET");
+
+return 1; // OK
+}
 

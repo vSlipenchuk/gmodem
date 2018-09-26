@@ -335,6 +335,7 @@ if (lcmp(&c,"balance")) return gmodem_balance(m);
 if (lcmp(&c,"pppd"))    return gmodem_pppd(m,c);
 if (lcmp(&c,"ussd"))    return gmodem_ussd(m,c);
 if (lcmp(&c,"info"))    return  gmodem_info(m);
+if (lcmp(&c,"imei.set")) return gmodem_imei_set(m,c);
 if (lcmp(&c,"imei"))    return gmodem_imei(m);
 if (lcmp(&c,"iccid"))   return gmodem_iccid(m);
 if (lcmp(&c,"imsi"))   return gmodem_imsi(m);
@@ -381,6 +382,8 @@ if (lcmp(&c,"2g")) return gmodem_At(m,"^SYSCFG=13,1,3fffffff,0,0"); // huawei 2g
 if (lcmp(&c,"3g2g")) return gmodem_At(m,"^SYSCFG=2,2,3FFFFFFF,2,4"); // huawei 3g and after 2g
 
 if (lcmp(&c,"no-cd")) return gmodem_At(m,"^SETPORT=\"A1,A2;1,2,3\""); // e171 mode
+
+
 
 //if (lcmp(&c,"0"")
 if (lcmp(&c,"logLevel")) {
