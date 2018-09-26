@@ -378,7 +378,8 @@ return gmodem_errorf(g,1," sent, but deliver failure smsc code:%d",delivered_sta
 }
 
 
-int gmodem_sms(gmodem *g,uchar *sms) {
+int gmodem_sms(gmodem *g,char *sms) {
+char phone[24]; //
 if (lcmp(&sms,"dump")) {
     uchar out[512],*o=out;
     int l = hexstr2bin(out,sms,-1);
@@ -417,49 +418,47 @@ if (lcmp(&sms,"on_mt") || lcmp(&sms,"on_incoming")) {
   return 1;
   }
 if (lcmp(&sms,".send")) { /// sms.send <phone> text ; send text sms and wait for an answer
-  char *phone = get_word(&sms);
+  if (gmodem_get_phone(g,&sms,phone)<0) return -2;
   gmodem_dl_prepare(g,phone);
   int ok = gmodem_SendTextSms(g,phone,sms,1); // need set TTL = 5min
   if (ok<=0) return ok; // failed
   return gmodem_dl_exec(g,20);
   }
 if (lcmp(&sms,".fax+")) {
-  char *phone = get_word(&sms);
+  if (gmodem_get_phone(g,&sms,phone)<0) return -2;
   return gmodem_SendSpecSms(g,phone,smsInd|indOn|indFax,0);
  }
 if (lcmp(&sms,".fax-")) {
-  char *phone = get_word(&sms);
+  if (gmodem_get_phone(g,&sms,phone)<0) return -2;
   return gmodem_SendSpecSms(g,phone,smsInd|indFax,0);
  }
  if (lcmp(&sms,".vms+")) {
-  char *phone = get_word(&sms);
+  if (gmodem_get_phone(g,&sms,phone)<0) return -2;
   return gmodem_SendSpecSms(g,phone,smsInd|indOn|indVms,0);
  }
 if (lcmp(&sms,".vms-")) {
-  char *phone = get_word(&sms);
+  if (gmodem_get_phone(g,&sms,phone)<0) return -2;
   return gmodem_SendSpecSms(g,phone,smsInd|indVms,0);
  }
 if (lcmp(&sms,".mail+")) {
-  char *phone = get_word(&sms);
+  if (gmodem_get_phone(g,&sms,phone)<0) return -2;
   return gmodem_SendSpecSms(g,phone,smsInd|indOn|indEmail,0);
  }
 if (lcmp(&sms,".mail-")) {
-  char *phone = get_word(&sms);
+  if (gmodem_get_phone(g,&sms,phone)<0) return -2;
   return gmodem_SendSpecSms(g,phone,smsInd|indEmail,0);
  }
 if (lcmp(&sms,".ping")) { /// sms.send <phone> text ; send text sms and wait for an answer
-  char *phone = get_word(&sms);
+ if (gmodem_get_phone(g,&sms,phone)<0) return -2;
   gmodem_dl_prepare(g,phone);
-  //int ok = gmodem_SendSpecSms(g,phone,smsInd|indOther,10); // need set TTL = 50min
-  int ok = gmodem_SendOtaSms(g,phone,"",0,10); // need set TTL = 50min
+  int ok = gmodem_SendSpecSms(g,phone,smsInd|indOther,10); // need set TTL = 50min
+  //int ok = gmodem_SendOtaSms(g,phone,"",0,10); // need set TTL = 50min
   if (ok<=0) return ok; // failed
   int wtime = 15;
   return gmodem_dl_exec(g,wtime); // wait and expect result
   }
-uchar *phone=get_word((void*)&sms);
-if (!phone[0]) return gmodem_errorf(g,-2,"usage: <phone> <text>");
+if (gmodem_get_phone(g,&sms,phone)<0)  return gmodem_errorf(g,-2,"usage: <phone> <text>");
 return gmodem_SendTextSms(g,phone,sms,0); // default VP
-//return gmodem_SendTextSms(g,"+79151999003","Привет");
 }
 
 

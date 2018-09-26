@@ -1,10 +1,63 @@
 #include "gmodem.h"
 #include "coders.h"
 #include "stdarg.h"
-
+#include "vss.h"
+#include <ctype.h>
 /*
  gmodem_scan fmt: d,s,u
 */
+
+int all_numbers(char *num) {
+if (*num) return 0; // zero?
+for(;*num;num++) if (!isdigit(*num)) return 0;
+return 1; // all - numbers?
+}
+
+char *fileBook = 0; // not load till first start
+
+void zstrncpy(char *dst,char *src, int max) { strncpy(dst,src,max); dst[max-1]=0; }
+
+
+
+int gmodem_get_phone(gmodem *g,char **txt,char szPhone[24]) { // try extract phone number, copy it to phone_buffer
+char *phone = get_word(txt);
+//printf("gmodem_get_phone sizeof szPhone=%d phone=<%s>\n",sizeof(szPhone),phone);
+// check for spec names
+if (lcmp(&phone,"self")) { // return my CNUM
+   if (!g->cnum[0])    gmodem_cnum(g); // try request one
+   if (g->cnum[0]) { zstrncpy(szPhone,g->cnum,24); return 1;} // ok
+   return gmodem_errorf(g,-2, "cnum not specified in modem"); // runtime error
+   }
+// now - check - do we have all numbers, may be started with '+' ?
+if ((phone[0]=='+' && all_numbers(phone+1)) || all_numbers(phone) ) {
+  zstrncpy(szPhone,phone,24);
+  return 1;
+  }
+if (!fileBook) { // try load if not yet
+     char *homedir = getenv("HOME");
+     char szfile[MAX_PATH];
+     sprintf(szfile,"%s/.phones",homedir);
+     fileBook = strLoad(szfile);
+    }
+if (fileBook) { // if exists
+  vss fb = vssCreate(fileBook,-1);
+  vss r,name,ph;
+  int nl = strlen(phone);
+  while(fb.len>0) {
+     r = vssGetRow(&fb);
+         // printf("check name=%*.*s\n",VSS(name));
+     ph = vssGetWord(&r); name=vssGetWord(&r);
+     //printf("check name=%*.*s\n",VSS(name));
+     if ( (nl == name.len) && (strnicmp(name.data,phone,name.len)==0))  { // found!
+        nl = ph.len; if (nl>=23) nl=23;
+        zstrncpy(szPhone,ph.data,nl+1);
+        gmodem_logf(g,2,"number resolved <%s>",szPhone);
+        return 1; // ok
+        }
+     }
+  }
+return gmodem_errorf(g,-2,"cat extract number from '%s'",phone);
+}
 
 int gmodem_scan2(unsigned char *str,char *fmt, ... ) { // d s h ...
 int res=0,i; vss V;

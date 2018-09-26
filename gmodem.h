@@ -183,7 +183,7 @@ int gmodem_Atf(gmodem *g,char *fmt, ... );
 int gmodem_info(gmodem *g) ;
 int gmodem_cmd(gmodem *g,char *cmd);
 int gmodem_cb(gmodem *g,char *cmd);
-int gmodem_sms(gmodem *g,uchar *sms);
+int gmodem_sms(gmodem *g,char *sms);
 
 // call
 
@@ -234,5 +234,10 @@ int gmodem_iccid(gmodem *g);
 int gmodem_sms_system(gmodem *g,char *mode);
 
 int kbhit2();
+
+
+// book check
+
+int gmodem_get_phone(gmodem *g,char **txt,char szPhone[24]);
 
 #endif // GMODEM_H_INCLUDED
