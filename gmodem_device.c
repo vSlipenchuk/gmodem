@@ -143,6 +143,19 @@ if (ok) {
 return gmodem_errorf(g,-2,"imei.set 312s failed");
 }
 
+int gmodem_imei_set3533(gmodem *g,char *newimei) { // huawei 312s can support imei change
+char codebuf[100];
+  calc201(g->imei,codebuf);  //printf("  Calc2        = %s\n", codebuf);
+int ok = gmodem_Atf(g,"^DATALOCK=\"%s\"",codebuf) >0 &&
+         gmodem_Atf(g,"^cimei=\"%s\"",newimei) > 0;
+if (ok) {
+   gmodem_logf(g,0,"imei changed to %s, reboot modem",newimei);
+   gmodem_Atf(g,"^RESET");
+   return ok;
+   }
+return gmodem_errorf(g,-2,"imei.set 312s failed");
+}
+
 int gmodem_imei_set(gmodem *g,char *str) { // set new imei on based one
 char codebuf[100],ati[500],*imei;
 if (g->imei[0]==0) gmodem_imei(g); // try it
@@ -150,6 +163,9 @@ gmodem_At2buf(g,"i",ati,sizeof(ati));
 gmodem_logf(g,2,"ATI responce: %s\n",ati);
 
 if (strstr(ati,"Model: E3121") && strstr(ati,"Revision: 21.158")) return gmodem_imei_set312s(g,str);
+if (strstr(ati,"Model: E3533") && strstr(ati,"Revision: 21.318")) return gmodem_imei_set3533(g,str);
+
+// known to be failed
 if (strstr(ati,"Model: E3121") && strstr(ati,"Revision: 11.102")) return gmodem_errorf(g,-1,"huawei 320s cant support imei.set");
 
 printf("Unknown algo, will try...\n");
