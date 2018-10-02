@@ -38,6 +38,7 @@ gsm_device gsm_devices[] = {
         //  example:+CREG: 1, "0EE3", "2CE3"
     },
     {   .name="E3533",  .imei="8671990", .crlf=1, .ussd=7 }, // ipad revision
+    {   .name="E3121",  .ati="Revision: 21.158", .crlf=1, .ussd=7 }, // Huawei 312s - can change imei
     {   .name="E3533",  .imei="8671990", .crlf=1, .ussd=7 }, // ipad revision
     {   .name="E171",   .imei="356356", .crlf=1, .ussd=7}, // r1
     {   .name="E171",   .imei="3548070",.crlf=1, .ussd=7 }, // r2

@@ -69,7 +69,7 @@ int gmodem_set_call_state(gmodem *g,int newstate) {
 int st = g->o.state;
 if (g->o.state==newstate) return 1;
 voice_stream *v = g->voice;
-printf("set_call_state new=%d old=%d\n",newstate,g->o.state);
+gmodem_logf(g,3,"set_call_state new=%d old=%d\n",newstate,g->o.state);
 //if (newstate == g->o.state) return 1; // ok, already
 switch(newstate) {
    case callRing:
@@ -82,7 +82,7 @@ switch(newstate) {
       break;
    case callActive:
       // it is - connect event
-      printf("CallBegins...\n");
+      gmodem_logf(g,3,"now call active");
       if (v) v->incall=1;
       g->o.connected = g->now;
       break;
@@ -223,7 +223,8 @@ int gmodem_dial(gmodem *g,char *num) {
 
     if (g->voice) {
         // need extra call
-       ok = gmodem_At(g,"^DDSETEX=2"); // ZU -
+        gmodem_put(g,"AT^DDSETEX=2\r\n",-1);
+         //ok = gmodem_At(g,"^DDSETEX=2"); // ZU -
        }
     return 1; //OK
 }

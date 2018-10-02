@@ -63,13 +63,13 @@ static int32_t latency_msec = 1, process_time_msec = 0;
 
 void stream_state_callback(pa_stream *s, void *userdata) {
   assert(s);
-printf("++++ CALLBACK STATE\n");
+//printf("++++ CALLBACK STATE\n");
 
   switch (pa_stream_get_state(s)) {
   case PA_STREAM_CREATING:
     // The stream has been created, so
     // let's open a file to record to
-    printf("Creating stream ..... \n");
+    //printf("Creating stream ..... \n");
     // fdout = creat(fname,  0711);
     buffer = pa_xmalloc(BUFF_LEN);
     buffer_length = BUFF_LEN;
@@ -87,19 +87,16 @@ printf("++++ CALLBACK STATE\n");
       const pa_buffer_attr *a;
       char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
-      printf("Stream successfully created.");
+      //printf("Stream successfully created.");
 
       if (!(a = pa_stream_get_buffer_attr(s)))
 	printf("pa_stream_get_buffer_attr() failed: %s", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
       else {
-	printf("Buffer metrics: maxlength=%u, fragsize=%u", a->maxlength, a->fragsize);
+	//printf("Buffer metrics: maxlength=%u, fragsize=%u", a->maxlength, a->fragsize);
 
       }
 
-      printf("Connected to device %s (%u, %ssuspended).",
-	     pa_stream_get_device_name(s),
-	     pa_stream_get_device_index(s),
-	     pa_stream_is_suspended(s) ? "" : "not ");
+      //printf("Connected to device %s (%u, %ssuspended).",	     pa_stream_get_device_name(s),	     pa_stream_get_device_index(s),	     pa_stream_is_suspended(s) ? "" : "not ");
     }
 
     break;
@@ -246,16 +243,16 @@ void state_cb(pa_context *c,voice_stream *vs) {
     pa_buffer_attr buffer_attr;
 
     //if (verbose)
-      printf(">>>>>Connection established.%s vs=%x\n", CLEAR_LINE,vs);
+//      printf(">>>>>Connection established.%s vs=%x\n", CLEAR_LINE,vs);
 
-    if (!(istream = pa_stream_new(c, "JanCapture", &sample_spec, NULL))) {
+    if (!(istream = pa_stream_new(c, "JanCapture2", &sample_spec, NULL))) {
       printf("pa_stream_new() failed: %s", pa_strerror(pa_context_errno(c)));
       exit(1);
     }
 
-    printf("stream i=%x  ---- >\n",istream);
+ //   printf("stream i=%x  ---- >\n",istream);
 
-    if (!(vs->ostream = pa_stream_new(c, "JanPlayback", &sample_spec, NULL))) {
+    if (!(vs->ostream = pa_stream_new(c, "JanPlayback2", &sample_spec, NULL))) {
       printf("pa_stream_new() failed: %s", pa_strerror(pa_context_errno(c)));
       exit(1);
     }
@@ -423,7 +420,7 @@ return 0;
 int paudio_voice_push(voice_stream *v,char *data, int len) { // push to sound card
 if (v->ostream)
 if (pa_stream_write(v->ostream, (uint8_t*) data, len, NULL, 0, PA_SEEK_RELATIVE) < 0) {
-    fprintf(stderr, "pa_stream_write() failed\n");
+     //fprintf(stderr, "pa_stream_write() failed\n");
     return -1;
     }
 return len; //ok

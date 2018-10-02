@@ -109,7 +109,7 @@ return system(buf);
 }
 
 int on_call_state(gmodem *g, int newstate) { // called before new state fires
-printf("MODEM: newstate: <%d> num:%s new_state:%d time=%ld\n",newstate,g->o.num,newstate,g->o.modified);
+gmodem_logf(g,2,"MODEM: newstate: <%d> num:%s new_state:%d time=%ld",newstate,g->o.num,newstate,g->o.modified);
 int code;
 switch(newstate) {
  case callPresent: // now we have a call?
@@ -123,7 +123,7 @@ switch(newstate) {
    //
    // code = systemf("export NUM=%s;export MODEM=%s;DUR=%d;%s end",g->o.num,g->cnum,g->o.dur,on_in_call);
    //printf("on_in_call returns code:%d\n",code); // now - ?
-   printf("CALL DONE\n");
+   gmodem_logf(g,1,"!call done");
    break;
   }
 return 0; // do nothing
@@ -272,7 +272,7 @@ if (voice[0]) {
           printf("Voice Init Failed\n");
           m->voice = 0;
           }
-        printf("done voice_init\n");
+       // printf("done voice_init\n");
        }
 #endif // VOICE
 if (m->logLevel>0) fprintf(stderr,"gmodem %s opened at %d speed\n",szmodem,gmodem_port_speed);

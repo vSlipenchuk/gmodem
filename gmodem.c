@@ -572,6 +572,18 @@ strcpy(g->out,g->imsi);
 return strlen(g->out);
 }
 
+int gmodem_device_detect(gmodem *g, char *imei, char *ati) {
+gsm_device *dev;
+ // first - check by ati?
+ //printf("ATI:%s\n",ati);
+if (ati) for(dev=gsm_devices+1;dev->name;dev++) if (dev->ati && strstr(ati,dev->ati)) {g->dev=dev; break; }
+
+if (imei) if (!g->dev) // if not set yet
+ for(dev=gsm_devices+1;dev->name;dev++) if ( dev->imei && memcmp(dev->imei,g->imei,strlen(dev->imei))==0 ) {g->dev=dev; break; }
+
+return 1;
+}
+
 int gmodem_imei(gmodem *g) {
 char imei[20];
 imei[0]=0;
@@ -581,9 +593,12 @@ strNcpy(g->imei,imei);
 strNcpy(g->out,g->imei);
 //printf("IMEI:%s\n",g->imei);
 extern gsm_device gsm_devices[];
-g->dev = gsm_devices; // default = first
-gsm_device *dev;
-for(dev=gsm_devices+1;dev->name;dev++) if (memcmp(dev->imei,g->imei,strlen(dev->imei))==0 ) {g->dev=dev; break; }
+if (!g->dev || g->dev == gsm_devices) { // not set or default
+ char ati[512];
+ gmodem_At2buf(g,"i",ati,sizeof(ati));
+ gmodem_device_detect(g,g->imei,ati);
+ if (!g->dev) g->dev = gsm_devices; // default
+ }
 //printf("Found dev:%s for imei:%s crlf:%d\n",g->dev->name,g->imei,g->dev->crlf);
 return 1;
 }
