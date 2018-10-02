@@ -6,8 +6,11 @@
 
 #ifdef P_AUDIO
 
+
+
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "voice_stream.h"
 #include <pulse/pulseaudio.h>
 
@@ -402,7 +405,7 @@ int com = v->serial;
 msleep(1000);
 while (!v->stop) {
  char data[320];
- while(!v->incall) msleep(100); // wait for call begins
+    //while(!v->incall) msleep(10); // wait for call begins
  int length = read(com,data,sizeof(data));
  if (length<0) break;
  v->push_bytes+=length;
@@ -475,8 +478,8 @@ int voice_init(voice_stream *v) { // Main PulseAudio thread
   v->voice_rec = e1550_write; // write recorder sound to modem audioport
   v->voice_push = paudio_voice_push;
   //raw = open("out.raw",O_RDWR | O_TRUNC | O_CREAT, S_IREAD|S_IWRITE); // audio logger sound-file
-  thread_create(e1550_read_thread,v); // read e1550 voice -> play on playback pulseaudio
   paudio_init(v);
+  thread_create(e1550_read_thread,v); // read e1550 voice -> play on playback pulseaudio
   //sleep(100);
   return 1; // OK anyway
 }

@@ -8,7 +8,7 @@
 */
 
 int all_numbers(char *num) {
-if (*num) return 0; // zero?
+if (!*num) return 0; // zero?
 for(;*num;num++) if (!isdigit(*num)) return 0;
 return 1; // all - numbers?
 }

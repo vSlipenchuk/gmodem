@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include "gmodem.h"
 
+
+
 #ifndef DEFDEVICE
 #define DEFDEVICE "/dev/ttyUSB0"
 #endif
@@ -164,7 +166,7 @@ while (1){
                     {"exec",   1,0, 'e'},
                     {"on_in_call",   1,0, 'i'},
                     {"on_in_sms",   1,0, 's'},
-
+//ifdef
                     {"voice", 1,0, 'V'},
                     {"phoenix", 0,0, 'X'},
                     {"logLevel", 1,0,'l'},

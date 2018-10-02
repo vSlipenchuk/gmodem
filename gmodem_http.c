@@ -15,6 +15,8 @@
 #include "../vos/vs0.c"
 #include "../vos/vss.c"
 
+/*
+
 int SocketSendHttpCode(Socket *sock, vssHttp *req, char *code, uchar *data, int len) {
 char buf[1024];
 vss reqID = {0,0};
@@ -29,6 +31,7 @@ sock->state = sockSend;
 // Wait???
 return 1;
 }
+*/
 
 
 

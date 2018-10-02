@@ -15,10 +15,16 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wno-pointer-sign" />
+					<Add option="-DVOICE" />
+					<Add option="-DP_AUDIO" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 				</Linker>
+				<Environment>
+					<Variable name="P_AUDIO" value="1" />
+					<Variable name="VOICE" value="1" />
+				</Environment>
 			</Target>
 		</Build>
 		<Compiler>
@@ -32,6 +38,7 @@
 			<Add library="readline" />
 			<Add library="termcap" />
 			<Add library="crypto" />
+			<Add library="pulse" />
 		</Linker>
 		<Unit filename="common.c">
 			<Option compilerVar="CC" />

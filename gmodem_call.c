@@ -74,6 +74,7 @@ printf("set_call_state new=%d old=%d\n",newstate,g->o.state);
 switch(newstate) {
    case callRing:
       if (st == callPresent || st == callActive) return 0; // just ignore
+      if (v) v->incall=1;
        // just caport on a new call
       break;
    case callPresent:
@@ -188,6 +189,7 @@ return cnt;
 }
 
 int _gmodem_dial(gmodem *g,char *num,int voice) {
+voice_stream *v = g->voice;
 if (g->o.state != callNone) {
   printf("not null call state, skip dial\n");
   return 0;
@@ -198,6 +200,7 @@ if (gmodem_put(g,buf,-1)<=0) return g_eof;
 gmodem_set_call_state(g,callSetup);
 strNcpy(g->o.num,num);
 printf("Start call setup\n");
+if (v) v->incall=1;
 return 1;
 }
 
