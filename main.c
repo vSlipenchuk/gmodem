@@ -238,6 +238,9 @@ int set_echo(int echo);
 voice_stream VS;
 
 int main(int argc, char **argv) {
+//return test_wav();
+
+
 //return sec_test();
 m->logLevel = 1; // default log level
     parse_options(argc,argv);

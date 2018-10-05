@@ -33,7 +33,64 @@ return 1;
 }
 */
 
+int SocketSendNow(Socket *sock,char *data,int len) {
+if (len>0) SocketSend(sock,data,len);
+len = strLength(sock->out);
+int l = send(sock->sock,sock->out,len,MSG_NOSIGNAL);
+ if (l>0) strDelete(&sock->out,0,l);
+return l == len;
+}
 
+int SocketSendChank(Socket *sock,char *data,int len) {
+char buf[30];
+sprintf(buf,"%x\r\n",len);
+SocketSend(sock,buf,-1);
+SocketSend(sock,data,len);
+SocketSend(sock,"\r\n",-1);
+return SocketSendNow(sock,0,0);
+}
+
+Socket *asock = 0;
+
+void SocketSendAudioCode(Socket *sock) {
+char h[44];
+SocketSend(sock,"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nConnection: close\r\n\r\n",-1);
+ write_wav_header(h,100*1024*1024); // set 100Mb file by default
+ SocketSend(sock,h,44); // Send a header
+//SocketSendNow(sock,0,0);
+printf("AudoSocket opened\n");
+return ;
+
+//Connection: close
+//SocketSend(sock,"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nTransfer-Encoding: chunked\r\n\r\n",-1);
+ //write_wav_header(h,100*1024*1024); // set 100Mb file by default
+ //SocketSendChank(sock,h,44); // Send a header
+//SocketSendNow(sock,0,0);
+//printf("AudoSocket opened\n");
+
+}
+
+void gmodem_http_send_wav(char *data,int len) {
+//printf("AudioSendok asock=%x\n",asock);
+if (!asock) return;
+if (!SocketSendNow(asock,data,len)) {
+  printf("AudioSocket closed\n");
+  SocketClear(&asock);
+  }
+
+}
+
+
+
+int onHttpAudio(Socket *sock, vssHttp *req, SocketMap *map) { // add socket to audio listen
+//httpSrvAddMap(srv, strNew("/.audio",-1), onHttpAudio, 0);
+SocketSendAudioCode(sock);
+if (asock) { SocketClear(&asock); } // remove prev
+asock = objAddRef(sock); // set it here
+printf("Here onHttpAudio!\n");
+//sock->sock = a_socket;
+return 1;
+}
 
 int onHttpStat(Socket *sock, vssHttp *req, SocketMap *map) { // Ãåíåðàöèÿ ñòàòèñòèêè ïî ñåðâåðó
 char buf[1024];
@@ -97,6 +154,8 @@ httpSrvAddMimes(srv,mimes);
 httpSrvAddFS(srv,"/",rootDir,0); // Adding some FS mappings
 httpSrvAddMap(srv, strNew("/.stat",-1), onHttpStat, 0);
 httpSrvAddMap(srv, strNew("/.at",-1), onHttpCmd, 0);
+httpSrvAddMap(srv, strNew("/.audio",-1), onHttpAudio, 0);
+
 if (httpSrvListen(srv,port)<=0) { // Starts listen port
    Logf("-FAIL start listener on port %d\n",port);
    return 0;

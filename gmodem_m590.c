@@ -17,7 +17,7 @@ ips[200]=0;
 if (atoi(c) ==  1) { // Have IP address
   //printf("C1=%s\n",c);
   char *p = get_till(&c,",",1); c=trim(c);
-  memset(ip,16,0);
+  memset(ip,0,16);
   strncpy(ip,c,15);
   //printf("C2=%s\n",c);
   return gmodem_errorf(g,1,c); // OK

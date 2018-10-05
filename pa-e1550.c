@@ -39,7 +39,7 @@ static pa_sample_spec sample_spec = {
 
 */
 
-static pa_sample_spec sample_spec = {
+static pa_sample_spec sample_spec = { // aplay -f S16_LE raw (frames by 320 bytes)
   .format = PA_SAMPLE_S16LE, // BE? LE?
   .rate = 8000,  //8000, //44100,
   .channels = 1 //2
@@ -396,6 +396,8 @@ if (v->incall) {
 return len;
 }
 
+void gmodem_http_send_wav(char *data,int len); // send audio stream :)
+
 int e1550_read_thread(voice_stream *v) { // read from modem and write to pulseaudio
 int com = v->serial;
 //printf("voice_read thread ready\n");
@@ -406,7 +408,8 @@ while (!v->stop) {
  int length = read(com,data,sizeof(data));
  if (length<0) break;
  v->push_bytes+=length;
- if (v->voice_push) v->voice_push(v,data,length); // push to sound card
+  //if (v->voice_push) v->voice_push(v,data,length); // push to sound card
+ gmodem_http_send_wav(data,length);
  //printf("e1550_read: %d push=%p\n ",v->push_bytes,v->voice_push);
  }
 v->stop=1;
@@ -417,9 +420,91 @@ return 0;
 
 // -------------- PulseAudio wrappers ----------------------
 
+#include <sys/fcntl.h>
+
+struct  __attribute__((packed)) { // 44byte
+    char chunkId[4]; // RIFF
+    int32_t chunkSize; //  4 + (8 + subchunk1Size) + (8 + subchunk2Size)
+    char format[4]; // WAVE
+    char subchunk1Id[4]; // fmt
+    int32_t subchunk1Size; // 16 = PCM
+    int16_t audioFormat; // PCM=1
+    int16_t numChannels;     // Количество каналов. Моно = 1, Стерео = 2 и т.д.
+    int32_t sampleRate; //    // Частота дискретизации. 8000 Гц, 44100 Гц и т.д.
+    int32_t byteRate; //    // sampleRate * numChannels * bitsPerSample/8
+    int16_t blockAlign; //  numChannels * bitsPerSample/8
+    int16_t bitsPerSample;    // Так называемая "глубиная" или точность звучания. 8 бит, 16 бит и т.д.
+    char subchunk2Id[4]; // data
+    int32_t subchunk2Size; //     // numSamples * numChannels * bitsPerSample/8
+    // Далее следуют непосредственно Wav данные.
+}   whdr = { "RIFF", 1024, "WAVE", "fmt", 16,1,1,8000, 8000, 1, 16, "data", };
+
+
+#define WRITE_U32(buf, x) *(buf)     = (unsigned char)((x)&0xff);\
+                          *((buf)+1) = (unsigned char)(((x)>>8)&0xff);\
+                          *((buf)+2) = (unsigned char)(((x)>>16)&0xff);\
+                          *((buf)+3) = (unsigned char)(((x)>>24)&0xff);
+
+#define WRITE_U16(buf, x) *(buf)     = (unsigned char)((x)&0xff);\
+                          *((buf)+1) = (unsigned char)(((x)>>8)&0xff);
+
+void write_wav_header (char headbuf[44],int knownlength) {
+int channels=1;
+int samplerate=8000;
+unsigned int size = 0x7fffffff;
+int bits=16;
+  // int channels = 2;
+  // int samplerate = 44100;//change this to 48000
+  int bytespersec = channels * samplerate * bits / 8;
+  int align = channels * bits / 8;
+  int samplesize = bits;
+
+  if (knownlength)
+    size = (unsigned int) knownlength;
+
+  memcpy (headbuf, "RIFF", 4);
+  WRITE_U32 (headbuf + 4, size - 8);
+  memcpy (headbuf + 8, "WAVE", 4);
+  memcpy (headbuf + 12, "fmt ", 4);
+  WRITE_U32 (headbuf + 16, 16);
+  WRITE_U16 (headbuf + 20, 1);  /* format */
+  WRITE_U16 (headbuf + 22, channels);
+  WRITE_U32 (headbuf + 24, samplerate);
+  WRITE_U32 (headbuf + 28, bytespersec);
+  WRITE_U16 (headbuf + 32, align);
+  WRITE_U16 (headbuf + 34, samplesize);
+  memcpy (headbuf + 36, "data", 4);
+  WRITE_U32 (headbuf + 40, size - 44);
+}
+
+
+test_wav() {
+write_wav_header(&whdr,517120);
+printf("Sizeof_wav=%d\n",sizeof(whdr));
+buf2file(&whdr,44,"raw.wav");
+}
+
+
+
 int paudio_voice_push(voice_stream *v,char *data, int len) { // push to sound card
+
+// DEBUG ---> write last recorded pcm !!!
+  static int f ;
+    if (!f) {
+        f = open("raw.wav",O_TRUNC|O_CREAT|O_RDWR, S_IREAD|S_IWRITE);
+        write_wav_header(&whdr,1024*1024*100); // set 100Mb file by default
+        write(f,&whdr,44); //data,len);
+        }
+    write(f,data,len);
+    //gmodem_http_send_wav(data,len);
+    //printf("wr:%d bytes\n",len);
+//return len;
+
+
+
 if (v->ostream)
 if (pa_stream_write(v->ostream, (uint8_t*) data, len, NULL, 0, PA_SEEK_RELATIVE) < 0) {
+
      //fprintf(stderr, "pa_stream_write() failed\n");
     return -1;
     }
@@ -471,6 +556,7 @@ int voice_init(voice_stream *v) { // Main PulseAudio thread
      return 0;
      }
   prt_cfg(v->serial,B115200); //zuzyka
+   prt_cfg(v->serial,B115200); //zuzyka
   v->cs=mutex_create();
   v->voice_rec = e1550_write; // write recorder sound to modem audioport
   v->voice_push = paudio_voice_push;
