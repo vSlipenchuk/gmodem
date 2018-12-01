@@ -352,7 +352,7 @@ if (lcmp(&c,"ota")) return gmodem_ota(m,c);
 if (lcmp(&c,"im")) return gmodem_im(m,c); // instant manager
 
 if (lcmp(&c,"dial")) return gmodem_dial(m,c); // start dial???
-if (lcmp(&c,"answer")) return gmodem_answer(c); //
+if ( lcmp(&c,"answer")|| lcmp(&c,"hold")) return gmodem_answer(m); //
 if (lcmp(&c,"kill")) return gmodem_kill(m); // start dial???
 if (lcmp(&c,"dtmf")) return gmodem_dtmf(m,c);
 

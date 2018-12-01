@@ -106,7 +106,7 @@ typedef struct _gmodem {
     //
     int logLevel; // level of logging
     unsigned char out[256]; // errors & string results here
-    char *bin; // temp buffer for sending binary data (Book, SMS, Others)
+    char *bin; int bin_len; // temp buffer for sending binary data (Book, SMS, Others)
     struct _gmodem *mon,*parent; // monitor port for Qualcomm (E1550)
     voice_stream *voice; // if we have voice_serial connected
     int mode; // 0 - AtComPort, 1-PhoenixCard reader

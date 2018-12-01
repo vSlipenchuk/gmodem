@@ -28,6 +28,7 @@ s->handle = s->p->open(name,gmodem_port_speed);
 if (!s->handle) return 0;
 strNcpy(g->name,name);
 g->msgRef=random()%200; // randoize first msgReference
+g->bin_len = -1; // strlen (g->bin)
 return 1; //ok
 }
 
@@ -199,10 +200,11 @@ if (r>0) { // yes, read !
   if (g->bin && g->mode == 0 ) { // we have binary data ready to send, need '>' in a stream
        int i; for(i=0;i<r;i++) if (dat[i]=='>') break;
        if (dat[i]=='>') { // ok  - have to flash binary data
-          char chZ=26,*bin=g->bin;
-          g->bin=0;
+          char chZ=26,*bin=g->bin;  int bin_len = g->bin_len;
+          g->bin=0; g->bin_len = -1; // return to def
           //printf("ZUZKA : FOUND '>' flash a binary %s\n",bin);
-          gmodem_put(g,bin,strlen(bin));
+          if (bin_len<0) bin_len = strlen(bin);
+          gmodem_put(g,bin,bin_len);
           gmodem_put(g,&chZ,1);
           }
       }
@@ -300,7 +302,6 @@ if (g->mode == 1) {
      }
 //gmodem_echo_off(g); // check off echo
 g->res = 0;
- memset(out,0,size); size--;
  int on_line(gmodem *g,char *line,int len,int code) {
      //printf("ON LINE HERE %s\n",line);
      if (proc) proc(g,line,len,code); // call prev
@@ -319,6 +320,7 @@ g->res = 0;
  }
 //int crlf=3; if (g->dev) crlf=g->dev->crlf;
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
+ memset(out,0,size); size--; // out and cmd - can be a same buffer
 if (g->logLevel>3) printf("gmodem_send: at%s<crlf:%d>\n",cmd,g->dev->crlf);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
 proc=g->on_line; g->on_line = on_line;

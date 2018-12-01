@@ -111,7 +111,7 @@ if (gmodem_Atf(g,"a")>0) {
   }
   return 1;
   }
-sprintf(g->out,"modem decline answer");
+sprintf(g->out,"modem declined answer on 'ata'");
 return 0;
 }
 
