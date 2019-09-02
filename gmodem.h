@@ -234,11 +234,18 @@ int cardJobLoadCfg(struct _cardJob *j,char *_iccid,char *filename);
 int gmodem_iccid(gmodem *g);
 int gmodem_sms_system(gmodem *g,char *mode);
 
+// utils
 int kbhit2();
-
+int bin2hex(uchar *d,uchar *s,int len);
 
 // book check
 
 int gmodem_get_phone(gmodem *g,char **txt,char szPhone[24]);
+
+// no-iot modules here
+int gmodem_hi2115_cmd(gmodem *g,char *cmd);
+
+
+
 
 #endif // GMODEM_H_INCLUDED

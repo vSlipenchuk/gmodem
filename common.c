@@ -22,7 +22,7 @@
 vstream_proc vstream_com_procs = {
     .open = (void*)prt_open,
    .close = prt_close,
-   .peek = prt_peek,
+   .peek = prt_peek_len, // or _old
    .write  = prt_write
   };
 

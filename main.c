@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "gmodem.h"
+#include <signal.h> //  our new library
 
 
 
@@ -237,9 +238,22 @@ int set_echo(int echo);
 
 voice_stream VS;
 
+//volatile sig_atomic_t flag = 0;
+void on_ctrl_c(int sig){ // can be called asynchronously
+  aborted = 1; // set flag
+}
+
+
+void gmodem_prn_status(gmodem *m,char *cmd,int res) {
+int i;
+for(i=0;m->out[i];i++) if (strchr("\r\n",m->out[i])) m->out[i]=' ';
+              printf("{cmd:'%s',dsc:'%s',ok:%d}\n",cmd,m->out,res);
+}
+
 int main(int argc, char **argv) {
 //return test_wav();
 
+signal(SIGINT, on_ctrl_c);
 
 //return sec_test();
 m->logLevel = 1; // default log level
@@ -249,6 +263,10 @@ m->logLevel = 1; // default log level
 
     //m->on_data = g_on_data; // print letters on a screen
     m->on_line = g_on_line; // when a line here
+    { // check speed in a filename ':' speed
+    char *p = strchr(szmodem,':');
+    if (p) { *p=0; sscanf(p+1,"%d",&gmodem_port_speed);}
+    }
     if (gmodem_init(m,szmodem)<=0) {
        fprintf(stderr,"%s :: fail open %s. try --help for options\n",argv[0],szmodem);
        return 1;
@@ -278,7 +296,7 @@ if (voice[0]) {
        // printf("done voice_init\n");
        }
 #endif // VOICE
-if (m->logLevel>0) fprintf(stderr,"gmodem %s opened at %d speed\n",szmodem,gmodem_port_speed);
+if (m->logLevel>0) fprintf(stderr,"+gmodem.opened %s:%d ok\n",szmodem,gmodem_port_speed);
 if (gmode == 1) m->mode = 1; // set phoenix mode
     if (! no_init) {
      gmodem_clear(m,1000);
@@ -302,7 +320,8 @@ if (gmode == 1) gmodem_atr(m); // call ATR
         int ok = gmodem_cmd(m,cmd);
         if (ok<=0) {
              //fprintf(stderr,"gmodem fail[%d]{%s} exec '%s'. abort.\n",ok,m->out,cmd);
-             fprintf(stderr,"%d %s\n ==FATAL FAIL EXEC== %s\n",ok,m->out,cmd0);
+             //fprintf(stderr,"%d %s\n ==FATAL FAIL EXEC== %s\n",ok,m->out,cmd0);
+             printf("\nABORT:"); gmodem_prn_status(m,cmd0,ok);
              exit(1); // fail
              }
         printf("%s\n",m->out); // auto-mode
@@ -350,12 +369,7 @@ if (m->logLevel>0)
 
            ok = gmodem_cmd(m,c);
               //printf("DONE CMD code=%d\n",ok);
-           if (ok) {
-              printf("{%d}{%s} result for {%s}\n",ok,m->out,buf);
-              continue;
-              }
-
-
+           if (ok) gmodem_prn_status(m,buf,ok);
 
            if (lcmp(&c,"console")) { // console mode start
                fprintf(stderr,"console mode here, ESC to return back\n");

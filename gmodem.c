@@ -1,7 +1,7 @@
 /*
   common gsm modem functions -
   at command handling
-  send & recv bytes
+  send &  bytes
 
 */
 
@@ -83,6 +83,7 @@ int gmodem_call_callback(gmodem *g, uchar *cmd);
 
 int g_modem_do_line(gmodem *g,uchar *buf,int ll) { // call processing
 int code=0; uchar *cmd = buf;
+if (g->logLevel>2 && buf[0]) printf("<< %s\n",buf); // gmodem_recv
 code = gmodem_spam_callback(g,buf);
 if (code) {
    if (g->logLevel>10) printf("<%s>\n",buf);
@@ -119,6 +120,7 @@ char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR","+CMS 
      "BUSY","NO CARRIER","NO DIAL TONE",0};
 int   g_codes[]={g_ok,g_connect,g_error,g_error,g_error,g_error,
       g_busy,g_no_carrier,g_no_dial_tone};
+char *pcode = cmd;
 int i; for(i=0;szCode[i];i++) if (lcmp(&cmd,szCode[i])) { code=g_codes[i]; break ;}
 if (code<0 && g->o.state) { // have active call and reports from a network found
     g->o.release_request=code;
@@ -131,7 +133,10 @@ if ( code == g_connect && (g->o.state == callInit || g->o.state == callSetup) ) 
      gmodem_set_call_state(g, callActive); // YES!
      return 1;
     }
-if (code && g->res==0 && gmodem_ignore_stdresp == 0) g->res = code; // set global flag
+if (code && g->res==0 && gmodem_ignore_stdresp == 0) {
+    g->res = code; // set global flag
+    if (code == g_error) { strNcpy(g->out,pcode); } // if we have error -> fix out descriptions
+    }
 if (g->on_line) g->on_line(g,buf,ll,code); // recollect
 return 1; // anyway
 }
@@ -322,6 +327,7 @@ g->res = 0;
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
  memset(out,0,size); size--; // out and cmd - can be a same buffer
 if (g->logLevel>3) printf("gmodem_send: at%s<crlf:%d>\n",cmd,g->dev->crlf);
+ else if (g->logLevel>2) printf(">> at%s\n",cmd);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
 proc=g->on_line; g->on_line = on_line;
 while (g->res == 0 ) {
@@ -380,6 +386,7 @@ g->res = 0;
 if (cmd) { // Allow cmd = NULL for just check lines till g->res set up
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
 if (g->logLevel>3) printf("gmodem_send: at%s<crlf>\n",cmd);
+ else if (g->logLevel>2) printf(">> at%s\n",cmd);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
  }
 proc=g->on_line; g->on_line = on_line;
@@ -432,6 +439,7 @@ return 1; // ok ? anyway?
 //int gsm7_code(unsigned int offset, int max_out, unsigned char *input,
 	//	   unsigned char *output, unsigned int *get_len, int maxLen);
 int bin2hex(uchar *d,uchar *s,int len) {
+*d=0; // len<=0 case
 int i;for(i=0;i<len;i++,s++,d+=2) sprintf(d,"%02X",*s);
 return len*2;
 }

@@ -383,6 +383,8 @@ if (lcmp(&c,"3g2g")) return gmodem_At(m,"^SYSCFG=2,2,3FFFFFFF,2,4"); // huawei 3
 
 if (lcmp(&c,"no-cd")) return gmodem_At(m,"^SETPORT=\"A1,A2;1,2,3\""); // e171 mode
 
+if (lcmp(&c,"hi")) return gmodem_hi2115_cmd(m,c); // hi_silicon
+
 
 
 //if (lcmp(&c,"0"")
