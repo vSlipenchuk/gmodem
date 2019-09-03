@@ -245,9 +245,15 @@ void on_ctrl_c(int sig){ // can be called asynchronously
 
 
 void gmodem_prn_status(gmodem *m,char *cmd,int res) {
-int i;
+int i; char *errdsc=""; char *out=m->out;
+int color=(res>0)?gmodem_color_ok:gmodem_color_err;
+if (res<0) {
+  int code = 0;
+  char *p = strstr(out,"CME ERROR:"); if (p && sscanf(p+10,"%d",&code)>0) errdsc=cme_code_desc(code);
+  p = strstr(out,"CMS ERROR:"); if (p && sscanf(p+10,"%d",&code)>0) errdsc=cms_code_desc(code);
+  }
 for(i=0;m->out[i];i++) if (strchr("\r\n",m->out[i])) m->out[i]=' ';
-              printf("{cmd:'%s',dsc:'%s',ok:%d}\n",cmd,m->out,res);
+              printf("%s{cmd:'%s',dsc:'%s',ok:%d,hint:'%s'}%s\n",color,cmd,out,res,errdsc,gmodem_color_none);
 }
 
 int main(int argc, char **argv) {
@@ -369,7 +375,7 @@ if (m->logLevel>0)
 
            ok = gmodem_cmd(m,c);
               //printf("DONE CMD code=%d\n",ok);
-           if (ok) gmodem_prn_status(m,buf,ok);
+           if (ok) { gmodem_prn_status(m,buf,ok); continue;}
 
            if (lcmp(&c,"console")) { // console mode start
                fprintf(stderr,"console mode here, ESC to return back\n");

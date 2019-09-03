@@ -12,6 +12,195 @@
 #include "vstrutil.h"
 #include "coders.h"
 
+
+/*
+         foreground background
+black        30         40
+red          31         41
+green        32         42
+yellow       33         43
+blue         34         44
+magenta      35         45
+cyan         36         46
+white        37         47
+
+reset             0  (everything back to normal)
+bold/bright       1  (often a brighter shade of the same colour)
+underline         4
+inverse           7  (swap foreground and background colours)
+bold/bright off  21
+underline off    24
+inverse off      27
+
+*/
+
+char *gmodem_color_out="\033[21;37m"; // dark-white
+char *gmodem_color_in ="\033[21;36m"; // dark-cyan
+char *gmodem_color_ok ="\033[1;32m"; // green
+char *gmodem_color_err ="\033[1;31m"; // red
+char *gmodem_color_none="\033[0m";
+
+
+char *cme_code_desc(int code) {
+switch (code) {
+case 0: return "Phone failure";
+case 1: return "No connection to phone";
+case 2: return "Phone adapter link reserved";
+case 3: return "Operation not allowed";
+case 4: return "Operation not supported";
+case 5: return "PH_SIM PIN required";
+case 6: return "PH_FSIM PIN required";
+case 7: return "PH_FSIM PUK required";
+case 10 : return "SIM not inserted";
+case 11 : return "SIM PIN required";
+case 12 : return "SIM PUK required";
+case 13 : return "SIM failure";
+case 14 : return "SIM busy";
+case 15 : return "SIM wrong";
+case 16 : return "Incorrect password";
+case 17 : return "SIM PIN2 required";
+case 18 : return "SIM PUK2 required";
+case 20 : return "Memory full";
+case 21 : return "Invalid index";
+case 22 : return "Not found";
+case 23 : return "Memory failure";
+case 24 : return "Text string too long";
+case 25 : return "Invalid characters in text string";
+case 26 : return "Dial string too long";
+case 27 : return "Invalid characters in dial string";
+case 30 : return "No network service";
+case 31 : return "Network timeout";
+case 32 : return "Network not allowed, emergency calls only";
+case 40 : return "Network personalization PIN required";
+case 41 : return "Network personalization PUK required";
+case 42 : return "Network subset personalization PIN required";
+case 43 : return "Network subset personalization PUK required";
+case 44 : return "Service provider personalization PIN required";
+case 45 : return "Service provider personalization PUK required";
+case 46 : return "Corporate personalization PIN required";
+case 47 : return "Corporate personalization PUK required";
+case 48 : return "PH-SIM PUK required";
+
+case 100 : return "Unknown error";
+case 103 : return "Illegal MS";
+case 106 : return "Illegal ME";
+case 107 : return "GPRS services not allowed";
+case 111 : return "PLMN not allowed";
+case 112 : return "Location area not allowed";
+case 113 : return "Roaming not allowed in this location area";
+case 126 : return "Operation temporary not allowed";
+case 132 : return "Service operation not supported";
+case 133 : return "Requested service option not subscribed";
+case 134 : return "Service option temporary out of order";
+case 148 : return "Unspecified GPRS error";
+case 149 : return "PDP authentication failure";
+case 150 : return "Invalid mobile class";
+case 256 : return "Operation temporarily not allowed";
+case 257 : return "Call barred";
+case 258 : return "Phone is busy";
+case 259 : return "User abort";
+case 260 : return "Invalid dial string";
+case 261 : return "SS not executed";
+case 262 : return "SIM Blocked";
+case 263 : return "Invalid block";
+case 772 : return "SIM powered down";
+}
+return "";
+}
+
+char *cms_code_desc(int code) {
+switch(code) {
+case 1 : return "Unassigned number";
+case 8 : return "Operator determined barring";
+case 10 : return "Call bared";
+case 21 : return "Short message transfer rejected";
+case 27 : return "Destination out of service";
+case 28 : return "Unindentified subscriber";
+case 29 : return "Facility rejected";
+case 30 : return "Unknown subscriber";
+case 38 : return "Network out of order";
+case 41 : return "Temporary failure";
+case 42 : return "Congestion";
+case 47 : return "Recources unavailable";
+case 50 : return "Requested facility not subscribed";
+case 69 : return "Requested facility not implemented";
+case 81 : return "Invalid short message transfer reference value";
+case 95 : return "Invalid message unspecified";
+case 96 : return "Invalid mandatory information";
+case 97 : return "Message type non existent or not implemented";
+case 98 : return "Message not compatible with short message protocol";
+case 99 : return "Information element non-existent or not implemente";
+case 111 : return "Protocol error, unspecified";
+case 127 : return "Internetworking , unspecified";
+case 128 : return "Telematic internetworking not supported";
+case 129 : return "Short message type 0 not supported";
+case 130 : return "Cannot replace short message";
+case 143 : return "Unspecified TP-PID error";
+case 144 : return "Data code scheme not supported";
+case 145 : return "Message class not supported";
+case 159 : return "Unspecified TP-DCS error";
+case 160 : return "Command cannot be actioned";
+case 161 : return "Command unsupported";
+case 175 : return "Unspecified TP-Command error";
+case 176 : return "TPDU not supported";
+case 192 : return "SC busy";
+case 193 : return "No SC subscription";
+case 194 : return "SC System failure";
+case 195 : return "Invalid SME address";
+case 196 : return "Destination SME barred";
+case 197 : return "SM Rejected-Duplicate SM";
+case 198 : return "TP-VPF not supported";
+case 199 : return "TP-VP not supported";
+case 208 : return "D0 SIM SMS Storage full";
+case 209 : return "No SMS Storage capability in SIM";
+case 210 : return "Error in MS";
+case 211 : return "Memory capacity exceeded";
+case 212 : return "Sim application toolkit busy";
+case 213 : return "SIM data download error";
+case 255 : return "Unspecified error cause";
+case 300 : return "ME Failure";
+case 301 : return "SMS service of ME reserved";
+case 302 : return "Operation not allowed";
+case 303 : return "Operation not supported";
+case 304 : return "Invalid PDU mode parameter";
+case 305 : return "Invalid Text mode parameter";
+case 310 : return "SIM not inserted";
+case 311 : return "SIM PIN required";
+case 312 : return "PH-SIM PIN required";
+case 313 : return "SIM failure";
+case 314 : return "SIM busy";
+case 315 : return "SIM wrong";
+case 316 : return "SIM PUK required";
+case 317 : return "SIM PIN2 required";
+case 318 : return "SIM PUK2 required";
+case 320 : return "Memory failure";
+case 321 : return "Invalid memory index";
+case 322 : return "Memory full";
+case 330 : return "SMSC address unknown";
+case 331 : return "No network service";
+case 332 : return "Network timeout";
+case 340 : return "No +CNMA expected";
+case 500 : return "Unknown error";
+case 512 : return "User abort";
+case 513 : return "Unable to store";
+case 514 : return "Invalid Status";
+case 515 : return "Device busy or Invalid Character in string";
+case 516 : return "Invalid length";
+case 517 : return "Invalid character in PDU";
+case 518 : return "Invalid parameter";
+case 519 : return "Invalid length or character";
+case 520 : return "Invalid character in text";
+case 521 : return "Timer expired";
+case 522 : return "Operation temporary not allowed";
+case 532 : return "SIM not ready";
+case 534 : return "Cell Broadcast error unknown";
+case 535 : return "Protocol stack busy";
+case 538 : return "Invalid parameter";
+}
+return "";
+}
+
+
 int gmodem_port_speed = 115200;
 extern gsm_device gsm_devices[];
 
@@ -83,7 +272,7 @@ int gmodem_call_callback(gmodem *g, uchar *cmd);
 
 int g_modem_do_line(gmodem *g,uchar *buf,int ll) { // call processing
 int code=0; uchar *cmd = buf;
-if (g->logLevel>2 && buf[0]) printf("<< %s\n",buf); // gmodem_recv
+if (g->logLevel>2 && buf[0]) printf(">>%s %s%s\n",gmodem_color_in,buf,gmodem_color_none); // gmodem_recv
 code = gmodem_spam_callback(g,buf);
 if (code) {
    if (g->logLevel>10) printf("<%s>\n",buf);
@@ -112,9 +301,17 @@ if (lcmp(&cmd,"+CMTI:")) { // EW77 Huawei sms notification
 if (lcmp(&cmd,"+CDSI:")) { // treat delivery reports as a new messages
   g->cmt++;
   }
-
-
-
+if (lcmp(&cmd,"+CRTDCP:")) { // non-ip trafic notifications
+    char msg[256];
+    //REST: 0,4,31313132
+    int ok,pdp,len;
+    ok = gmodem_scan2(cmd,"%u,%u,%S",&pdp,&len,msg);
+    if (ok ==3) {
+            hexstr2bin(msg,msg,-1);
+            printf("[[%s%s%s]]\n",gmodem_color_ok,msg,gmodem_color_none);
+            }
+           else printf("%s%s%s ; FAIL scan data from +CRTDCP ok=%d\n",gmodem_color_err,cmd,gmodem_color_none,ok);
+  }
 // status codes - changes flow
 char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR","+CMS ERROR",
      "BUSY","NO CARRIER","NO DIAL TONE",0};
@@ -301,6 +498,8 @@ int gmodem_At2buf(gmodem *g,char *cmd,char *out, int size) {
 int (*proc)();
 char buf[256];
 int lineno=0;
+if (size>0 && out) out[0]=0; // for empty responses
+g->out[0]=0; // clear output at begin
 if (g->mode == 1) {
      sprintf(g->out,"modem in phoenix mode");
      return -1;
@@ -327,7 +526,7 @@ g->res = 0;
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
  memset(out,0,size); size--; // out and cmd - can be a same buffer
 if (g->logLevel>3) printf("gmodem_send: at%s<crlf:%d>\n",cmd,g->dev->crlf);
- else if (g->logLevel>2) printf(">> at%s\n",cmd);
+ else if (g->logLevel>2) printf(">>%s at%s%s\n",gmodem_color_out,cmd,gmodem_color_none);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
 proc=g->on_line; g->on_line = on_line;
 while (g->res == 0 ) {
@@ -386,7 +585,7 @@ g->res = 0;
 if (cmd) { // Allow cmd = NULL for just check lines till g->res set up
 sprintf(buf,"at%s%s",cmd,gmodem_crlf(g));
 if (g->logLevel>3) printf("gmodem_send: at%s<crlf>\n",cmd);
- else if (g->logLevel>2) printf(">> at%s\n",cmd);
+ else if (g->logLevel>2) printf(">>%s at%s%s\n",gmodem_color_out,cmd,gmodem_color_none);
 if (gmodem_put(g,buf,-1)<=0) return g_eof;
  }
 proc=g->on_line; g->on_line = on_line;

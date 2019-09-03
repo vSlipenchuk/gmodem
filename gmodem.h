@@ -245,6 +245,14 @@ int gmodem_get_phone(gmodem *g,char **txt,char szPhone[24]);
 // no-iot modules here
 int gmodem_hi2115_cmd(gmodem *g,char *cmd);
 
+// colorize: gmodem.c
+extern char *gmodem_color_out,*gmodem_color_in,*gmodem_color_ok,*gmodem_color_err,*gmodem_color_none;
+// dics: cme cms
+char *cme_code_desc(int code);
+char *cms_code_desc(int code);
+
+int gmodem_scan2(unsigned char *str,char *fmt, ... );
+
 
 
 
