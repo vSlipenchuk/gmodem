@@ -55,7 +55,9 @@ Socket *asock = 0;
 void SocketSendAudioCode(Socket *sock) {
 char h[44];
 SocketSend(sock,"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nConnection: close\r\n\r\n",-1);
+#ifdef P_AUDIO
  write_wav_header(h,100*1024*1024); // set 100Mb file by default
+#endif P_AUDIO
  SocketSend(sock,h,44); // Send a header
 //SocketSendNow(sock,0,0);
 printf("AudoSocket opened\n");
