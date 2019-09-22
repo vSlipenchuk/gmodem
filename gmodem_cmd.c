@@ -362,7 +362,9 @@ if (lcmp(&c,"reg")) return gmodem_creg(m);
 //if (lcmp(&c,"gprs")) return gmodem_gprs(m,c);
 
 // APDU
+#ifdef PHOENIX
 if (lcmp(&c,"apdu")) return gmodem_apdu_cmd(m,c);
+#endif
 
 // phonebook
 

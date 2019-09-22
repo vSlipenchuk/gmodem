@@ -1,5 +1,6 @@
 #include "gmodem.h"
 #include "coders.h"
+#include <fcntl.h> // O_RDONLY on WINDOWS
 
 int gmodem_wait_status(gmodem *g) {
 while (g->res == 0 ) {

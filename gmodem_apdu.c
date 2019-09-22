@@ -1,6 +1,9 @@
 #include "gmodem.h"
 #include "coders.h"
 #include "gsm_sim.h"
+#include <fcntl.h>
+
+#ifdef PHOENIX
 
 char szPoR[]="90,61";
 
@@ -939,3 +942,5 @@ if (lcmp(&cmd,"console")) {
 sprintf(g->out,"apdu usage: delete|load|install|send");
 return -1;
 }
+
+#endif

@@ -11,6 +11,8 @@ AID CardManager: A0000000030000 00 может быть и меньше!
 
 */
 
+#ifdef __linux_
+
 #include "gmodem.h"
 #include "gsm_sim.h"
 #include <termios.h>
@@ -203,3 +205,5 @@ uchar ins = cmd[1],clen=cmd[4]; // ins and cmdlength
  //if (g->logLevel>1) printf("<<%s\n",g->out);
  return 1; // OK
 }
+
+#endif

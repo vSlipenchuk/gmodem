@@ -216,7 +216,7 @@ s->handle = s->p->open(name,gmodem_port_speed);
 // printf("Done handle %d\n",s->handle);
 if (!s->handle) return 0;
 strNcpy(g->name,name);
-g->msgRef=random()%200; // randoize first msgReference
+g->msgRef=rand()%100; //random()%200; // randoize first msgReference
 g->bin_len = -1; // strlen (g->bin)
 return 1; //ok
 }

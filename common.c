@@ -5,8 +5,20 @@
 
 */
 
+#include "../vos/bin2hexstr.c"
+#ifdef __linux__
 #include "../vos/vos_com_linux.c"
 #include "../vos/vos_linux_kbhit.c"
+#else
+// WIN STAFF
+#include "../vos/vos_com_win.c"
+int kbhit2() { return kbhit();} // on win - not init functions...
+void set_echo(int echo) {}; // do nothing
+int gets_buf2(char *buf,int sz) { return gets(buf); }
+#endif // __linux__
+
+
+
 #include "../vos/vos.c"
 #include "../vos/coders.c"
 #include "../vos/strutil.c"
@@ -18,6 +30,8 @@
 
 #include <string.h>
 
+
+
 /* thats a com port functions */
 vstream_proc vstream_com_procs = {
     .open = (void*)prt_open,
@@ -25,6 +39,8 @@ vstream_proc vstream_com_procs = {
    .peek = prt_peek_len, // or _old
    .write  = prt_write
   };
+
+#ifdef __linux__
 
 //apt-get install libncurses5-dev  || yum install ncurses-devel ncurses
 #include <curses.h>
@@ -72,5 +88,7 @@ add_history(buf);
 free(g);
 return 1; // OK
 }
+
+#endif
 
 //#include "../vos/vos.c" // os spec. code here
