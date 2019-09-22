@@ -13,10 +13,10 @@ return 0;
 
 int _gmodem_csim_(gmodem *g, char *cmd ) {
 char buf[800];
-sprintf(buf,"+CSIM=%d,\"%s\"",strlen(cmd),cmd);
+sprintf(buf,"+CSIM=%d,\"%s\"",(int)strlen(cmd),cmd);
 if (gmodem_At2bufFilter(g,buf,"+CSIM", g->out,sizeof(g->out))<0) return -1; // error already reported
 cmd = g->out;
-int code = -1;
+//int code = -1;
 printf("RESP:<%s>\n",g->out);
 char * p = gmodem_par(&cmd,1);
 strNcpy(g->out,p); // copy here
@@ -42,6 +42,8 @@ if (code<=0) {
 printf("CSIM_RESP: <%d,0x%x>\n",code,code);
 return code;
 }
+
+int _gmodem_csim(gmodem *g, char *cmd ) ;
 
 int gmodem_GetResponce(gmodem *g, int len) {
 char buf[30];
@@ -205,11 +207,11 @@ extern uchar SW[2];
 int gmodem_csim_apdu(gmodem *g, uchar *in, uchar *out ) {
 char buf[800],cmd[512];
 bin2hexstr(cmd,in+1,in[0]); // hexstr
-sprintf(buf,"+CSIM=%d,\"%s\"",strlen(cmd),cmd);
+sprintf(buf,"+CSIM=%d,\"%s\"",(int)strlen(cmd),cmd);
 if (gmodem_At2bufFilter(g,buf,"+CSIM", g->out,sizeof(g->out))<0) return -1;
 if (!g->out[0]) gmodem_errorf(g,-2,"expected +CSIM output not found");
-uchar *c = g->out;
-uchar *p = gmodem_par(&c,1);
+char *c = g->out;
+char *p = gmodem_par(&c,1);
 //printf("DEC1<%s>\n",p);
 int l = hexstr2bin(out+1,p,strlen(p));
 if (l<2) {
@@ -222,7 +224,9 @@ bin2hexstr(g->out,out+1,out[0]); // convert it back
 return 1; // exchange OK
 }
 
-int gmodem_apdu_exchange(gmodem *g,uchar *in,uchar *out) { // returns (SW[0]<<8)+SW[1] or ZERO on any ERROR
+
+
+int gmodem_apdu_exchange(gmodem *g,char *in,uchar *out) { // returns (SW[0]<<8)+SW[1] or ZERO on any ERROR
 SW[0]=SW[1]=0; uchar dummy[258];
 if (!out) out=dummy+2;
 int code;
@@ -428,7 +432,7 @@ return code;
 
 
 int gmodem_apdu_delete_aid(gmodem *g,uchar *aid) {
-char buf[256];
+//char buf[256];
 int l = aid[0];
 memcpy(g->out,aid,l+1); // copy len+aid to g->out
 uchar del[7]={0x80,0xE4,0x00,0x00,l+2,0x4F,l}; apdu_ins(g->out,del,7);
@@ -463,7 +467,7 @@ return st.st_size;
 
 
 int gmodem_apdu_load(gmodem *g,uchar *aid, int l, char *filename) { // open file and loads its
-char buf[256];
+//char buf[256];
 int file,fileLen;
 
 file = open(filename,O_RDONLY);
@@ -544,6 +548,7 @@ for(b=0;b<count;b++) {
 if (g->logLevel == 1) fprintf(stderr,"                                                                  \r"); // clear out
 gmodem_logf(g,2,"LOAD DONE with code: %d\n",code,code);
 close(file);
+dur=-3;
 if (code>0) return gmodem_outf(g,code,"loaded:    {bytes:%d,blocks:%d,dur:%d}",fileLen,count,dur);
 return code;
 }
@@ -571,15 +576,15 @@ memcpy(apdu+1,data,len); apdu[0]+=len;
 extern uchar SW[2]; // laster resp codes
 
 int gmodem_resp(gmodem *g) { // GetResponce from a last command
-int p1,p2;
+//int p1,p2;
 //sscanf(g->out,"%02x%02x",&p1,&p2); //  Based On Last Result in g->out
 return gmodem_GetResponce(g,SW[1]); // result in g->out
 }
 
 int gmodem_apdu_install(gmodem *g,uchar *exeAID,uchar *modAID,uchar *appID,uchar *instPar) { // open file and loads its
-char buf[256];
+//char buf[256];
 //uchar cmd_end[10]={0x00,0x00,0x06,0x06,0xEF04,0xC6,0x02,0x00,0x00,0x00};
-  uchar cmd_end[10]={0x00,0x00,0x06,0xEF,0x04,0xC6,0x02,0x00,0x00,0x00};
+//  uchar cmd_end[10]={0x00,0x00,0x06,0xEF,0x04,0xC6,0x02,0x00,0x00,0x00};
 g->out[0]=0; uchar ch=0; apdu_push(g->out,&ch,1) ; // instTockem
  //gmodem_dump_out(g,"ZERO");
  pushTAG(instPar);
@@ -604,7 +609,7 @@ return code;
 
 typedef uchar aid[256];
 
-int get_aid(aid out,uchar **cmd) {
+int get_aid(aid out,char **cmd) {
 uchar *p = get_word(cmd);
 out[0]=hexstr2bin(out+1,p,-1);
 return out[0];
@@ -629,7 +634,8 @@ return 1; // OK
 //int _s_cat(uchar *buf,int pos ,uchar *s2) { }
 
 int gmodem_read(gmodem *g,uchar *buf,int len) {
-int to; int i;
+//int to;
+ int i;
 for(i=0;i<1000;i++) {
   gmodem_run(g);
   if (g->in_len>=len) {
@@ -664,10 +670,10 @@ return 1; // ok
 
 int _gmodem_csim_XXX(gmodem *g, char *cmd ) {
 char buf[800];
-sprintf(buf,"+CSIM=%d,\"%s\"",strlen(cmd),cmd);
+sprintf(buf,"+CSIM=%d,\"%s\"",(int)strlen(cmd),cmd);
 if (gmodem_At2bufFilter(g,buf,"+CSIM", g->out,sizeof(g->out))<0) return -1; // error already reported
 cmd = g->out;
-int code = -1;
+//int code = -1;
 printf("RESP:<%s>\n",g->out);
 char * p = gmodem_par(&cmd,1);
 strNcpy(g->out,p); // copy here
@@ -675,14 +681,14 @@ return 1;
 }
 
 
-int gmodem_apdu2(gmodem *g,uchar *cmd,int len,uchar *sw,uchar *out) {
+int gmodem_apdu2(gmodem *g,char *cmd,int len,uchar *sw,uchar *out) {
 uchar cbuf[512],buf[800],*p; int i;
 if (g->mode == 1) return phoenix_apdu2(g,cmd,len,sw,out);
 for(i=0;i<len;i++) sprintf(cbuf+2*i,"%02X",cmd[i]);
-sprintf(buf,"+CSIM=%d,\"%s\"",strlen(cbuf),cbuf);
+sprintf(buf,"+CSIM=%d,\"%s\"",(int)strlen(cbuf),cbuf);
 if (gmodem_At2bufFilter(g,buf,"+CSIM", g->out,sizeof(g->out))<0) return -1; // error already reported
-uchar *pcmd = g->out;
-int code = -1;
+char *pcmd = g->out;
+//int code = -1;
 printf("apdu2 CSIM RESP:<%s>\n",g->out);
  p = gmodem_par(&pcmd,1);
  printf("apdu2 VALUE - 0:<%s>\n",p);
@@ -780,7 +786,7 @@ return gmodem_apdu2(g,bin+1,bin[0],sw,out);
 
 int gmodem_apdu_read_binary(gmodem *g, int file, int len, char *out) {
 //uchar cmd[]={0xA0, READ_BIANRY, (file)>>8, file & 0xFF , len };
-
+return 0;
 }
 
 
@@ -839,7 +845,7 @@ return 1;
 
 
 
-int gmodem_apdu_cmd(gmodem *g, uchar *cmd) {
+int gmodem_apdu_cmd(gmodem *g, char *cmd) {
 
 //init_personal(); // ICCID, KID & counter
 if ( cardJob.ICCID[0]==0 ) { // not inited
@@ -917,7 +923,7 @@ if (lcmp(&cmd,"getData")) {
   }
 if (lcmp(&cmd,"console")) {
   while(1) {
-     uchar buf[256],aid[256],*c=buf;
+     char buf[256],aid[256],*c=buf;
      if (kbhit2()) {
       //printf(">");
       gets(buf);

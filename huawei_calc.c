@@ -37,7 +37,7 @@ unsigned int  rotr32(unsigned int val, int n);
 void encrypt_1(char* imei,char* resbuf,int version) {
 
 int i;
-unsigned int r0,r1,r2,r3,r4,r5,r6,r7,r12,lr;
+unsigned int r0,r1,r3,r2,r4,r6,r7,r12,lr;
 unsigned long long cx;
 unsigned int ibuf128[128];
 int srcbuf_201[]={0x6E9C2A,0x3CA2B3C,0x1080DC,0x30855EE,0x3D3283A,0x2F4F85A,0x1F8808E,0x3147D10,
@@ -137,7 +137,7 @@ char buf20[30];
 char buf1016[30];
 
 int i;
-int r0,r1,r2,r3;
+int r0,r1,r3;
 unsigned int u1;
 int hash1;
 unsigned long long cx;
@@ -224,8 +224,8 @@ if ((resbuf[0] == '0') ||(resbuf[0] == '-') ||(resbuf[0] == ' ')) resbuf[0]='9';
 void encrypt_3(char* imei,char* resbuf,int version) {
 
 int i;
-int r0,r1,r2,r3,r4,r5,r6,r12,lr;
-unsigned int u1;
+int r1,r2,r3,r4,r12,lr;
+//unsigned int u1;
 unsigned long long cx;
 unsigned int arg;
 

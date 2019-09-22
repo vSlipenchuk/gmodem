@@ -251,7 +251,7 @@ return (*buf==0) && (*fmt==0); // not match
 extern int incall;
 
 
-int gmodem_spam_callback(gmodem *g,uchar *cmd) { // very annoing
+int gmodem_spam_callback(gmodem *g,char *cmd) { // very annoing
 if (*cmd==0) { // empty
     return 1;
    }
@@ -268,10 +268,10 @@ return 0;
 }
 
 int gmodem_ignore_stdresp = 0;
-int gmodem_call_callback(gmodem *g, uchar *cmd);
+int gmodem_call_callback(gmodem *g, char *cmd);
 
 int g_modem_do_line(gmodem *g,uchar *buf,int ll) { // call processing
-int code=0; uchar *cmd = buf;
+int code=0; char *cmd = buf;
 if (g->logLevel>2 && buf[0]) printf(">>%s %s%s\n",gmodem_color_in,buf,gmodem_color_none); // gmodem_recv
 code = gmodem_spam_callback(g,buf);
 if (code) {
@@ -310,7 +310,8 @@ if (lcmp(&cmd,"+CRTDCP:")) { // non-ip trafic notifications
             hexstr2bin(msg,msg,-1);
             printf("[[%s%s%s]]\n",gmodem_color_ok,msg,gmodem_color_none);
             }
-           else printf("%s%s%s ; FAIL scan data from +CRTDCP ok=%d\n",gmodem_color_err,cmd,gmodem_color_none,ok);
+           else if (ok !=1)  // if not just reporting to AT+CRTDSP? it is a fail parsing
+              printf("%s%s%s ; FAIL scan data from +CRTDCP ok=%d\n",gmodem_color_err,cmd,gmodem_color_none,ok);
   }
 // status codes - changes flow
 char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR","+CMS ERROR",
@@ -668,7 +669,7 @@ char *str_unquote(char *buf);
 int gsm7_code(unsigned int offset, int max_out, unsigned char *input,
 		   unsigned char *output, unsigned int *get_len, int maxLen); // coded below in this file
 
-		   char *gmodem_par(uchar **cmd,int skip);
+		   char *gmodem_par(char **cmd,int skip);
 int gsm2utf(char *out,char *ucs2,int len) ;
 
 int gmodem_ussd(gmodem *g,char *str) { // call string

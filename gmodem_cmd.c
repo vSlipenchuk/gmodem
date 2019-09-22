@@ -175,7 +175,7 @@ return str;
 
 char *str_unquote(char *buf);
 
-char *gmodem_par(uchar **cmd,int skip) {
+char *gmodem_par(char **cmd,int skip) {
 char *p=0; char *del=",";
  //printf("PAR1_IN:%x VAL:%x\n",cmd,*cmd);
 while(skip>=0) {
@@ -194,7 +194,7 @@ p=str_unquote(p);
 return p;
 }
 
-int gmodem_parInt(uchar **cmd,int skip,int def) {
+int gmodem_parInt(char **cmd,int skip,int def) {
 char *p = gmodem_par(cmd,skip);
 if (!p) return def;
 sscanf(p,"%d",&def);
@@ -265,7 +265,7 @@ if (o) { // known network
  printf("HPLMN:{name:'%s',imsi:'%s',gprs:'%s',apn:'%s'}\n",o->name,o->imsi,o->gprs_num,o->apn);
  }
 //printf("DONE-0\n");
-(gmodem_cnum(g)>0) ;
+gmodem_cnum(g) ;
   //  || (gmodem_cnum_get(g)>0); // try any of AT+CNUM or AT+CRSM -- some modems NOT safe
   //printf("DONE1\n");
 printf("SIM:{pin_ready:%d,iccid:'%s',imsi:'%s',cnum:'%s'}\n",pin==1?1:0,g->iccid,g->imsi,g->cnum);
@@ -311,7 +311,7 @@ return 1; // OK
 int gmodem_neoway(gmodem *g,char *cmd); // spec neoway commands
 
 int gmodem_cmd(gmodem *m,char *c0) {
-uchar *c=c0;
+char *c=c0;
 if (lcmp(&c,"@")) { // run file
    return gmodem_cmd_file(m,c);
    }

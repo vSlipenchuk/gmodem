@@ -199,7 +199,7 @@ int gmodem_crsm_cnum_set(gmodem *g,char *num);
 int gmodem_crsm_iccid(gmodem *g); // on ok - result in g->out
 
 // CSIM & APDU
-int gmodem_apdu_cmd(gmodem *g, uchar *cmd);
+int gmodem_apdu_cmd(gmodem *g, char *cmd);
 
 // Phoenix commands
 
@@ -208,7 +208,7 @@ int gmodem_atr(gmodem *g); // Answer to reset...
 
 // Phonebook sim card & phones
 
-int gmodem_book_cmd(gmodem *g,uchar *cmd);
+int gmodem_book_cmd(gmodem *g,char *cmd);
 
 
 // register check
@@ -223,11 +223,11 @@ int gmodem_ota(gmodem *g,uchar *sms);
 int gmodem_im(gmodem *g,uchar *cmd);
 int gmodem_answer(gmodem *g);
 
-char *gmodem_par(uchar **cmd,int skip);
-int gmodem_parInt(uchar **cmd,int skip,int def);
+char *gmodem_par(char **cmd,int skip);
+int gmodem_parInt(char **cmd,int skip,int def);
 
 int num_scan(char *num,char *sznum,int *ton_npi);
-int gmodem_apdu2(gmodem *g,uchar *cmd,int len,uchar *sw,uchar *out) ;
+int gmodem_apdu2(gmodem *g,char *cmd,int len,uchar *sw,uchar *out) ;
 
 int gmodem_apdu_select(gmodem *g, uchar *aid);
 int cardJobLoadCfg(struct _cardJob *j,char *_iccid,char *filename);

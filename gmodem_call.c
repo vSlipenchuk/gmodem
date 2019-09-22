@@ -13,12 +13,12 @@ int toActive =  40; // max conversation
 
 
 
-int lcmp(uchar **str,uchar *cmp); //@strutil.c
+//int lcmp(uchar **str,uchar *cmp); //@strutil.c
 
 //extern int incall; // temporary garbage - voice calls debug
 
 
-int gmodem_call_callback(gmodem *g, uchar *cmd) { // check - if it is a call notification?
+int gmodem_call_callback(gmodem *g, char *cmd) { // check - if it is a call notification?
 if (lcmp(&cmd,"RING")) {
     if (g->o.state == callNone) gmodem_set_call_state(g,callRing); // till 3 ring - we wait for a CLI
     return 1;

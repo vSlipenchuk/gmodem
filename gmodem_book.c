@@ -3,6 +3,7 @@
 #include "stdarg.h"
 #include "vss.h"
 #include <ctype.h>
+#include "vs0.h" // for strLoad
 /*
  gmodem_scan fmt: d,s,u
 */
@@ -170,7 +171,7 @@ return gmodem_errorf(g,-3,"error dele slot %d",slot);
 }
 
 
-int gmodem_book_cmd(gmodem *g,uchar *cmd) {
+int gmodem_book_cmd(gmodem *g,char *cmd) {
 int slot=-1;
 if (lcmp(&cmd,"info")) {
     gmodem_Atf(g,"+CPBS=?"); // show all storages
