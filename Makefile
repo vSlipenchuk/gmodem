@@ -6,7 +6,7 @@ SRC=main.c common.c gmodem.c gmodem_apdu.c  gmodem_call.c \
   gmodem_http.c \
   gmodem_cb.c  gmodem_cmd.c gmodem_crsm.c gmodem_device.c  gmodem_book.c\
   gmodem_oper.c gmodem_scan.c gmodem_sms.c  pa-e1550.c \
-  phoenix_reader.c sec_packet.c sims_cfg.c sms_codec.c gmodem_gprs.c gmodem_sim800.c gmodem_m590.c 
+  phoenix_reader.c sec_packet.c sims_cfg.c sms_codec.c gmodem_gprs.c gmodem_sim800.c gmodem_m590.c gmodem_hi2115.c
   
 LIBS=-lcrypto  -lpthread -lreadline -ltermcap
 
