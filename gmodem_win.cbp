@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="gmodem" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="./gmodem" prefix_auto="1" extension_auto="1" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-D /dev/ttyUSB0 " />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wno-pointer-sign" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-Wno-pointer-sign" />
+			<Add option="-Wno-strict-aliasing" />
+			<Add directory="../vos" />
+			<Add directory="../../OpenSSL/include" />
+		</Compiler>
+		<Linker>
+			<Add library="pthread" />
+			<Add library="../../OpenSSL/lib/libcrypto.lib" />
+			<Add library="psapi" />
+			<Add library="wsock32" />
+		</Linker>
+		<Unit filename="common.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem.h" />
+		<Unit filename="gmodem_apdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_book.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_call.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_cb.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_cmd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_crsm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_device.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_hi2115.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_http.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_m590.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_oper.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_scan.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_sim800.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gmodem_sms.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gsm_sim.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="pa-e1550.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="phoenix_reader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sec_packet.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sims_cfg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sms_codec.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="voice_stream.h" />
+		<Unit filename="vstrutil.h" />
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

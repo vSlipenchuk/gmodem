@@ -44,6 +44,7 @@ fprintf(f,"%x",j->counter);
 fclose(f);
 return 1;
 }
+#include <sys/stat.h>
 
 int cardJobLoadCfg(struct _cardJob *j,char *_iccid,char *filename) { // Loads Info from a file
 if (!j) j = &cardJob;

@@ -40,6 +40,7 @@ int g_on_line(gmodem *g,char *buf,int len,int code) { // when lines completes
 return 0; // do as ypu want
 }
 
+#ifdef __linux__
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -56,8 +57,12 @@ add_history(buf);
 free(g);
 return 1; // OK
 }
-
-
+#else
+ int gets_buf(char *buf,int sz) {
+ gets(buf);
+ return 1;
+ }
+#endif
 
 /*
  http://we.easyelectronics.ru/part/gsm-gprs-modul-sim900-chast-vtoraya.html
@@ -312,9 +317,9 @@ if (gmode == 1) m->mode = 1; // set phoenix mode
      gmodem_clip_on(m);
      gmodem_At(m,"+creg=2"); // register & report of changes
      }
-
+#ifdef PHOENIX
 if (gmode == 1) gmodem_atr(m); // call ATR
-
+#endif
     int i; for(i=optind;i<argc;i++) { // process all commands one-by one
         char *cmd = argv[i];
         //if (! no_init) gmodem_echo_off(m);

@@ -13,7 +13,7 @@ int toActive =  40; // max conversation
 
 
 
-int lcmp(uchar **str,uchar *cmp); //@strutil.c
+//int lcmp(uchar **str,uchar *cmp); //@strutil.c
 
 //extern int incall; // temporary garbage - voice calls debug
 
