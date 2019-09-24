@@ -119,6 +119,18 @@ SocketPrintHttp(sock,req,"{res:%d,out:'%s'}",ok,g->out); // Flash Results as htt
 return 1; // OK - generated
 }
 
+
+int onHttp1234(Socket *sock,vssHttp *req, SocketMap *map) { // call at command and send back results
+char buf[1024]; gmodem *g = G;
+//httpSrv *srv = (void*)sock->pool;
+ sprintf(buf,"%*.*s", VSS(req->B));  //VSS(req->args)); // arguments = atCommand
+printf("HERE 1234 command <%s>\n",buf);
+  int ok = gmodem_cmd(g,buf);
+SocketPrintHttp(sock,req,"{res:%d,out:'%s'}",ok,g->out); // Flash Results as http
+return 1; // OK - generated
+}
+
+
 int port=80; int logLevel=3;
  int keepAlive=0;
 char *rootDir = "./";
@@ -157,6 +169,8 @@ httpSrvAddFS(srv,"/",rootDir,0); // Adding some FS mappings
 httpSrvAddMap(srv, strNew("/.stat",-1), onHttpStat, 0);
 httpSrvAddMap(srv, strNew("/.at",-1), onHttpCmd, 0);
 httpSrvAddMap(srv, strNew("/.audio",-1), onHttpAudio, 0);
+httpSrvAddMap(srv, strNew("/1234",-1), onHttp1234, 0);
+
 
 if (httpSrvListen(srv,port)<=0) { // Starts listen port
    Logf("-FAIL start listener on port %d\n",port);
