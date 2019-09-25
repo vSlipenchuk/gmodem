@@ -13,7 +13,7 @@ return g->res; // anyway ^)
 
 int gmodem_neoway_getip(gmodem *g,char ip[16]) {
 char ips[200],*c=ips;
-ips[200]=0;
+ips[0]=0;
     gmodem_At2bufFilter(g,"+XIIC?","+XIIC:",ips,sizeof(ips));
 if (atoi(c) ==  1) { // Have IP address
   //printf("C1=%s\n",c);
@@ -27,11 +27,12 @@ return gmodem_errorf(g,-2,"no IP yet");
 }
 
 int gmodem_neoway_ip_status(gmodem *g) { // IPSTATUS does not answer with OK
-char buf[200];
+//char buf[200];
 int on_line(char *handle,char *line) {
  // g->res = -2;
   if (strstr(line,"DISCONNECT")) g->res=-2;
    else if (strstr(line,"CONNECT")) g->res=1;
+   return 0;
  }
 gmodem_At2Lines(g,"+IPSTATUS=0","+IPSTATUS:",on_line,0);
  /*
@@ -55,7 +56,7 @@ snprintf(cmd,sizeof(cmd),"+dns=\"%s\"",host);
 // ok - wait for DNS now...
 //printf("Now - wait for numbers\n");
 int do_recv(void *h,char *line, int len ) {
-char *c = line; int pos;
+char *c = line;// int pos;
 //printf("Here Number line <%s>\n",c);
 if (lcmp(&c,"+DNS:")) { // found DNS now
     if (addr[0]==0) { strNcpy(addr,c); } // copy first addr
@@ -251,6 +252,7 @@ memset(buf,0,sizeof(buf));
 int on_data(void *handle,char *line, int len) {
   if (len>=sizeof(buf)-sz) len=sizeof(buf)-sz;
   memcpy(buf+sz,line,len); sz+=len;
+  return 0;
   }
 int ok = gmodem_neoway_wget_data(g,url,on_data,0);
 if (ok<=0) return ok;

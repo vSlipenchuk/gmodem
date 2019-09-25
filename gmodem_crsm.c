@@ -24,7 +24,7 @@ int gmodem_crsm_cnum_get(gmodem *g) {
 int sz = 128; // normally 24,26,28 bytes ?
 int ok = _gmodem_crsm(g,READ_RECORD,EF_MSISDN,1,4,128,0); // try read more
 if (ok==0x9000) {
-   if (g->logLevel>2) printf("CRSM: %04x %s LEN:%d OUT='%s'\n",ok,g->out,strlen(g->out),g->out);
+   if (g->logLevel>2) printf("CRSM: %04x %s LEN:%d OUT='%s'\n",ok,g->out,(int)strlen(g->out),g->out);
    sz = strlen(g->out)/2;
    } else {
    sprintf(g->out,"invalid GSRM RESP %04x, EXPECT 9000 READ_RECORD EF_MSISDN",ok);

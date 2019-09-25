@@ -218,9 +218,9 @@ int gmodem_creg(gmodem *g); // update register state
 
 // other
 int gmodem_sim800(gmodem *g,char *cmd) ;
-int gmodem_http(gmodem *g,uchar *par);
-int gmodem_ota(gmodem *g,uchar *sms);
-int gmodem_im(gmodem *g,uchar *cmd);
+int gmodem_http(gmodem *g,char *par);
+int gmodem_ota(gmodem *g,char *sms);
+int gmodem_im(gmodem *g,char *cmd);
 int gmodem_answer(gmodem *g);
 
 char *gmodem_par(char **cmd,int skip);

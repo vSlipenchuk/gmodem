@@ -463,7 +463,7 @@ return gmodem_SendTextSms(g,phone,sms,0); // default VP
 
 
 
-int gmodem_ota(gmodem *g,uchar *sms) {
+int gmodem_ota(gmodem *g,char *sms) {
 //sms = trim(sms);
 uchar *phone=get_word((void*)(&sms));
 if (!phone[0]) {
@@ -483,7 +483,7 @@ return gmodem_SendOtaSms(g,phone,data,bl,0);
 //#include "../smppTest/im.c" ZU
 
 
-int gmodem_im(gmodem *g,uchar *cmd) {
+int gmodem_im(gmodem *g,char *cmd) {
 if (lcmp(&cmd,"init")) {
   uchar *phone=get_word(&cmd);
   uchar *key = get_word(&cmd);

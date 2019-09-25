@@ -251,7 +251,7 @@ void on_ctrl_c(int sig){ // can be called asynchronously
 
 void gmodem_prn_status(gmodem *m,char *cmd,int res) {
 int i; char *errdsc=""; char *out=m->out;
-int color=(res>0)?gmodem_color_ok:gmodem_color_err;
+char * color=(res>0)?gmodem_color_ok:gmodem_color_err;
 if (res<0) {
   int code = 0;
   char *p = strstr(out,"CME ERROR:"); if (p && sscanf(p+10,"%d",&code)>0) errdsc=cme_code_desc(code);

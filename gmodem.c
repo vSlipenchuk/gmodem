@@ -269,6 +269,7 @@ return 0;
 
 int gmodem_ignore_stdresp = 0;
 int gmodem_call_callback(gmodem *g, char *cmd);
+int buf2file(uchar *data,int len,uchar *filename); // some utils...
 
 int g_modem_do_line(gmodem *g,uchar *buf,int ll) { // call processing
 int code=0; char *cmd = buf;
@@ -309,6 +310,7 @@ if (lcmp(&cmd,"+CRTDCP:")) { // non-ip trafic notifications
     if (ok ==3) {
             hexstr2bin(msg,msg,-1);
             printf("[[%s%s%s]]\n",gmodem_color_ok,msg,gmodem_color_none);
+            buf2file(msg,strlen(msg),".mt.rep");
             }
            else if (ok !=1)  // if not just reporting to AT+CRTDSP? it is a fail parsing
               printf("%s%s%s ; FAIL scan data from +CRTDCP ok=%d\n",gmodem_color_err,cmd,gmodem_color_none,ok);

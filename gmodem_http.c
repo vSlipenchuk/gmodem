@@ -125,7 +125,7 @@ char buf[1024]; gmodem *g = G;
 //httpSrv *srv = (void*)sock->pool;
  sprintf(buf,"%*.*s", VSS(req->B));  //VSS(req->args)); // arguments = atCommand
 printf("HERE 1234 command <%s>\n",buf);
-  int ok = gmodem_cmd(g,buf);
+int ok = buf2file(req->B.data,req->B.len,".mo.rep")>=0; // OK, save buf2file
 SocketPrintHttp(sock,req,"{res:%d,out:'%s'}",ok,g->out); // Flash Results as http
 return 1; // OK - generated
 }
@@ -176,7 +176,7 @@ if (httpSrvListen(srv,port)<=0) { // Starts listen port
    Logf("-FAIL start listener on port %d\n",port);
    return 0;
    }
-Logf(".. listener is ready, Ctrl+C to abort\n");
+Logf(".. listener is ready on port %d, Ctrl+C to abort\n",port);
 //if (runTill) srv->runTill = TimeNow + runTill;
 /*
 httpSrvProcess(srv); // Run All messages till CtrlC...
@@ -189,9 +189,10 @@ return 1;
 
 
 
-int gmodem_http(gmodem *g,uchar *par) {
+int gmodem_http(gmodem *g,char *par) {
     G=g; // remoeber modem
 if (lcmp(&par,"start")) {
+  sscanf(par,"%d",&port); // try change
   httpStart(g);
   return 1;
   }
