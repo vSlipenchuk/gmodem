@@ -11,9 +11,11 @@
 #include "../vos/exe.c"
 #include "../vos/sock.c"
 #include "../vos/httpSrv.c"
+#include "wsSrv.h"
 //#include "vos.c"
 #include "../vos/vs0.c"
 #include "../vos/vss.c"
+
 
 /*
 
@@ -57,7 +59,7 @@ char h[44];
 SocketSend(sock,"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nConnection: close\r\n\r\n",-1);
 #ifdef P_AUDIO
  write_wav_header(h,100*1024*1024); // set 100Mb file by default
-#endif P_AUDIO
+#endif //P_AUDIO
  SocketSend(sock,h,44); // Send a header
 //SocketSendNow(sock,0,0);
 printf("AudoSocket opened\n");
@@ -136,32 +138,65 @@ int port=80; int logLevel=3;
 char *rootDir = "./";
 char *mimes=".htm,.html=text/html&.js=text/javascript";
 httpSrv *srv;
+wsSrv *ws; // webSocket Server
 
 int gmodem_onidle(gmodem *g) { //
 if (!srv) return 0;
   int cnt = SocketPoolRun(&srv->srv);
+      cnt+=wsSrvStep(ws); // run web sockets
   //printf("CNT=%d\n",cnt);
   return cnt;
 
 }
 
+int gmodem_broadcast(gmodem *g,char *msg) {
+if (ws) wsBroadcast((void*)ws,msg,-1);
+return 1;
+}
+
+
+
+int onWebMessage(Socket *sock,char *data,int len) {
+char buf[512];
+sprintf(buf,"%s#%d: %s",sock->szip,sock->N,data); // echo it back
+//wsPutStr(sock,buf,-1);
+wsBroadcast((void*)sock->pool,buf,-1);
+return 1;
+}
+
+int onWebSock(Socket *sock, vssHttp *req, SocketMap *map) {
+//char buf[1024];
+httpSrv *srv = (void*)sock->pool;
+strSetLength(&srv->buf,0); // ClearResulted
+wsSrvUpgrade(ws,sock,req); // send upgrade request
+wsPutStr(sock,"Hello new Websocket client!",-1);
+return 1; // OK - generated
+}
+
+
+
 int httpStart(gmodem *g) {
 int Limit=1000000;
-  printf("create0\n");
+  //printf("create0\n");
 net_init();
 TimeUpdate();
- printf("create1\n");
+
+ws = wsSrvCreate();
+ws->onMessage = (void*)onWebMessage;
+ //printf("create1\n");
 srv = httpSrvCreate(0); // New Instance, no ini
 //srv->log =  srv->srv.log = logOpen("microHttp.log"); // Create a logger
 srv->logLevel = srv->srv.logLevel = g->logLevel;
+
+//srv->logLevel = 10;
 //srv->keepAlive=keepAlive;
 //srv->readLimit.Limit = Limit;
-  printf("create2\n");
+  //printf("create2\n");
 IFLOG(srv,0,"...starting microHttp {port:%d,logLevel:%d,rootDir:'%s',keepAlive:%d,Limit:%d},\n   mimes:'%s'\n",
   port,logLevel,rootDir,keepAlive,Limit,
   mimes);
 //printf("...Creating a http server\n");
-srv->defmime= vssCreate("text/plain;charset=windows-1251",-1);
+srv->defmime= vssCreate("text/plain;charset=utf8",-1);
 httpSrvAddMimes(srv,mimes);
 //httpMime *m = httpSrvGetMime(srv,vssCreate("1.HHtm",-1));printf("Mime here %*.*s\n",VSS(m->mime));
 //httpSrvAddFS(srv,"/c/","c:/",0); // Adding some FS mappings
@@ -170,6 +205,7 @@ httpSrvAddMap(srv, strNew("/.stat",-1), onHttpStat, 0);
 httpSrvAddMap(srv, strNew("/.at",-1), onHttpCmd, 0);
 httpSrvAddMap(srv, strNew("/.audio",-1), onHttpAudio, 0);
 httpSrvAddMap(srv, strNew("/1234",-1), onHttp1234, 0);
+httpSrvAddMap(srv, strNew("/.chat",-1), onWebSock, 0);
 
 
 if (httpSrvListen(srv,port)<=0) { // Starts listen port
@@ -193,8 +229,8 @@ int gmodem_http(gmodem *g,char *par) {
     G=g; // remoeber modem
 if (lcmp(&par,"start")) {
   sscanf(par,"%d",&port); // try change
-  httpStart(g);
-  return 1;
+  if (httpStart(g)<=0) return gmodem_errorf(g,-2,"fail start http on port %d",port);
+  return  gmodem_errorf(g,1,"http.started on port %d",port);
   }
 if (lcmp(&par,"stop")) {
 

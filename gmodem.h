@@ -253,7 +253,10 @@ char *cms_code_desc(int code);
 
 int gmodem_scan2(unsigned char *str,char *fmt, ... );
 
+int gmodem_wait_ok(gmodem *g,int sec);
 
+
+int gmodem_broadcast(gmodem *g,char *msg); // broadcast to websockets streams
 
 
 #endif // GMODEM_H_INCLUDED

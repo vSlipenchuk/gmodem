@@ -329,6 +329,9 @@ if (lcmp(&c,"sim800")) {
    if (c[0]=='.') c++;
    return gmodem_sim800(m,c);
    }
+if (lcmp(&c,"simIot")) {
+   return gmodem_sim_iot(m,c);
+   }
 
 if (lcmp(&c,"http"))    return gmodem_http(m,c);
 if (lcmp(&c,"balance")) return gmodem_balance(m);
@@ -386,6 +389,7 @@ if (lcmp(&c,"3g2g")) return gmodem_At(m,"^SYSCFG=2,2,3FFFFFFF,2,4"); // huawei 3
 if (lcmp(&c,"no-cd")) return gmodem_At(m,"^SETPORT=\"A1,A2;1,2,3\""); // e171 mode
 
 if (lcmp(&c,"hi")) return gmodem_hi2115_cmd(m,c); // hi_silicon
+if (lcmp(&c,"all")) return gmodem_broadcast(m,c);
 
 
 

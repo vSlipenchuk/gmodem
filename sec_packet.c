@@ -39,7 +39,7 @@ DES_cblock cblock; //' = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
    }
 
 //memset(cblock,0,sizeof(DES_cblock));
-printf("sizeof cblock=%d\n",sizeof(cblock));
+//printf("sizeof cblock=%d\n",sizeof(cblock));
 memcpy(&cblock,ival,8); // init it
 //DES_set_odd_parity(&cblock);
 //int h = DES_cbc_cksum(src, (void*)key, len, &ks1, &cblock );
@@ -264,7 +264,7 @@ memset(cblock,0,sizeof(DES_cblock));
       return 1;
    }
 
-int i;
+//int i;
    //for(i=0;i<sz;i+=8)
    DES_ede3_cbc_encrypt((const unsigned char*)string,
                          (unsigned char*)cipher,

@@ -29,6 +29,7 @@ int gets_buf2(char *buf,int sz) { return gets(buf); }
 //#include "../vos/httpSrv.c"
 
 #include <string.h>
+#include "wsSrv.c"
 
 
 

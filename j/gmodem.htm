@@ -20,14 +20,57 @@ s.innerHTML=s.innerHTML+'<br>>>'+c+'<br>'+out;
 document.getElementById("inp").value=""
 }
 
+
+            var webSocket = new WebSocket('ws://localhost/.chat');
+
+            webSocket.onopen = function(event) {
+                console.log('onopen');
+                webSocket.send("i am novichok!");
+            };
+
+            webSocket.onmessage = function(event) {
+                doLog('onmessage: ' + event.data);
+            };
+
+            webSocket.onclose = function(event) {
+                doLog('onclose: connecton closed');
+            };
+	    
+	    webSocket.onerror = function(error) {
+  alert("Ошибка " + error.message);
+};
+
+function doSend() {
+var t =document.getElementById('send').value;
+webSocket.send(t);
+}
+
+function doLog(t) {
+//var t =document.getElementById('log').value;
+document.getElementById('log').value = document.getElementById('log').value + t+'\n';
+}
+	    
+
+
 </script>
 
 <h2>gmodem html console</h2>
 
 <audio src="/.audio" preload=none controls type="audio/wav" autoplay="autoplay"></audio>
+<h1> test websocket</h1>
+<textarea id=log cols=80 rows=10>
+</textarea>
+<textarea id=send>
+</textarea>
+<button onclick="doSend()">Send WS</button>
+<br>
 
+
+
+
+
+<h1>At Commands (REST)</h1>
 <div id=screen width=100% height=200px>
-
 </div>
 
 <input style="width:100%" id="inp" onkeydown="if (event.keyCode == 13) { sendcmd(); return false; }" ></input>

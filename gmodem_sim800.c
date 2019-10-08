@@ -91,7 +91,7 @@ if (gmodem_sim800_getip(g,ip)>0) {
    gmodem_logf(g,3,"sim800.wget: modem has IP address: %s",ip);
    } else {
    char *apn = gmodem_get_default_apn(g);
-   if (gmodem_sim800_ip_attach(g,apn )<=0) return 0;
+   if (gmodem_sim800_ip_attach(g,apn )<=0) return -1;
    }
 //char buf[300]; int len=sizeof(buf);
 gmodem_logf(g,3,"sim800.wget ready for http");

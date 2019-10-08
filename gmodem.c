@@ -274,6 +274,9 @@ int buf2file(uchar *data,int len,uchar *filename); // some utils...
 int g_modem_do_line(gmodem *g,uchar *buf,int ll) { // call processing
 int code=0; char *cmd = buf;
 if (g->logLevel>2 && buf[0]) printf(">>%s %s%s\n",gmodem_color_in,buf,gmodem_color_none); // gmodem_recv
+
+gmodem_broadcast(g,buf) ; // Broadcast ALL websockets
+
 code = gmodem_spam_callback(g,buf);
 if (code) {
    if (g->logLevel>10) printf("<%s>\n",buf);
@@ -314,6 +317,18 @@ if (lcmp(&cmd,"+CRTDCP:")) { // non-ip trafic notifications
             }
            else if (ok !=1)  // if not just reporting to AT+CRTDSP? it is a fail parsing
               printf("%s%s%s ; FAIL scan data from +CRTDCP ok=%d\n",gmodem_color_err,cmd,gmodem_color_none,ok);
+  }
+if (lcmp(&cmd,"+CSONMI:")) { // simcom sim7020E udp incomnng notifications
+  char msg[256];
+  int ok,pdp,len;
+    ok = gmodem_scan2(cmd,"%u,%u,%S",&pdp,&len,msg);
+    if (ok ==3) {
+            hexstr2bin(msg,msg,-1);
+            printf("[[%s%s%s]]\n",gmodem_color_ok,msg,gmodem_color_none);
+            buf2file(msg,strlen(msg),".mt.udp");
+            }
+           else if (ok !=1)  // if not just reporting to AT+CRTDSP? it is a fail parsing
+              printf("%s%s%s ; FAIL scan data from +CSONMI ok=%d\n",gmodem_color_err,cmd,gmodem_color_none,ok);
   }
 // status codes - changes flow
 char *szCode[]={"OK","CONNECT","ERROR","COMMAND NOT SUPPORT","+CME ERROR","+CMS ERROR",
@@ -934,6 +949,21 @@ if ( (c1 == 1) || (c1 == 2) ) { // has register code
   if (c2 == 2) return gmodem_errorf(g,-1,"searching");
   }
 return gmodem_errorf(g,-1,"creg unknown status %d,%d",c1,c2);
+}
+
+int gmodem_wait_ok(gmodem *g,int sec) {
+int ms = 0; int rep =0;
+//g->logLevel=10;
+g->res=0; sec=sec*10; // in msec
+while(sec>0 && g->res==0) {
+  if (ms>2000 && g->logLevel>=2 && rep==0) { fprintf(stderr,"[wait 'AT' responce %d sec more...]",sec/10); rep=1;}
+  //printf("req=%d\n",g->res);
+  gmodem_put(g,"AT",2); gmodem_put(g,gmodem_crlf(g),-1);
+  gmodem_run2(g);
+  msleep(100); sec--; ms+=100;
+  }
+if (rep) fprintf(stderr,"[AT resp=%d in %d sec]\n",g->res,ms/1000);
+return g->res>0;
 }
 
 

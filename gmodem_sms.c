@@ -186,7 +186,7 @@ int gmodem_sms_enum(gmodem *g,int (*callback)(), void *handle) {
  t_sms sm;
  int sms_slot=-1;// no slot ready
 if (!callback) callback=_gmodem_sms_print_ls; // dafault->print
-int on_sms(gmodem *g,uchar *line, int len, int code ) { // called on each SMS
+int on_sms(gmodem *g,char *line, int len, int code ) { // called on each SMS
    gmodem_logf(g,5,"ON_SMS_LIST:<%*.*s>",len,len,line);
    if (sms_slot>=0) {
        //       sms_dump(line,len,flSmsc | flText);

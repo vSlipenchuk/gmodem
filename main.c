@@ -246,6 +246,9 @@ voice_stream VS;
 //volatile sig_atomic_t flag = 0;
 void on_ctrl_c(int sig){ // can be called asynchronously
   aborted = 1; // set flag
+  set_echo(1);
+//  m->aborted=1;
+exit(1);
 }
 
 
@@ -311,6 +314,10 @@ if (m->logLevel>0) fprintf(stderr,"+gmodem.opened %s:%d ok\n",szmodem,gmodem_por
 if (gmode == 1) m->mode = 1; // set phoenix mode
     if (! no_init) {
      gmodem_clear(m,1000);
+     if ( gmodem_wait_ok(m,10) <=0) { // no OK answer?
+        fprintf(stderr,"ABORT: modem not responds on AT commands.\n");
+        return 1;
+        }
      gmodem_echo_off(m);
      //  printf("Begin info\n");
      gmodem_info(m);
