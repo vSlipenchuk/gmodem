@@ -960,7 +960,7 @@ while(sec>0 && g->res==0) {
   //printf("req=%d\n",g->res);
   gmodem_put(g,"AT",2); gmodem_put(g,gmodem_crlf(g),-1);
   gmodem_run2(g);
-  msleep(100); sec--; ms+=100;
+  msleep(1000); sec--; ms+=1000;
   }
 if (rep) fprintf(stderr,"[AT resp=%d in %d sec]\n",g->res,ms/1000);
 return g->res>0;
