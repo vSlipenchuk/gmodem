@@ -93,3 +93,12 @@ return 1; // OK
 #endif
 
 //#include "../vos/vos.c" // os spec. code here
+
+#ifdef VOS_SSL
+#include <openssl/sha.h>
+#include "ssl_sock.c"
+#else
+#include "sha1/sha1.c" // in vos/sha1
+#endif
+
+

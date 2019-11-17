@@ -466,6 +466,7 @@ if (len<0) len=strlen(out);
  if (g->logLevel>10) hexdump("serial_write",out,len);
 int r = s->p->write(s->handle,out,len);
 if (r<=0) { g->f.eof=1; return 0; } ; //error!
+_gmodem_broadcast_len(g,out,len);
 //printf("PUT:{%d}",r);
 return 1;
 }

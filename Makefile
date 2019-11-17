@@ -33,4 +33,5 @@ test_on__mt:
 	./gmodem -D /dev/ttyUSB0 "http start" "sms on_mt ./on_sms"
 	
 apt:
-	apt install libreadline-dev libssl-dev
+	apt install libreadline-dev libssl-dev ncurses-dev
+	

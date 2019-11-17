@@ -29,7 +29,7 @@ document.getElementById("inp").value=""
             };
 
             webSocket.onmessage = function(event) {
-                doLog('onmessage: ' + event.data);
+                doLog('>'+event.data);
             };
 
             webSocket.onclose = function(event) {
@@ -40,6 +40,9 @@ document.getElementById("inp").value=""
   alert("Ошибка " + error.message);
 };
 
+function doSendCmd(cmd) {
+webSocket.send(cmd);
+}
 function doSend() {
 var t =document.getElementById('send').value;
 webSocket.send(t);
@@ -54,23 +57,31 @@ document.getElementById('log').value = document.getElementById('log').value + t+
 
 </script>
 
-<h2>gmodem html console</h2>
-
+<h1>Gmodem  console</h1>
+<!--
 <audio src="/.audio" preload=none controls type="audio/wav" autoplay="autoplay"></audio>
-<h1> test websocket</h1>
-<textarea id=log cols=80 rows=10>
+-->
+<h2> WebSocket Log console</h2>
+<textarea id=log cols=80 style='width:100%'>
 </textarea>
-<textarea id=send>
-</textarea>
+<br>
+<input id=send value="at+cimi" onkeydown="if (event.keyCode == 13) { doSend();  return false; }" hint="press enter to send a command"></input>
 <button onclick="doSend()">Send WS</button>
+<button onclick="doSendCmd('at+cimi')">ShowImsi</button>
+<button onclick="doSendCmd('at+cgdcont?')">ShowAPN</button>
+<br>
+<button onclick="doSendCmd('at+cgatt=1')">AttachPDP</button>
+<button onclick="doSendCmd('at+cgatt=0')">DetachPDP</button>
+<button onclick="doSendCmd('at+cgatt?')">ShowPDP</button>
+<br>
+<button onclick="doSendCmd('com hi nb.init m2m.nidd')">nonip-init</button>
+<button onclick="doSendCmd('com hi nb.send hello')">nonip-sendhello</button>
 <br>
 
 
 
-
-
-<h1>At Commands (REST)</h1>
-<div id=screen width=100% height=200px>
+<h2>At Commands (REST)</h2>
+<div id=screen style='width:100%' height=200px>
 </div>
 
 <input style="width:100%" id="inp" onkeydown="if (event.keyCode == 13) { sendcmd(); return false; }" ></input>

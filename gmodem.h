@@ -7,9 +7,10 @@
 #include "gsm_sim.h"
 
 
-#define gmodem_version 0,0,1,2
+#define gmodem_version 0,0,1,3
 
 
+// 0.0.1.3 - added @run_scripts && http start [port] [auth] [allowIP]
 // 0.0.1.2 - on_in_call & on_in_sms command line options
 // 0.0.1.1 - fixed some pointer warinings for x64 (i.e. errors)
 
@@ -255,7 +256,7 @@ int gmodem_scan2(unsigned char *str,char *fmt, ... );
 
 int gmodem_wait_ok(gmodem *g,int sec);
 
-
+int _gmodem_broadcast_len(gmodem *g,char *msg,int len);
 int gmodem_broadcast(gmodem *g,char *msg); // broadcast to websockets streams
 
 

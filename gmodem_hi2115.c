@@ -20,10 +20,14 @@ if (lcmp(&cmd,"nb.init")) {
   //gmodem_Atf(g,"+CMEE=1");
   int ok = gmodem_Atf(g,"+CIMI")>0 &&  gmodem_Atf(g,"+CMEE=1")>0 && gmodem_Atf(g,"+CGDCONT=0,\"NONIP\",\"%s\"",cmd) &&
    gmodem_Atf(g,"+CFUN=1")>0 &&  // ON RADIO
-   gmodem_cgatt(g) >0 &&
    //gmodem_Atf(g,"+CGATT=1")>0 && gmodem_Atf(g,"+CGATT?")>0 &&  // Attach to PDP, cgatt MUST return 1
    gmodem_Atf(g,"+CGDCONT?")>0 &&  // get APN
-   gmodem_Atf(g,"+CRTDCP=1")>0; // allow receive: +CRTDCP:<cid>,<cpdata_length>,<cpdata>"
+   gmodem_Atf(g,"+cereg=2")>0 && // eps reg notifications
+   gmodem_Atf(g,"+cscon=1")>0 && // connection notifications
+   gmodem_Atf(g,"+NPTWEDRXS=3")>0 && // disable DRX
+   gmodem_Atf(g,"+CPSMS=0")>0 && // disable PSM
+   gmodem_Atf(g,"+CRTDCP=1")>0 && // allow receive: +CRTDCP:<cid>,<cpdata_length>,<cpdata>"
+    gmodem_cgatt(g) >0;
   g->logLevel = prev_log;
   return ok?1:-1;
    }

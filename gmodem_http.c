@@ -149,30 +149,44 @@ if (!srv) return 0;
 
 }
 
-int gmodem_broadcast(gmodem *g,char *msg) {
-if (ws) wsBroadcast((void*)ws,msg,-1);
+int _gmodem_broadcast_len(gmodem *g,char *m,int len) {
+unsigned char *msg = (unsigned char *)m;
+if (len<0) len=strlen((char*)msg);
+while(len>0 && *msg<=32) { msg++; len--;}
+while(len>0 &&  msg[len-1]<=32) len--; //rtrim
+if (ws && len>0) wsBroadcast((void*)ws,msg,len);
 return 1;
 }
+
+int gmodem_broadcast(gmodem *g,char *msg) { return _gmodem_broadcast_len(g,msg,-1);}
 
 
 
 int onWebMessage(Socket *sock,char *data,int len) {
 char buf[512];
+
 sprintf(buf,"%s#%d: %s",sock->szip,sock->N,data); // echo it back
-//wsPutStr(sock,buf,-1);
-wsBroadcast((void*)sock->pool,buf,-1);
+if (G) if ( (memcmp(data,"at",2)==0) || lcmp(&data,"com")) {
+ int code = gmodem_cmd(G,data);
+ snprintf(buf,sizeof(buf),"result:%d",code);
+ wsPutStr(sock,buf,-1);
+}
+//wsBroadcast((void*)sock->pool,buf,-1);
 return 1;
 }
 
 int onWebSock(Socket *sock, vssHttp *req, SocketMap *map) {
+//return 1;
 //char buf[1024];
 httpSrv *srv = (void*)sock->pool;
 strSetLength(&srv->buf,0); // ClearResulted
 wsSrvUpgrade(ws,sock,req); // send upgrade request
-wsPutStr(sock,"Hello new Websocket client!",-1);
+wsPutStr(sock,"+Hello new gmodem client!",-1);
 return 1; // OK - generated
 }
 
+char basicUserPass[200],allowIP[200];
+httpAuth gmodemAuth={.realm="Gmodem",.basicUserPass=basicUserPass,.allowIP=allowIP};
 
 
 int httpStart(gmodem *g) {
@@ -200,6 +214,7 @@ srv->defmime= vssCreate("text/plain;charset=utf8",-1);
 httpSrvAddMimes(srv,mimes);
 //httpMime *m = httpSrvGetMime(srv,vssCreate("1.HHtm",-1));printf("Mime here %*.*s\n",VSS(m->mime));
 //httpSrvAddFS(srv,"/c/","c:/",0); // Adding some FS mappings
+if (basicUserPass[0]) srv->defauth = &gmodemAuth; // if defined user-pass
 httpSrvAddFS(srv,"/",rootDir,0); // Adding some FS mappings
 httpSrvAddMap(srv, strNew("/.stat",-1), onHttpStat, 0);
 httpSrvAddMap(srv, strNew("/.at",-1), onHttpCmd, 0);
@@ -228,9 +243,11 @@ return 1;
 int gmodem_http(gmodem *g,char *par) {
     G=g; // remoeber modem
 if (lcmp(&par,"start")) {
-  sscanf(par,"%d",&port); // try change
+  sscanf(get_word(&par),"%d",&port); // try change
+  if (par[0]) strNcpy(basicUserPass,get_word(&par));
+  if (par[0]) strNcpy(allowIP,get_word(&par));
   if (httpStart(g)<=0) return gmodem_errorf(g,-2,"fail start http on port %d",port);
-  return  gmodem_errorf(g,1,"http.started on port %d",port);
+  return  gmodem_errorf(g,1,"http_started:{port:%d,basicUserPass:'%s',allowIP:'%s'}",port,basicUserPass,allowIP);
   }
 if (lcmp(&par,"stop")) {
 

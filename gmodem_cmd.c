@@ -290,10 +290,14 @@ return gmodem_Atf(g,"+CSCA=\"%s\",%d",num,code);
 //AT+CRSM=220,28480,1,4,26,FFFFFFFFFFFFFFFFFFFFFF07819861206687F8FFFFFFFFFFFFFF
 
 int gmodem_cmd_file(gmodem *m,char *file) {
-/*
 char *txt = strLoad(file);
+if (!txt) { // try from a script dir
+   char buf[1000];
+   snprintf(buf,sizeof(buf),"./.gmodem/%s",file);
+   txt = strLoad(buf);
+   }
+if (!txt) return gmodem_errorf(m,-2,"file '%s' not found",file);
 gmodem_logf(m,2,"process file: %s",file);
-if (!txt) return gmodem_errorf(m,-2,"file %s not found",file);
 char *b = txt, *e;
 while( ! m->f.eof ) { // while we can ...
   e  = strchr(b,'\n');
@@ -304,7 +308,6 @@ while( ! m->f.eof ) { // while we can ...
   }
 strClear(&txt); // free text
 return 1; // OK
-*/
 }
 
 
