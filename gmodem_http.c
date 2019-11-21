@@ -181,7 +181,7 @@ int onWebSock(Socket *sock, vssHttp *req, SocketMap *map) {
 httpSrv *srv = (void*)sock->pool;
 strSetLength(&srv->buf,0); // ClearResulted
 wsSrvUpgrade(ws,sock,req); // send upgrade request
-wsPutStr(sock,"+Hello new gmodem client!",-1);
+//wsPutStr(sock,"+Hello new gmodem client!",-1);
 return 1; // OK - generated
 }
 
