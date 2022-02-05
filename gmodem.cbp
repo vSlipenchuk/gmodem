@@ -65,6 +65,9 @@
 		<Unit filename="gmodem_crsm.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="gmodem_csim.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="gmodem_device.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -114,9 +117,6 @@
 		<Unit filename="voice_stream.h" />
 		<Unit filename="vstrutil.h" />
 		<Extensions>
-			<envvars />
-			<code_completion />
-			<debugger />
 			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>

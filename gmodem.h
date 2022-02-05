@@ -7,9 +7,9 @@
 #include "gsm_sim.h"
 
 
-#define gmodem_version 0,0,1,3
+#define gmodem_version 0,0,1,4
 
-
+// 0.0.1.4 - csim2vicc connector (gmodem_csim.c) added, 5feb22
 // 0.0.1.3 - added @run_scripts && http start [port] [auth] [allowIP]
 // 0.0.1.2 - on_in_call & on_in_sms command line options
 // 0.0.1.1 - fixed some pointer warinings for x64 (i.e. errors)
@@ -54,7 +54,7 @@ enum { // command result codes
     g_no_dial_tone = -5,
    };
 
-#define GMODEM_READ_BUF 512
+#define GMODEM_READ_BUF 2048
 
 enum { // call states
     callNone, // no call, cleared
@@ -200,7 +200,8 @@ int gmodem_crsm_cnum_set(gmodem *g,char *num);
 int gmodem_crsm_iccid(gmodem *g); // on ok - result in g->out
 
 // CSIM & APDU
-int gmodem_apdu_cmd(gmodem *g, char *cmd);
+int gmodem_apdu_cmd(gmodem *g, char *cmd); // phoenix mode
+int gmodem_csim_cmd(gmodem *g, char *cmd); // modem at+cmd mode
 
 // Phoenix commands
 

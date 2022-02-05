@@ -365,11 +365,15 @@ if (lcmp(&c,"dtmf")) return gmodem_dtmf(m,c);
 if (lcmp(&c,"creg")) return gmodem_creg(m);
 if (lcmp(&c,"reg")) return gmodem_creg(m);
 
+
+
 //if (lcmp(&c,"gprs")) return gmodem_gprs(m,c);
 
 // APDU
 #ifdef PHOENIX
 if (lcmp(&c,"apdu")) return gmodem_apdu_cmd(m,c);
+#else
+if (lcmp(&c,"csim")||lcmp(&c,"apdu")) return gmodem_csim_cmd(m,c);
 #endif
 
 // phonebook

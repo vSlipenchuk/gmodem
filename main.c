@@ -354,6 +354,7 @@ if (m->logLevel>0)
            fprintf(stderr,"gmodem EOF reported, Abort.\n");
            break;
           }
+           gmodem_pcsc_run() ; // zu - temp
        cnt= gmodem_run2(m); // And - check time-outs
        //printf("gmodem_run2=%d\n",cnt);
        if (on_in_sms[0] && (m->cmt>0) ) { // check do we have new sms and proceess ZUZULKA

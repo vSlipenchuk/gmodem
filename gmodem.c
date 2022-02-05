@@ -400,7 +400,7 @@ return 0; // not yet
 }
 
 
-int hexdump(char *msg,uchar *s,int len);
+//int hexdump(char *msg,uchar *s,int len);
 int gmodem_onidle(gmodem *g);
 
 int gmodem_run_do_lines(gmodem *g,int (*run_do_lines)()) {

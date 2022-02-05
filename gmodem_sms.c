@@ -108,7 +108,7 @@ default: // shpow max of fields
 }
 }
 
-int hexdump(char *msg,uchar *s,int len);
+//int hexdump(char *msg,uchar *s,int len);
 
 int sms_dump(uchar *bin,int len,int flags) {
 t_sms sms;
